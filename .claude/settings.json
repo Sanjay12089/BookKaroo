@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(dotnet:*)",
+      "Bash(git:*)",
+      "Bash(mkdir:*)",
+      "Bash(cd:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(supabase:*)",
+      "Edit",
+      "Write",
+      "Read"
+    ],
+    "deny": [
+      "Bash(rm -rf /:*)",
+      "Bash(curl * | sh:*)",
+      "Bash(* | bash:*)"
+    ]
+  },
+  "env": {
+    "PROJECT_NAME": "BookKaroo"
+  }
+}
