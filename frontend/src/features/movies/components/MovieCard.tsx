@@ -30,12 +30,21 @@ export function MovieCard({ movie, coming = false }: MovieCardProps) {
         )}
       >
         {posterUrl ? (
-          <img src={posterUrl} alt={movie.title} className="w-full h-full object-cover" loading="lazy" />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-bg-surface2 to-bg-surface3 flex items-center justify-center text-text-muted text-sm">
-            🎬
-          </div>
-        )}
+          <img
+            src={posterUrl} alt={movie.title}
+            className="w-full h-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              // Hide broken image, reveal the fallback beneath it
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        ) : null}
+        {/* Fallback always rendered behind the image */}
+        <div className="absolute inset-0 bg-gradient-to-br from-bg-surface2 to-bg-surface3 flex flex-col items-center justify-center gap-2 -z-10">
+          <span className="text-3xl">🎬</span>
+          <span className="text-[10px] text-text-muted text-center px-2 font-sans leading-snug">{movie.title}</span>
+        </div>
 
         {/* Rating badge */}
         {movie.imdbRating && (

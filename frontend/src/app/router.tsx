@@ -59,6 +59,7 @@ const AdminUsersPage     = lazy(() => import('@/features/admin/pages/AdminUsersP
 const AdminReportsPage   = lazy(() => import('@/features/admin/pages/AdminReportsPage'));
 const AdminCmsPage       = lazy(() => import('@/features/admin/pages/AdminCmsPage'));
 const AdminSettingsPage  = lazy(() => import('@/features/admin/pages/AdminSettingsPage'));
+const StaticPage         = lazy(() => import('@/features/static/pages/StaticPage'));
 
 // ── Guards ────────────────────────────────────────────────────────────────────
 function ProtectedRoute() {
@@ -120,6 +121,17 @@ export const router = createBrowserRouter([
       { path: '/admin/settings',  element: S(AdminSettingsPage) },
     ],
   },
+
+  // Static pages (About, T&C, Privacy, etc.)
+  { path: '/about',          element: S(StaticPage) },
+  { path: '/careers',        element: S(StaticPage) },
+  { path: '/list-your-show', element: S(StaticPage) },
+  { path: '/blog',           element: S(StaticPage) },
+  { path: '/terms',          element: S(StaticPage) },
+  { path: '/privacy',        element: S(StaticPage) },
+  { path: '/faq',            element: S(StaticPage) },
+  { path: '/sitemap',        element: S(StaticPage) },
+  { path: '/page/:slug',     element: S(StaticPage) },
 
   // Fallback
   { path: '*', element: <Navigate to="/" replace /> },

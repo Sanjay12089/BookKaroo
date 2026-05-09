@@ -1,5 +1,8 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Button } from '@/shared/components/ui/Button';
+import { Modal } from '@/shared/components/ui/Modal';
 
 const TEAMS = [
   { abbr: 'GT',  name: 'Gujarat Titans',         color: '#1B64A7', textColor: '#fff' },
@@ -39,6 +42,9 @@ function TeamBadge({ abbr, color, textColor }: { abbr: string; color: string; te
 }
 
 export default function IplPage() {
+  const navigate = useNavigate();
+  const [selectedMatch, setSelectedMatch] = useState<typeof MATCHES[0] | null>(null);
+
   return (
     <PublicLayout>
       {/* Hero */}
@@ -101,7 +107,10 @@ export default function IplPage() {
                     </div>
                     <TeamBadge abbr={m.team2} color={t2?.color ?? '#444'} textColor={t2?.textColor ?? '#fff'} />
                     <div className="hidden md:block">
-                      <Button size="sm" style={{ background: 'linear-gradient(135deg, #F5C56B, #D4A017)', color: '#1a0a05' }}>
+                      <Button
+                        size="sm"
+                        onClick={() => setSelectedMatch(m)}
+                        style={{ background: 'linear-gradient(135deg, #F5C56B, #D4A017)', color: '#1a0a05' }}>
                         Book →
                       </Button>
                     </div>
@@ -116,6 +125,38 @@ export default function IplPage() {
           </p>
         </section>
       </div>
+
+      {/* Match Booking Modal */}
+      <Modal
+        open={!!selectedMatch}
+        onClose={() => setSelectedMatch(null)}
+        title={selectedMatch ? `${selectedMatch.team1} vs ${selectedMatch.team2}` : ''}
+      >
+        {selectedMatch && (
+          <div className="space-y-4 font-sans">
+            <div className="p-4 rounded-xl bg-bg-surface2 border border-border-default space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-text-muted">Date</span><span className="text-text-primary font-medium">{selectedMatch.date}</span></div>
+              <div className="flex justify-between"><span className="text-text-muted">Time</span><span className="text-text-primary font-medium">{selectedMatch.time}</span></div>
+              <div className="flex justify-between"><span className="text-text-muted">Venue</span><span className="text-text-primary font-medium text-right max-w-[55%] leading-snug">{selectedMatch.venue}</span></div>
+            </div>
+            <p className="text-sm text-text-secondary leading-relaxed">
+              IPL seat booking is being set up. Matches will be available to book once added as Shows in the Admin panel.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { setSelectedMatch(null); navigate('/sports'); }}
+                className="flex-1 py-2.5 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold"
+              >
+                Browse Sports Events
+              </button>
+              <button onClick={() => setSelectedMatch(null)}
+                className="px-5 py-2.5 rounded-full bg-bg-surface2 border border-border-default text-sm text-text-secondary">
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </PublicLayout>
   );
 }

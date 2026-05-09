@@ -14,15 +14,15 @@ const NAV_COLS = [
   },
   {
     heading: 'Company',
-    links: [['About Us', '#'], ['Careers', '#'], ['List Your Show', '#'], ['Blog', '#']],
+    links: [['About Us', '/about'], ['Careers', '/careers'], ['List Your Show', '/list-your-show'], ['Blog', '/blog']],
   },
   {
     heading: 'Support',
-    links: [['Help Centre', ROUTES.HELP], ['Refunds', '#'], ['Cancellation', '#'], ['Contact', '#']],
+    links: [['Help Centre', ROUTES.HELP], ['Refund Policy', '/terms'], ['Cancellation', '/terms'], ['Contact Us', '/about']],
   },
   {
     heading: 'Legal',
-    links: [['Terms & Conditions', '#'], ['Privacy Policy', '#'], ['FAQ', '#'], ['Sitemap', '#']],
+    links: [['Terms & Conditions', '/terms'], ['Privacy Policy', '/privacy'], ['FAQ', '/faq'], ['Sitemap', '/sitemap']],
   },
 ] as const;
 

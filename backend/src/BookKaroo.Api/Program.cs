@@ -4,6 +4,7 @@ using BookKaroo.Api.Middleware;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Application.Services;
+using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Application.Validators;
 using BookKaroo.Infrastructure.Data;
 using BookKaroo.Infrastructure.Email;
@@ -213,6 +214,7 @@ try
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ICityService, CityService>();
     builder.Services.AddScoped<IMovieService, MovieService>();
+    builder.Services.AddScoped<IAdminService, AdminService>();
     builder.Services.AddScoped<IPricingService, PricingService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();
