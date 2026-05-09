@@ -35,12 +35,26 @@ try
            .ReadFrom.Services(services));
 
     // 2. DbContext
-    var connectionString = builder.Configuration["DATABASE_URL"]
-        ?? throw new InvalidOperationException("DATABASE_URL is required.");
+    var connectionString = builder.Configuration["DATABASE_URL"];
 
-    builder.Services.AddDbContext<BookKarooDbContext>(opt =>
-        opt.UseNpgsql(connectionString,
-            npgsql => npgsql.EnableRetryOnFailure(3)));
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        if (builder.Environment.IsProduction())
+            throw new InvalidOperationException("DATABASE_URL is required in Production.");
+
+        Log.Warning("DATABASE_URL not set — using in-memory SQLite for local dev. " +
+                    "Set DATABASE_URL in launchSettings.json or your .env to connect to Postgres.");
+
+        // Fallback: in-memory SQLite so the API can start without a Postgres DB
+        builder.Services.AddDbContext<BookKarooDbContext>(opt =>
+            opt.UseInMemoryDatabase("BookKaroo_Dev"));
+    }
+    else
+    {
+        builder.Services.AddDbContext<BookKarooDbContext>(opt =>
+            opt.UseNpgsql(connectionString,
+                npgsql => npgsql.EnableRetryOnFailure(3)));
+    }
 
     // 3. JWT Authentication
     var jwtSecret = builder.Configuration["JWT_SECRET"]
@@ -125,8 +139,9 @@ try
     });
 
     // 9. Health checks
-    builder.Services.AddHealthChecks()
-        .AddNpgSql(connectionString, name: "database");
+    var hcBuilder = builder.Services.AddHealthChecks();
+    if (!string.IsNullOrWhiteSpace(connectionString))
+        hcBuilder.AddNpgSql(connectionString, name: "database");
 
     // 10. QuestPDF license
     QuestPDF.Settings.License = LicenseType.Community;
