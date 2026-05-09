@@ -1,20 +1,20 @@
 export const DESIGN_TOKENS = {
   colors: {
     bg: {
-      base: '#0A0E1A',
-      surface: '#131826',
-      surface2: '#1A2138',
-      surface3: '#232C44',
+      base:     'var(--bk-bg-base)',
+      surface:  'var(--bk-bg-surface)',
+      surface2: 'var(--bk-bg-surface2)',
+      surface3: 'var(--bk-bg-surface3)',
     },
     border: {
-      subtle: 'rgba(255, 255, 255, 0.04)',
-      default: 'rgba(255, 255, 255, 0.08)',
-      strong: 'rgba(255, 255, 255, 0.16)',
+      subtle:  'var(--bk-border-subtle)',
+      default: 'var(--bk-border-default)',
+      strong:  'var(--bk-border-strong)',
     },
     text: {
-      primary: '#F4F4F5',
-      secondary: '#A1A1AA',
-      muted: '#71717A',
+      primary:   'var(--bk-text-primary)',
+      secondary: 'var(--bk-text-secondary)',
+      muted:     'var(--bk-text-muted)',
     },
     accent: {
       crimson: '#E50914',
@@ -29,9 +29,9 @@ export const DESIGN_TOKENS = {
       error: '#EF4444',
     },
     seat: {
-      available: '#1A2138',
+      available: 'var(--bk-seat-available-bg)',
       selected: '#E50914',
-      booked: '#232C44',
+      booked: 'var(--bk-bg-surface3)',
       locked: '#F59E0B',
       recliner: '#FFD700',
       gold: '#C0C0C0',

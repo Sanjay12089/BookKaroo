@@ -1,6 +1,11 @@
 export { DESIGN_TOKENS } from './tokens';
 export type { DesignTokens } from './tokens';
 
+export { themeCSS } from './theme';
+export type { Theme } from './theme';
+
+export { ThemeProvider, ThemeToggle, useTheme } from './ThemeContext';
+
 export { Logo, LogoIcon, TAGLINE } from './Logo';
 export type { LogoProps } from './Logo';
 

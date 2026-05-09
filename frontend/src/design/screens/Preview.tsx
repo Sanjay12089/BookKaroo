@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { Logo } from '../Logo';
+import { useTheme, ThemeToggle } from '../ThemeContext';
 import Home from './Home';
 import MoviesList from './MoviesList';
 import MovieDetail from './MovieDetail';
@@ -57,11 +58,27 @@ function DesignSystemSection() {
         <div style={{ display: 'grid', gap: 24 }}>
           {[
             {
-              title: 'Background', items: [
+              title: 'Background (current theme — toggle ☀️/🌙 above)', items: [
                 { name: 'bg.base', value: T.colors.bg.base },
                 { name: 'bg.surface', value: T.colors.bg.surface },
                 { name: 'bg.surface2', value: T.colors.bg.surface2 },
                 { name: 'bg.surface3', value: T.colors.bg.surface3 },
+              ]
+            },
+            {
+              title: 'Dark palette (fixed)', items: [
+                { name: '#0A0E1A', value: '#0A0E1A' },
+                { name: '#131826', value: '#131826' },
+                { name: '#1A2138', value: '#1A2138' },
+                { name: '#232C44', value: '#232C44' },
+              ]
+            },
+            {
+              title: 'Light palette (fixed)', items: [
+                { name: '#FAFAFA', value: '#FAFAFA' },
+                { name: '#FFFFFF', value: '#FFFFFF' },
+                { name: '#F4F4F5', value: '#F4F4F5' },
+                { name: '#E4E4E7', value: '#E4E4E7' },
               ]
             },
             {
@@ -189,7 +206,7 @@ function FloatingNav({ sections, activeId }: { sections: Section[]; activeId: st
       position: 'fixed', left: 24, top: '50%', transform: 'translateY(-50%)',
       zIndex: 100, display: 'flex', flexDirection: 'column', gap: 4,
       padding: 10, borderRadius: T.radius.xl,
-      background: `rgba(19,24,38,0.9)`,
+      background: `rgba(var(--bk-bg-surface-rgb), 0.9)`,
       backdropFilter: 'blur(16px)',
       border: `1px solid ${T.colors.border.default}`,
       boxShadow: T.shadows.lg,
@@ -224,6 +241,7 @@ function FloatingNav({ sections, activeId }: { sections: Section[]; activeId: st
 
 export default function Preview() {
   const [activeId, setActiveId] = useState('design-system');
+  const { theme } = useTheme();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -239,6 +257,8 @@ export default function Preview() {
     return () => observer.disconnect();
   }, []);
 
+  const logoTheme = theme === 'light' ? 'light' : 'dark';
+
   return (
     <div style={{ background: T.colors.bg.base, minHeight: '100vh', color: T.colors.text.primary, fontFamily: T.fonts.body }}>
       <FloatingNav sections={SECTIONS} activeId={activeId} />
@@ -247,10 +267,10 @@ export default function Preview() {
       <header style={{
         position: 'sticky', top: 0, zIndex: 50,
         height: 64, display: 'flex', alignItems: 'center', gap: 16, padding: '0 32px',
-        background: `rgba(10,14,26,0.9)`, backdropFilter: 'blur(16px)',
+        background: `rgba(var(--bk-bg-surface-rgb), 0.9)`, backdropFilter: 'blur(16px)',
         borderBottom: `1px solid ${T.colors.border.default}`,
       }}>
-        <Logo size={32} glow />
+        <Logo size={32} theme={logoTheme} glow={theme === 'dark'} />
         <span style={{
           padding: '3px 12px', borderRadius: T.radius.full,
           background: 'rgba(229,9,20,0.12)', border: '1px solid rgba(229,9,20,0.25)',
@@ -262,6 +282,7 @@ export default function Preview() {
           Book the moment. Karo it now.
         </span>
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+          <ThemeToggle />
           <span style={{ fontSize: 12, color: T.colors.text.muted }}>{SECTIONS.length + 1} screens · feat/design-system</span>
         </div>
       </header>
