@@ -1,6 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Bell, Share2, Heart, ChevronRight } from 'lucide-react';
+import { Bell, Share2, Heart, ChevronRight, X } from 'lucide-react';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
@@ -15,6 +15,7 @@ export default function MovieDetailPage() {
   const { data: movie, isLoading } = useMovieDetail(slug);
   const heroCTARef = useRef<HTMLDivElement>(null);
   const stickyVisible = usePassedViewport(heroCTARef);
+  const [trailerOpen, setTrailerOpen] = useState(false);
 
   if (isLoading) return (
     <PublicLayout>
@@ -100,9 +101,9 @@ export default function MovieDetailPage() {
                 </Link>
               )}
               {movie.trailerUrl && (
-                <a href={movie.trailerUrl} target="_blank" rel="noopener noreferrer">
-                  <Button size="lg" variant="ghost">▶ Watch Trailer</Button>
-                </a>
+                <Button size="lg" variant="ghost" onClick={() => setTrailerOpen(true)}>
+                  ▶ Watch Trailer
+                </Button>
               )}
             </div>
 
@@ -147,6 +148,36 @@ export default function MovieDetailPage() {
           <Link to={showtimesHref}>
             <Button size="md">Pick a showtime →</Button>
           </Link>
+        </div>
+      )}
+      {/* YouTube Trailer Modal */}
+      {trailerOpen && movie?.trailerUrl && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm"
+          onClick={() => setTrailerOpen(false)}
+        >
+          <div className="w-full max-w-3xl relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setTrailerOpen(false)}
+              className="absolute -top-10 right-0 text-white/70 hover:text-white flex items-center gap-1 text-sm font-sans"
+            >
+              <X size={18} /> Close
+            </button>
+            <div className="aspect-video w-full rounded-xl overflow-hidden shadow-2xl">
+              <iframe
+                src={(() => {
+                  // Convert youtube.com/watch?v=ID or youtu.be/ID to embed URL
+                  const url = movie.trailerUrl!;
+                  const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+                  return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1` : url;
+                })()}
+                className="w-full h-full"
+                allow="autoplay; fullscreen"
+                allowFullScreen
+                title={`${movie.title} — Official Trailer`}
+              />
+            </div>
+          </div>
         </div>
       )}
     </PublicLayout>

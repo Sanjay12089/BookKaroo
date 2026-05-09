@@ -24,7 +24,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             <label
               htmlFor={inputId}
               className={cn(
-                'absolute left-3.5 pointer-events-none font-sans transition-all duration-150',
+                'absolute left-3.5 z-10 pointer-events-none font-sans transition-all duration-150',
                 floated
                   ? 'top-1.5 text-[10px] font-semibold tracking-wider uppercase'
                   : 'top-1/2 -translate-y-1/2 text-sm font-normal',

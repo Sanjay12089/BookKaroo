@@ -7,6 +7,8 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
 import { Modal } from '@/shared/components/ui/Modal';
 import { Button } from '@/shared/components/ui/Button';
+import { ThemeToggle } from '@/design/ThemeContext';
+import { api } from '@/shared/lib/api';
 
 const LOGO_TEXT = (
   <span className="font-display font-bold text-xl tracking-tight text-text-primary">
@@ -44,7 +46,12 @@ export function Header() {
     }
   }
 
-  function handleLogout() {
+  async function handleLogout() {
+    try {
+      await api.post('/api/auth/logout'); // clears httpOnly refresh cookie on server
+    } catch {
+      // ignore errors — clear locally regardless
+    }
     clearAuth();
     setUserMenuOpen(false);
     navigate(ROUTES.HOME);
@@ -121,7 +128,9 @@ export function Header() {
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2">
+            {/* Theme toggle */}
+            <ThemeToggle />
             {/* Mobile search */}
             <button
               className="md:hidden text-text-secondary hover:text-text-primary"
@@ -156,6 +165,13 @@ export function Header() {
                         className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors"
                       >
                         <User size={15} /> My Bookings
+                      </Link>
+                      <Link
+                        to={ROUTES.PROFILE}
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors"
+                      >
+                        <User size={15} /> My Profile
                       </Link>
                       {user.role === 'Admin' && (
                         <Link
