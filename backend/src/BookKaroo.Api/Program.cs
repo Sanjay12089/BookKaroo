@@ -200,7 +200,9 @@ try
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<ICityRepository, CityRepository>();
     builder.Services.AddScoped<IMovieRepository, MovieRepository>();
+    builder.Services.AddScoped<IShowRepository, ShowRepository>();
     builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Venue>, VenueRepository>();
     builder.Services.AddScoped<ISeatLockRepository, SeatLockRepository>();
     builder.Services.AddScoped<ICouponRepository, CouponRepository>();
     builder.Services.AddScoped<ISettingRepository, SettingRepository>();
@@ -210,6 +212,7 @@ try
     // 14. Services (Scoped)
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ICityService, CityService>();
+    builder.Services.AddScoped<IMovieService, MovieService>();
     builder.Services.AddScoped<IPricingService, PricingService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();
