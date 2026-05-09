@@ -35,22 +35,63 @@ try
            .ReadFrom.Services(services));
 
     // 2. DbContext
-    var connectionString = builder.Configuration["DATABASE_URL"];
+    var rawConnectionString = builder.Configuration["DATABASE_URL"];
 
-    if (string.IsNullOrWhiteSpace(connectionString))
+    // Normalise postgresql:// URI → ADO.NET key-value format that Npgsql and
+    // health-check libraries both accept. Handles '@' inside passwords by
+    // splitting on the LAST '@' (which always separates userinfo from host).
+    static string NormalizeConnectionString(string cs)
+    {
+        if (string.IsNullOrWhiteSpace(cs)) return cs;
+        if (!cs.StartsWith("postgresql://") && !cs.StartsWith("postgres://"))
+            return cs;
+
+        // Strip scheme
+        var withoutScheme = cs[(cs.IndexOf("://", StringComparison.Ordinal) + 3)..];
+
+        // The host starts after the LAST '@' in the string
+        var lastAt = withoutScheme.LastIndexOf('@');
+        var userInfo  = withoutScheme[..lastAt];
+        var hostPart  = withoutScheme[(lastAt + 1)..];
+
+        // Split userInfo into username : password (limit 2 to keep ':' inside password)
+        var colonIdx = userInfo.IndexOf(':');
+        var username = colonIdx >= 0 ? Uri.UnescapeDataString(userInfo[..colonIdx]) : Uri.UnescapeDataString(userInfo);
+        var password = colonIdx >= 0 ? Uri.UnescapeDataString(userInfo[(colonIdx + 1)..]) : string.Empty;
+
+        // Parse host:port/database
+        var slashIdx = hostPart.IndexOf('/');
+        var hostPort = slashIdx >= 0 ? hostPart[..slashIdx] : hostPart;
+        var database = slashIdx >= 0 ? hostPart[(slashIdx + 1)..] : "postgres";
+
+        var portColon = hostPort.LastIndexOf(':');
+        var host = portColon >= 0 ? hostPort[..portColon] : hostPort;
+        var port = portColon >= 0 ? hostPort[(portColon + 1)..] : "5432";
+
+        // Escape password special chars for ADO.NET (wrap in quotes if needed)
+        var safePassword = password.Contains(';') || password.Contains('\'')
+            ? $"'{password.Replace("'", "\\'")}'"
+            : password;
+
+        return $"Host={host};Port={port};Database={database};Username={username};Password={safePassword};SSL Mode=Require;Trust Server Certificate=true";
+    }
+
+    var connectionString = NormalizeConnectionString(rawConnectionString ?? string.Empty);
+
+    if (string.IsNullOrWhiteSpace(rawConnectionString))
     {
         if (builder.Environment.IsProduction())
             throw new InvalidOperationException("DATABASE_URL is required in Production.");
 
-        Log.Warning("DATABASE_URL not set — using in-memory SQLite for local dev. " +
-                    "Set DATABASE_URL in launchSettings.json or your .env to connect to Postgres.");
+        Log.Warning("DATABASE_URL not set — using in-memory database for local dev. " +
+                    "Set DATABASE_URL in launchSettings.json to connect to Supabase Postgres.");
 
-        // Fallback: in-memory SQLite so the API can start without a Postgres DB
         builder.Services.AddDbContext<BookKarooDbContext>(opt =>
             opt.UseInMemoryDatabase("BookKaroo_Dev"));
     }
     else
     {
+        Log.Information("Connecting to Postgres at {Host}", connectionString.Split(';').FirstOrDefault(p => p.StartsWith("Host=")) ?? "unknown");
         builder.Services.AddDbContext<BookKarooDbContext>(opt =>
             opt.UseNpgsql(connectionString,
                 npgsql => npgsql.EnableRetryOnFailure(3)));
@@ -138,9 +179,9 @@ try
         });
     });
 
-    // 9. Health checks
+    // 9. Health checks — use the already-normalised ADO.NET connection string
     var hcBuilder = builder.Services.AddHealthChecks();
-    if (!string.IsNullOrWhiteSpace(connectionString))
+    if (!string.IsNullOrWhiteSpace(rawConnectionString))
         hcBuilder.AddNpgSql(connectionString, name: "database");
 
     // 10. QuestPDF license
