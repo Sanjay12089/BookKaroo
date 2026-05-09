@@ -47,5 +47,10 @@ export { default as MoviesList } from './screens/MoviesList';
 export { default as MovieDetail } from './screens/MovieDetail';
 export { default as Showtimes } from './screens/Showtimes';
 export { default as SeatSelection } from './screens/SeatSelection';
+export { default as Checkout } from './screens/Checkout';
+export { default as Confirmation } from './screens/Confirmation';
+export { default as MyBookings } from './screens/MyBookings';
+export { default as AdminDashboard } from './screens/AdminDashboard';
+export { default as Preview } from './screens/Preview';
 
 export * from './screens/mockData';
