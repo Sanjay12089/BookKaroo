@@ -1,8 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(New-Item -ItemType Directory -Path \"e:\\\\ClaudeTraining\\\\BookKaroo\\\\BookKaroo\\\\frontend\\\\src\\\\design\" -Force)",
-      "Bash(npx tsc *)"
+      "Bash(mkdir -p \"e:\\\\ClaudeTraining\\\\BookKaroo\\\\BookKaroo\\\\backend\" && cd \"e:\\\\ClaudeTraining\\\\BookKaroo\\\\BookKaroo\\\\backend\" && dotnet new sln -n BookKaroo 2>&1)"
     ]
   }
 }
