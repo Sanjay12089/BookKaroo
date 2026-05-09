@@ -38,6 +38,28 @@ export const DESIGN_TOKENS = {
       executive: '#4169E1',
       normal: '#E4E4E7',
     },
+    // Light tints — legible on dark gradients; NOT bg colors
+    tint: {
+      white: '#FFFFFF',
+      successText: '#6EE7B7',
+      warningText: '#FCD34D',
+      errorText: '#FF6770',
+      indigoText: '#A5B4FC',
+      purpleText: '#C4A0FF',
+      gold: '#F5C56B',
+      goldDark: '#D4A017',
+      goldBg: '#1a0a05',
+      cyan: '#22D3EE',
+    },
+  },
+
+  // Decorative gradients reused across poster cards / hero / IPL
+  gradients: {
+    posterPurple: 'linear-gradient(135deg, #2a1a3d, #4c1d95)',
+    posterCard: 'linear-gradient(135deg, #1a1f33, #0f1424)',
+    heroDark: 'linear-gradient(135deg, #1a0e2e 0%, #0A0E1A 70%)',
+    iplStrip: 'linear-gradient(110deg, #1a0a05 0%, #2d0a0e 60%, #1a0535 100%)',
+    iplGoldCta: 'linear-gradient(135deg, #F5C56B, #D4A017)',
   },
 
   fonts: {

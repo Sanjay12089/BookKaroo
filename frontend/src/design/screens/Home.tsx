@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { Logo } from '../Logo';
 import { Badge, SectionHeader } from '../DesignSystem';
@@ -102,7 +102,7 @@ function Nav() {
         <button style={{
           padding: '8px 20px', borderRadius: T.radius.full,
           background: `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`,
-          color: '#fff', fontWeight: 600, fontSize: 14, cursor: 'pointer',
+          color: T.colors.tint.white, fontWeight: 600, fontSize: 14, cursor: 'pointer',
           border: 'none', fontFamily: T.fonts.body,
           boxShadow: T.shadows.glowIndigo,
         }}>
@@ -141,7 +141,7 @@ function HeroCarousel() {
       minHeight: 520,
       background: `radial-gradient(70% 80% at 60% 30%, rgba(168,85,247,0.45), transparent 60%),
                    radial-gradient(50% 50% at 20% 80%, rgba(229,9,20,0.35), transparent 60%),
-                   linear-gradient(135deg, #1a0e2e 0%, ${T.colors.bg.base} 70%)`,
+                   ${T.gradients.heroDark}`,
     }}>
       {/* Backdrop image */}
       <div style={{
@@ -207,7 +207,7 @@ function HeroCarousel() {
               display: 'inline-flex', alignItems: 'center', gap: 8,
               padding: '0 28px', height: 52, borderRadius: T.radius.full,
               background: `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson} 55%, ${T.colors.accent.crimsonDark})`,
-              color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer',
+              color: T.colors.tint.white, fontWeight: 700, fontSize: 16, cursor: 'pointer',
               border: 'none', fontFamily: T.fonts.body,
               boxShadow: T.shadows.glowCrimson,
             }}>
@@ -234,7 +234,7 @@ function HeroCarousel() {
                 style={{
                   width: i === active ? 32 : 10, height: 4,
                   borderRadius: 2, border: 'none', cursor: 'pointer',
-                  background: i === active ? '#fff' : 'rgba(255,255,255,0.22)',
+                  background: i === active ? T.colors.tint.white : 'rgba(255,255,255,0.22)',
                   transition: `width ${T.motion.duration.base}, background ${T.motion.duration.base}`,
                   padding: 0,
                 }}
@@ -248,7 +248,7 @@ function HeroCarousel() {
           position: 'relative', aspectRatio: '2/3', maxWidth: 280,
           justifySelf: 'end',
           borderRadius: T.radius.lg, overflow: 'hidden',
-          background: 'linear-gradient(135deg, #2a1a3d, #4c1d95 80%)',
+          background: T.gradients.posterPurple,
           boxShadow: `${T.shadows.lg}, 0 0 80px -20px rgba(168,85,247,0.6)`,
           border: `1px solid rgba(255,255,255,0.1)`,
           transform: 'rotate(-2deg)',
@@ -269,7 +269,7 @@ function HeroCarousel() {
             style={{
               width: 40, height: 40, borderRadius: T.radius.full,
               background: 'rgba(0,0,0,0.4)', border: `1px solid ${T.colors.border.strong}`,
-              color: '#fff', cursor: 'pointer', fontSize: 18, display: 'grid', placeItems: 'center',
+              color: T.colors.tint.white, cursor: 'pointer', fontSize: 18, display: 'grid', placeItems: 'center',
               backdropFilter: 'blur(10px)',
             }}>
             {arrow}
@@ -292,7 +292,7 @@ function MovieCard({ movie, coming = false }: { movie: typeof MOVIES[0] | typeof
       <div style={{
         position: 'relative', aspectRatio: '2/3',
         borderRadius: T.radius.lg, overflow: 'hidden',
-        background: 'linear-gradient(135deg, #1a1f33, #0f1424)',
+        background: T.gradients.posterCard,
         border: `1px solid ${hovered ? T.colors.border.strong : T.colors.border.default}`,
         transition: `all ${T.motion.duration.base} ${T.motion.ease.out}`,
         transform: hovered ? 'translateY(-4px) scale(1.02)' : 'none',
@@ -311,7 +311,7 @@ function MovieCard({ movie, coming = false }: { movie: typeof MOVIES[0] | typeof
             position: 'absolute', top: 8, right: 8,
             padding: '3px 8px', borderRadius: T.radius.full,
             background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
-            fontSize: 12, fontWeight: 600, color: '#FCD34D',
+            fontSize: 12, fontWeight: 600, color: T.colors.tint.warningText,
             fontFamily: T.fonts.body,
           }}>
             ⭐ {(movie as typeof MOVIES[0]).rating}
@@ -323,7 +323,7 @@ function MovieCard({ movie, coming = false }: { movie: typeof MOVIES[0] | typeof
             position: 'absolute', top: 8, left: 8,
             padding: '3px 8px', borderRadius: T.radius.full,
             background: 'rgba(99,102,241,0.85)', backdropFilter: 'blur(8px)',
-            fontSize: 11, fontWeight: 600, color: '#fff',
+            fontSize: 11, fontWeight: 600, color: T.colors.tint.white,
             fontFamily: T.fonts.body,
           }}>
             {(movie as typeof COMING_SOON[0]).releaseDate}
@@ -343,7 +343,7 @@ function MovieCard({ movie, coming = false }: { movie: typeof MOVIES[0] | typeof
             background: coming
               ? `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`
               : `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`,
-            color: '#fff', border: 'none', borderRadius: T.radius.full,
+            color: T.colors.tint.white, border: 'none', borderRadius: T.radius.full,
             padding: '8px 0', fontSize: 13, fontWeight: 700, cursor: 'pointer',
             width: '100%', fontFamily: T.fonts.body,
           }}>
@@ -374,14 +374,14 @@ function IPLStrip() {
       borderRadius: T.radius.xl, overflow: 'hidden',
       border: `1px solid rgba(245,197,107,0.2)`,
       background: `radial-gradient(60% 100% at 100% 50%, rgba(245,197,107,0.18), transparent),
-                   linear-gradient(110deg, #1a0a05 0%, #2d0a0e 60%, #1a0535 100%)`,
+                   ${T.gradients.iplStrip}`,
       padding: '32px 36px',
       display: 'grid', gridTemplateColumns: '1fr auto', gap: 32, alignItems: 'center',
     }}>
       <div>
         <div style={{
           fontFamily: T.fonts.mono, fontSize: 11, letterSpacing: '0.18em',
-          color: '#F5C56B', textTransform: 'uppercase', marginBottom: 8,
+          color: T.colors.tint.gold, textTransform: 'uppercase', marginBottom: 8,
         }}>
           ◆ TATA IPL 2026 · Indian Premier League
         </div>
@@ -405,7 +405,7 @@ function IPLStrip() {
             <div key={t.abbr} style={{
               width: 38, height: 38, borderRadius: T.radius.full,
               background: t.color, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 10, fontWeight: 700, color: '#fff', fontFamily: T.fonts.mono,
+              fontSize: 10, fontWeight: 700, color: T.colors.tint.white, fontFamily: T.fonts.mono,
               border: '2px solid rgba(255,255,255,0.12)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.4)',
             }}>
@@ -417,8 +417,8 @@ function IPLStrip() {
         <button style={{
           display: 'inline-flex', alignItems: 'center', gap: 8,
           padding: '0 24px', height: 44, borderRadius: T.radius.full,
-          background: 'linear-gradient(135deg, #F5C56B, #D4A017)',
-          color: '#1a0a05', fontWeight: 700, fontSize: 14, cursor: 'pointer',
+          background: T.gradients.iplGoldCta,
+          color: T.colors.tint.goldBg, fontWeight: 700, fontSize: 14, cursor: 'pointer',
           border: 'none', fontFamily: T.fonts.body,
           boxShadow: '0 8px 24px rgba(245,197,107,0.4)',
         }}>
@@ -448,53 +448,53 @@ function IPLStrip() {
 
 // ─── Events Grid ──────────────────────────────────────────────────────────────
 
+function EventTile({ evt }: { evt: typeof EVENTS[0] }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <a href="#" style={{ textDecoration: 'none', color: 'inherit' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <div style={{
+        borderRadius: T.radius.lg, overflow: 'hidden',
+        background: T.colors.bg.surface,
+        border: `1px solid ${hovered ? T.colors.border.strong : T.colors.border.default}`,
+        transition: `transform ${T.motion.duration.base}, border-color ${T.motion.duration.base}`,
+        transform: hovered ? 'translateY(-3px)' : 'none',
+      }}>
+        <div style={{
+          aspectRatio: '4/3', background: evt.gradient, position: 'relative',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: 48 }}>{evt.emoji}</span>
+          <div style={{
+            position: 'absolute', top: 12, left: 12,
+            padding: '3px 10px', borderRadius: T.radius.full,
+            background: 'rgba(99,102,241,0.85)', color: T.colors.tint.white,
+            fontSize: 11, fontWeight: 600, fontFamily: T.fonts.body,
+          }}>
+            {evt.type}
+          </div>
+        </div>
+        <div style={{ padding: 14 }}>
+          <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: T.colors.text.primary }}>{evt.title}</h4>
+          <p style={{ margin: '4px 0 0', fontSize: 12, color: T.colors.text.muted }}>{evt.subtitle}</p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 12 }}>
+            <span style={{ color: T.colors.text.secondary }}>{evt.date}</span>
+            <span style={{ color: T.colors.semantic.success, fontWeight: 600 }}>{evt.price}</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  );
+}
+
 function EventsSection() {
   return (
     <section style={{ marginBottom: 64 }}>
       <SectionHeader title="Live Events & Concerts" seeAllHref="#" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-        {EVENTS.map((evt) => {
-          const [hovered, setHovered] = useState(false);
-          return (
-            <a
-              key={evt.id} href="#"
-              style={{ textDecoration: 'none', color: 'inherit' }}
-              onMouseEnter={() => setHovered(true)}
-              onMouseLeave={() => setHovered(false)}
-            >
-              <div style={{
-                borderRadius: T.radius.lg, overflow: 'hidden',
-                background: T.colors.bg.surface, border: `1px solid ${T.colors.border.default}`,
-                transition: `transform ${T.motion.duration.base}, border-color ${T.motion.duration.base}`,
-                transform: hovered ? 'translateY(-3px)' : 'none',
-                borderColor: hovered ? T.colors.border.strong : T.colors.border.default,
-              }}>
-                <div style={{
-                  aspectRatio: '4/3', background: evt.gradient, position: 'relative',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                }}>
-                  <span style={{ fontSize: 48 }}>{evt.emoji}</span>
-                  <div style={{
-                    position: 'absolute', top: 12, left: 12,
-                    padding: '3px 10px', borderRadius: T.radius.full,
-                    background: 'rgba(99,102,241,0.85)', color: '#fff',
-                    fontSize: 11, fontWeight: 600, fontFamily: T.fonts.body,
-                  }}>
-                    {evt.type}
-                  </div>
-                </div>
-                <div style={{ padding: 14 }}>
-                  <h4 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: T.colors.text.primary }}>{evt.title}</h4>
-                  <p style={{ margin: '4px 0 0', fontSize: 12, color: T.colors.text.muted }}>{evt.subtitle}</p>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, fontSize: 12 }}>
-                    <span style={{ color: T.colors.text.secondary }}>{evt.date}</span>
-                    <span style={{ color: T.colors.semantic.success, fontWeight: 600 }}>{evt.price}</span>
-                  </div>
-                </div>
-              </div>
-            </a>
-          );
-        })}
+        {EVENTS.map((evt) => <EventTile key={evt.id} evt={evt} />)}
       </div>
     </section>
   );

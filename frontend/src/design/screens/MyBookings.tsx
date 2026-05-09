@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { Logo } from '../Logo';
 import { GlassCard, Badge } from '../DesignSystem';
@@ -87,9 +87,9 @@ const BOOKINGS: Booking[] = [
 ];
 
 const STATUS_STYLES: Record<BookingStatus, { bg: string; color: string; border: string }> = {
-  CONFIRMED: { bg: 'rgba(16,185,129,0.12)', color: '#6EE7B7', border: 'rgba(16,185,129,0.28)' },
+  CONFIRMED: { bg: 'rgba(16,185,129,0.12)', color: T.colors.tint.successText, border: 'rgba(16,185,129,0.28)' },
   COMPLETED: { bg: T.colors.bg.surface3, color: T.colors.text.muted, border: T.colors.border.default },
-  CANCELLED: { bg: 'rgba(229,9,20,0.12)', color: '#FF6770', border: 'rgba(229,9,20,0.25)' },
+  CANCELLED: { bg: 'rgba(229,9,20,0.12)', color: T.colors.tint.errorText, border: 'rgba(229,9,20,0.25)' },
 };
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ function BookingCard({ booking }: { booking: Booking }) {
       {/* Poster */}
       <div style={{
         width: 64, aspectRatio: '2/3', borderRadius: T.radius.md, overflow: 'hidden', flexShrink: 0,
-        background: 'linear-gradient(135deg, #2a1a3d, #4c1d95)',
+        background: T.gradients.posterPurple,
         opacity: booking.status === 'CANCELLED' ? 0.5 : 1,
       }}>
         <img src={`${TMDB}${booking.movie.posterPath}`} alt={booking.movie.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -201,7 +201,7 @@ function BookingCard({ booking }: { booking: Booking }) {
               ? `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`
               : T.colors.bg.surface2,
             border: `1px solid ${booking.status === 'CONFIRMED' ? 'transparent' : T.colors.border.default}`,
-            color: '#fff',
+            color: T.colors.tint.white,
             fontWeight: 600, fontSize: 13, cursor: 'pointer', fontFamily: T.fonts.body,
             boxShadow: booking.status === 'CONFIRMED' ? T.shadows.glowCrimson : 'none',
             whiteSpace: 'nowrap',
@@ -256,7 +256,7 @@ export default function MyBookings() {
           <div style={{
             width: 72, height: 72, borderRadius: T.radius.full,
             background: `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`,
-            display: 'grid', placeItems: 'center', color: '#fff',
+            display: 'grid', placeItems: 'center', color: T.colors.tint.white,
             fontFamily: T.fonts.display, fontSize: 28, fontWeight: 600,
             boxShadow: T.shadows.glowIndigo,
           }}>

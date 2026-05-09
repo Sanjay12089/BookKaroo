@@ -1,10 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { Logo } from '../Logo';
-import { Badge } from '../DesignSystem';
-import { MOVIES } from './mockData';
-
-const TMDB = 'https://image.tmdb.org/t/p/w300';
 
 // ─── Nav items ────────────────────────────────────────────────────────────────
 
@@ -78,9 +74,9 @@ const RECENT_BOOKINGS: AdminBooking[] = [
 ];
 
 const STATUS_CHIP: Record<BStatus, { bg: string; color: string; label: string }> = {
-  confirmed: { bg: 'rgba(16,185,129,0.14)', color: '#6EE7B7', label: 'Confirmed' },
-  pending: { bg: 'rgba(245,158,11,0.14)', color: '#FCD34D', label: 'Pending' },
-  cancelled: { bg: 'rgba(229,9,20,0.14)', color: '#FF6770', label: 'Cancelled' },
+  confirmed: { bg: 'rgba(16,185,129,0.14)', color: T.colors.tint.successText, label: 'Confirmed' },
+  pending: { bg: 'rgba(245,158,11,0.14)', color: T.colors.tint.warningText, label: 'Pending' },
+  cancelled: { bg: 'rgba(229,9,20,0.14)', color: T.colors.tint.errorText, label: 'Cancelled' },
 };
 
 // ─── Activity log ─────────────────────────────────────────────────────────────
@@ -369,7 +365,7 @@ function BookingsTable() {
               width: 30, height: 30, borderRadius: T.radius.md,
               background: p === '1' ? `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})` : T.colors.bg.surface2,
               border: `1px solid ${p === '1' ? 'transparent' : T.colors.border.default}`,
-              color: p === '1' ? '#fff' : T.colors.text.muted,
+              color: p === '1' ? T.colors.tint.white : T.colors.text.muted,
               fontSize: 12, cursor: 'pointer', fontFamily: T.fonts.body,
             }}>
               {p}
@@ -419,7 +415,7 @@ export default function AdminDashboard() {
             <button style={{
               padding: '8px 16px', borderRadius: T.radius.full,
               background: `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`,
-              color: '#fff', border: 'none', fontSize: 13, cursor: 'pointer', fontFamily: T.fonts.body,
+              color: T.colors.tint.white, border: 'none', fontSize: 13, cursor: 'pointer', fontFamily: T.fonts.body,
             }}>
               + Add Show
             </button>

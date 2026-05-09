@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState, Fragment } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { Logo } from '../Logo';
-import { CountdownRing, GlassCard, Input, Badge } from '../DesignSystem';
+import { CountdownRing, GlassCard, Input } from '../DesignSystem';
 import { MOVIES } from './mockData';
 
 const MOVIE = MOVIES[1]; // Chhaava
@@ -26,7 +26,7 @@ function Steps() {
   return (
     <div style={{ display: 'flex', gap: 8, padding: '24px 0 8px', alignItems: 'center', fontSize: 12 }}>
       {steps.map((s, i) => (
-        <React.Fragment key={s.label}>
+        <Fragment key={s.label}>
           {i > 0 && <span style={{ flex: '0 0 28px', height: 1, background: T.colors.border.default }} />}
           <span style={{
             display: 'inline-flex', gap: 8, alignItems: 'center',
@@ -37,7 +37,7 @@ function Steps() {
               ? `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`
               : T.colors.bg.surface,
             border: `1px solid ${s.done ? 'rgba(16,185,129,0.28)' : s.active ? 'transparent' : T.colors.border.default}`,
-            color: s.done ? '#6EE7B7' : s.active ? '#fff' : T.colors.text.muted,
+            color: s.done ? T.colors.tint.successText : s.active ? T.colors.tint.white : T.colors.text.muted,
             boxShadow: s.active ? T.shadows.glowIndigo : 'none',
             fontFamily: T.fonts.body,
           }}>
@@ -50,7 +50,7 @@ function Steps() {
             </span>
             {s.label}
           </span>
-        </React.Fragment>
+        </Fragment>
       ))}
     </div>
   );
@@ -211,7 +211,7 @@ function OrderSummary({ coupon, couponCode, setCouponCode, onApplyCoupon, onRemo
           background: termsChecked
             ? `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`
             : T.colors.bg.surface3,
-          color: termsChecked ? '#fff' : T.colors.text.muted,
+          color: termsChecked ? T.colors.tint.white : T.colors.text.muted,
           border: 'none', fontWeight: 700, fontSize: 16, cursor: termsChecked ? 'pointer' : 'not-allowed',
           fontFamily: T.fonts.body,
           boxShadow: termsChecked ? T.shadows.glowCrimson : 'none',
@@ -300,7 +300,7 @@ export default function Checkout() {
                 <span style={{
                   width: 22, height: 22, borderRadius: T.radius.full,
                   background: `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`,
-                  display: 'grid', placeItems: 'center', fontSize: 11, color: '#fff', fontWeight: 600, flexShrink: 0,
+                  display: 'grid', placeItems: 'center', fontSize: 11, color: T.colors.tint.white, fontWeight: 600, flexShrink: 0,
                 }}>1</span>
                 Contact & ticket delivery
               </h3>
@@ -323,7 +323,7 @@ export default function Checkout() {
                 <span style={{
                   width: 22, height: 22, borderRadius: T.radius.full,
                   background: `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`,
-                  display: 'grid', placeItems: 'center', fontSize: 11, color: '#fff', fontWeight: 600, flexShrink: 0,
+                  display: 'grid', placeItems: 'center', fontSize: 11, color: T.colors.tint.white, fontWeight: 600, flexShrink: 0,
                 }}>2</span>
                 Terms & conditions
               </h3>
@@ -350,7 +350,7 @@ export default function Checkout() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderRadius: T.radius.md, background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', fontSize: 12, color: T.colors.text.secondary }}>
               <span style={{
                 width: 28, height: 28, borderRadius: T.radius.full,
-                background: 'rgba(16,185,129,0.16)', color: '#6EE7B7',
+                background: 'rgba(16,185,129,0.16)', color: T.colors.tint.successText,
                 display: 'grid', placeItems: 'center', fontSize: 14, flexShrink: 0,
               }}>
                 🔒

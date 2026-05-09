@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
-import { Logo } from '../Logo';
-import { Chip, Skeleton, Badge } from '../DesignSystem';
+import { Chip, Skeleton } from '../DesignSystem';
 import { MOVIES, COMING_SOON } from './mockData';
 
 const TMDB = 'https://image.tmdb.org/t/p/w300';
@@ -55,7 +54,7 @@ function MovieCard({ movie }: { movie: typeof MOVIES[0] }) {
         <div style={{
           position: 'relative', aspectRatio: '2/3',
           borderRadius: T.radius.lg, overflow: 'hidden',
-          background: 'linear-gradient(135deg, #1a1f33, #0f1424)',
+          background: T.gradients.posterCard,
           border: `1px solid ${hovered ? T.colors.border.strong : T.colors.border.default}`,
           transition: `all ${T.motion.duration.base}`,
           transform: hovered ? 'translateY(-3px) scale(1.02)' : 'none',
@@ -74,7 +73,7 @@ function MovieCard({ movie }: { movie: typeof MOVIES[0] }) {
             position: 'absolute', top: 8, left: 8,
             padding: '3px 8px', borderRadius: T.radius.full,
             background: 'rgba(99,102,241,0.85)', backdropFilter: 'blur(8px)',
-            fontSize: 11, fontWeight: 600, color: '#fff', fontFamily: T.fonts.body,
+            fontSize: 11, fontWeight: 600, color: T.colors.tint.white, fontFamily: T.fonts.body,
           }}>
             {movie.formats[0]}
           </div>
@@ -84,7 +83,7 @@ function MovieCard({ movie }: { movie: typeof MOVIES[0] }) {
             position: 'absolute', top: 8, right: 8,
             padding: '3px 8px', borderRadius: T.radius.full,
             background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(8px)',
-            fontSize: 12, fontWeight: 600, color: '#FCD34D', fontFamily: T.fonts.body,
+            fontSize: 12, fontWeight: 600, color: T.colors.tint.warningText, fontFamily: T.fonts.body,
           }}>
             ⭐ {movie.rating}
           </div>
@@ -101,7 +100,7 @@ function MovieCard({ movie }: { movie: typeof MOVIES[0] }) {
             <button style={{
               width: '100%', padding: '8px 0', borderRadius: T.radius.full,
               background: `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`,
-              color: '#fff', border: 'none', fontSize: 13, fontWeight: 700,
+              color: T.colors.tint.white, border: 'none', fontSize: 13, fontWeight: 700,
               cursor: 'pointer', fontFamily: T.fonts.body,
             }}>
               Book Now
@@ -161,7 +160,7 @@ function EmptyState({ onClear }: { onClear: () => void }) {
         style={{
           padding: '10px 24px', borderRadius: T.radius.full,
           background: `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`,
-          color: '#fff', border: 'none', fontWeight: 600, fontSize: 14,
+          color: T.colors.tint.white, border: 'none', fontWeight: 600, fontSize: 14,
           cursor: 'pointer', fontFamily: T.fonts.body,
         }}
       >
@@ -201,7 +200,7 @@ function Pagination({ page, total, perPage, onChange }: { page: number; total: n
                 ? `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`
                 : T.colors.bg.surface,
               border: `1px solid ${isActive ? 'transparent' : T.colors.border.default}`,
-              color: isActive ? '#fff' : isDisabled ? T.colors.text.muted : T.colors.text.secondary,
+              color: isActive ? T.colors.tint.white : isDisabled ? T.colors.text.muted : T.colors.text.secondary,
               fontFamily: T.fonts.body,
               opacity: isDisabled ? 0.4 : 1,
             }}
@@ -339,7 +338,7 @@ export default function MoviesList() {
                 style={{
                   display: 'inline-flex', alignItems: 'center', gap: 6,
                   padding: '4px 10px', borderRadius: T.radius.full,
-                  background: 'rgba(168,85,247,0.14)', color: '#C4A0FF',
+                  background: 'rgba(168,85,247,0.14)', color: T.colors.tint.purpleText,
                   border: '1px solid rgba(168,85,247,0.28)',
                   fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: T.fonts.body,
                 }}>

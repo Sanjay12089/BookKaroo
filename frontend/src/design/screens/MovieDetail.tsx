@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { Badge, StarRating } from '../DesignSystem';
 import { MOVIES } from './mockData';
@@ -33,7 +33,7 @@ function ReviewCard({ review }: { review: typeof REVIEWS[0] }) {
           width: 38, height: 38, borderRadius: T.radius.full, flexShrink: 0,
           background: `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 13, fontWeight: 700, color: '#fff', fontFamily: T.fonts.body,
+          fontSize: 13, fontWeight: 700, color: T.colors.tint.white, fontFamily: T.fonts.body,
         }}>
           {review.initials}
         </div>
@@ -82,7 +82,7 @@ function AboutTab({ movie }: { movie: typeof MOVIES[0] }) {
       {/* Trailer placeholder */}
       <div style={{
         aspectRatio: '16/9', borderRadius: T.radius.lg, overflow: 'hidden',
-        background: 'linear-gradient(135deg, #1a0e2e, #0a0e1a)',
+        background: T.gradients.heroDark,
         position: 'relative', marginBottom: 32,
         border: `1px solid ${T.colors.border.default}`,
       }}>
@@ -94,7 +94,7 @@ function AboutTab({ movie }: { movie: typeof MOVIES[0] }) {
           position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%,-50%)',
           width: 80, height: 80, borderRadius: T.radius.full,
           background: 'rgba(0,0,0,0.5)', border: `1px solid rgba(255,255,255,0.2)`,
-          backdropFilter: 'blur(10px)', color: '#fff', fontSize: 24, cursor: 'pointer',
+          backdropFilter: 'blur(10px)', color: T.colors.tint.white, fontSize: 24, cursor: 'pointer',
           transition: `background ${T.motion.duration.base}`,
         }}
           onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(229,9,20,0.6)')}
@@ -154,7 +154,7 @@ function AboutTab({ movie }: { movie: typeof MOVIES[0] }) {
 
 // ─── Cast Tab ─────────────────────────────────────────────────────────────────
 
-const CAST_COLORS = ['linear-gradient(135deg,#2a1a3d,#4c1d95)', 'linear-gradient(135deg,#3a0a14,#7f1d1d)', 'linear-gradient(135deg,#0a2a3a,#155e75)', 'linear-gradient(135deg,#2a2a0a,#713f12)'];
+const CAST_COLORS = [T.gradients.posterPurple, 'linear-gradient(135deg,#3a0a14,#7f1d1d)', 'linear-gradient(135deg,#0a2a3a,#155e75)', 'linear-gradient(135deg,#2a2a0a,#713f12)'];
 
 function CastTab({ movie }: { movie: typeof MOVIES[0] }) {
   return (
@@ -193,7 +193,7 @@ function ReviewsTab() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
         {[
           { num: MOVIE.rating.toString(), label: `★ BookKaroo score · ${MOVIE.reviewCount} ratings`, bar: MOVIE.rating / 10, barColor: `linear-gradient(90deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})` },
-          { num: '96%', label: 'Critics liked it · 42 reviews', bar: 0.96, barColor: `linear-gradient(90deg, ${T.colors.semantic.success}, #22D3EE)` },
+          { num: '96%', label: 'Critics liked it · 42 reviews', bar: 0.96, barColor: `linear-gradient(90deg, ${T.colors.semantic.success}, ${T.colors.tint.cyan})` },
           { num: '93%', label: 'Audience score · 14K verified', bar: 0.93, barColor: `linear-gradient(90deg, #FBBF24, ${T.colors.accent.crimson})` },
         ].map((m) => (
           <div key={m.label} style={{ padding: 20, borderRadius: T.radius.lg, background: T.colors.bg.surface, border: `1px solid ${T.colors.border.default}` }}>
@@ -253,7 +253,7 @@ export default function MovieDetail() {
       {/* Backdrop */}
       <div style={{
         position: 'relative', height: 480,
-        background: `linear-gradient(135deg, #1a0e2e 0%, ${T.colors.bg.base} 70%)`,
+        background: T.gradients.heroDark,
         overflow: 'hidden',
       }}>
         <div style={{
@@ -332,7 +332,7 @@ export default function MovieDetail() {
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     padding: '0 28px', height: 52, borderRadius: T.radius.full,
                     background: `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`,
-                    color: '#fff', fontWeight: 700, fontSize: 16, cursor: 'pointer',
+                    color: T.colors.tint.white, fontWeight: 700, fontSize: 16, cursor: 'pointer',
                     border: 'none', fontFamily: T.fonts.body, boxShadow: T.shadows.glowCrimson,
                   }}>
                     Book Tickets
@@ -410,7 +410,7 @@ export default function MovieDetail() {
                 <button style={{
                   padding: '0 24px', height: 44, borderRadius: T.radius.full,
                   background: `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`,
-                  color: '#fff', border: 'none', fontWeight: 700, fontSize: 15,
+                  color: T.colors.tint.white, border: 'none', fontWeight: 700, fontSize: 15,
                   cursor: 'pointer', fontFamily: T.fonts.body,
                 }}>
                   Pick a showtime →

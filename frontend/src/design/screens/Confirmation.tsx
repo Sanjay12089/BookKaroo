@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { Logo } from '../Logo';
 import { Badge } from '../DesignSystem';
@@ -25,8 +25,8 @@ const CONFETTI_COLORS = [
   T.colors.accent.purple,
   '#FFD700',
   T.colors.semantic.success,
-  '#FF6770',
-  '#A5B4FC',
+  T.colors.tint.errorText,
+  T.colors.tint.indigoText,
 ];
 
 function generateParticles(): ConfettiParticle[] {
@@ -65,7 +65,7 @@ function QRPlaceholder() {
 
   return (
     <div style={{
-      width: 140, height: 140, background: '#fff',
+      width: 140, height: 140, background: T.colors.tint.white,
       borderRadius: T.radius.md, padding: 10,
       display: 'grid', placeItems: 'center',
     }}>
@@ -120,7 +120,7 @@ function TicketCard({ stampVisible }: { stampVisible: boolean }) {
           {/* Poster */}
           <div style={{
             width: 72, aspectRatio: '2/3', borderRadius: T.radius.md, overflow: 'hidden', flexShrink: 0,
-            background: 'linear-gradient(135deg, #2a1a3d, #4c1d95)',
+            background: T.gradients.posterPurple,
             boxShadow: T.shadows.md,
           }}>
             <img src={`${TMDB}${MOVIE.posterPath}`} alt={MOVIE.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -282,7 +282,7 @@ export default function Confirmation() {
             width: 80, height: 80, borderRadius: T.radius.full,
             margin: '0 auto 20px',
             background: 'rgba(16,185,129,0.16)', border: '1px solid rgba(16,185,129,0.35)',
-            color: '#6EE7B7', fontSize: 36,
+            color: T.colors.tint.successText, fontSize: 36,
             display: 'grid', placeItems: 'center',
             opacity: mounted ? 1 : 0,
             transform: mounted ? 'scale(1)' : 'scale(0.4)',

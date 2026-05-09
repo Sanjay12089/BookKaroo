@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { Badge } from '../DesignSystem';
 import { MOVIES, VENUES } from './mockData';
@@ -30,9 +30,9 @@ const DATES = buildDates();
 // ─── Availability config ──────────────────────────────────────────────────────
 
 const AVAIL: Record<Showtime['availability'], { color: string; label: string; textColor: string }> = {
-  good: { color: T.colors.semantic.success, label: 'Available', textColor: '#6EE7B7' },
-  fast: { color: T.colors.semantic.warning, label: 'Filling fast', textColor: '#FCD34D' },
-  low: { color: T.colors.semantic.error, label: 'Few seats left', textColor: '#FF6770' },
+  good: { color: T.colors.semantic.success, label: 'Available', textColor: T.colors.tint.successText },
+  fast: { color: T.colors.semantic.warning, label: 'Filling fast', textColor: T.colors.tint.warningText },
+  low: { color: T.colors.semantic.error, label: 'Few seats left', textColor: T.colors.tint.errorText },
   sold: { color: T.colors.text.muted, label: 'Sold Out', textColor: T.colors.text.muted },
 };
 
@@ -88,7 +88,7 @@ function TimeChip({ show, selected, onSelect }: TimeChipProps) {
 
       <span style={{
         fontWeight: 700, fontSize: 14,
-        color: selected ? '#fff' : isSold ? T.colors.text.muted : T.colors.text.primary,
+        color: selected ? T.colors.tint.white : isSold ? T.colors.text.muted : T.colors.text.primary,
         textDecoration: isSold ? 'line-through' : 'none',
       }}>
         {show.time}
@@ -211,7 +211,7 @@ export default function Showtimes() {
         <section style={{ padding: '28px 0 16px', display: 'flex', gap: 20, alignItems: 'center' }}>
           <div style={{
             width: 60, aspectRatio: '2/3', borderRadius: T.radius.md, overflow: 'hidden', flexShrink: 0,
-            background: 'linear-gradient(135deg, #2a1a3d, #4c1d95)',
+            background: T.gradients.posterPurple,
           }}>
             <img
               src={`${TMDB}${MOVIE.posterPath}`}
@@ -255,7 +255,7 @@ export default function Showtimes() {
                   ? `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})`
                   : T.colors.bg.surface,
                 border: `1px solid ${dateIdx === i ? 'transparent' : T.colors.border.default}`,
-                color: dateIdx === i ? '#fff' : T.colors.text.secondary,
+                color: dateIdx === i ? T.colors.tint.white : T.colors.text.secondary,
                 boxShadow: dateIdx === i ? T.shadows.glowIndigo : 'none',
                 transition: `all ${T.motion.duration.fast}`,
                 fontFamily: T.fonts.body,
@@ -350,7 +350,7 @@ export default function Showtimes() {
                       <button style={{
                         width: '100%', padding: '12px 0', borderRadius: T.radius.full,
                         background: `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`,
-                        color: '#fff', border: 'none', fontWeight: 700, fontSize: 15,
+                        color: T.colors.tint.white, border: 'none', fontWeight: 700, fontSize: 15,
                         cursor: 'pointer', fontFamily: T.fonts.body,
                         boxShadow: T.shadows.glowCrimson,
                       }}>

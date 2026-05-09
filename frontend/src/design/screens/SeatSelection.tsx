@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import { DESIGN_TOKENS as T } from '../tokens';
 import { CountdownRing } from '../DesignSystem';
 import { buildSeatLayout, SEAT_PRICES, MOVIES } from './mockData';
@@ -66,7 +66,7 @@ function Seat({ id, number, category, state, onToggle }: SeatProps) {
   if (state === 'selected') {
     bg = `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`;
     border = 'transparent';
-    color = '#fff';
+    color = T.colors.tint.white;
   } else if (state === 'booked') {
     bg = T.colors.bg.surface3;
     border = T.colors.border.default;
@@ -155,7 +155,7 @@ function SeatGrid({ layout, selected, onToggle }: SeatGridProps) {
         lastCategory = row.category;
 
         return (
-          <React.Fragment key={row.letter}>
+          <Fragment key={row.letter}>
             {showLabel && <SectionLabel category={row.category} />}
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6, padding: '0 6px' }}>
               <span style={{ fontFamily: T.fonts.mono, fontSize: 10, color: T.colors.text.muted, width: 24, textAlign: 'center', flexShrink: 0 }}>
@@ -183,7 +183,7 @@ function SeatGrid({ layout, selected, onToggle }: SeatGridProps) {
                 {row.letter}
               </span>
             </div>
-          </React.Fragment>
+          </Fragment>
         );
       })}
     </div>
@@ -194,12 +194,11 @@ function SeatGrid({ layout, selected, onToggle }: SeatGridProps) {
 
 interface BottomBarProps {
   selected: Set<string>;
-  categories: Map<string, SeatCategory>;
   onRemove: (id: string) => void;
   total: number;
 }
 
-function BottomBar({ selected, categories, onRemove, total }: BottomBarProps) {
+function BottomBar({ selected, onRemove, total }: BottomBarProps) {
   const hasSelection = selected.size > 0;
   const convFee = hasSelection ? CONV_FEE : 0;
   const gst = hasSelection ? Math.round(convFee * GST_RATE) : 0;
@@ -221,13 +220,13 @@ function BottomBar({ selected, categories, onRemove, total }: BottomBarProps) {
               <span key={id} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
                 padding: '3px 10px', borderRadius: T.radius.full,
-                background: 'rgba(229,9,20,0.12)', color: '#FF6770',
+                background: 'rgba(229,9,20,0.12)', color: T.colors.tint.errorText,
                 border: '1px solid rgba(229,9,20,0.25)',
                 fontSize: 12, fontWeight: 600, fontFamily: T.fonts.body,
               }}>
                 {id}
                 <button onClick={() => onRemove(id)} style={{
-                  background: 'none', border: 'none', cursor: 'pointer', color: '#FF6770',
+                  background: 'none', border: 'none', cursor: 'pointer', color: T.colors.tint.errorText,
                   fontSize: 14, lineHeight: 1, padding: 0, marginLeft: 2,
                 }}>
                   ×
@@ -263,7 +262,7 @@ function BottomBar({ selected, categories, onRemove, total }: BottomBarProps) {
               background: hasSelection
                 ? `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`
                 : T.colors.bg.surface3,
-              color: hasSelection ? '#fff' : T.colors.text.muted,
+              color: hasSelection ? T.colors.tint.white : T.colors.text.muted,
               border: 'none', fontWeight: 700, fontSize: 16,
               cursor: hasSelection ? 'pointer' : 'not-allowed',
               fontFamily: T.fonts.body,
@@ -302,7 +301,7 @@ export default function SeatSelection() {
     return () => clearInterval(id);
   }, []);
 
-  const handleToggle = useCallback((id: string, category: SeatCategory) => {
+  const handleToggle = useCallback((id: string, _category: SeatCategory) => {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -428,7 +427,7 @@ export default function SeatSelection() {
                   width: 30, height: 30, borderRadius: T.radius.md,
                   background: selected.size === n ? `linear-gradient(135deg, ${T.colors.accent.indigo}, ${T.colors.accent.purple})` : T.colors.bg.surface2,
                   border: `1px solid ${selected.size === n ? 'transparent' : T.colors.border.default}`,
-                  color: selected.size === n ? '#fff' : T.colors.text.secondary,
+                  color: selected.size === n ? T.colors.tint.white : T.colors.text.secondary,
                   fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: T.fonts.body,
                 }}>
                   {n}
@@ -498,7 +497,7 @@ export default function SeatSelection() {
               }}>
                 <div style={{
                   width: 52, aspectRatio: '2/3', borderRadius: T.radius.md, overflow: 'hidden', flexShrink: 0,
-                  background: 'linear-gradient(135deg, #2a1a3d, #4c1d95)',
+                  background: T.gradients.posterPurple,
                 }}>
                   <img src={`https://image.tmdb.org/t/p/w300${MOVIE.posterPath}`} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 </div>
@@ -523,12 +522,12 @@ export default function SeatSelection() {
                   <span key={id} style={{
                     display: 'inline-flex', alignItems: 'center', gap: 4,
                     padding: '3px 8px', borderRadius: T.radius.full,
-                    background: 'rgba(99,102,241,0.14)', color: '#A5B4FC',
+                    background: 'rgba(99,102,241,0.14)', color: T.colors.tint.indigoText,
                     border: '1px solid rgba(99,102,241,0.28)',
                     fontSize: 11, fontWeight: 600,
                   }}>
                     {id}
-                    <button onClick={() => handleRemove(id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#A5B4FC', fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
+                    <button onClick={() => handleRemove(id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: T.colors.tint.indigoText, fontSize: 13, lineHeight: 1, padding: 0 }}>×</button>
                   </span>
                 ))}
               </div>
@@ -575,7 +574,7 @@ export default function SeatSelection() {
                   background: selected.size > 0
                     ? `linear-gradient(135deg, ${T.colors.accent.crimsonLight}, ${T.colors.accent.crimson})`
                     : T.colors.bg.surface3,
-                  color: selected.size > 0 ? '#fff' : T.colors.text.muted,
+                  color: selected.size > 0 ? T.colors.tint.white : T.colors.text.muted,
                   border: 'none', fontWeight: 700, fontSize: 16,
                   cursor: selected.size > 0 ? 'pointer' : 'not-allowed',
                   fontFamily: T.fonts.body,
@@ -593,7 +592,7 @@ export default function SeatSelection() {
         </div>
       </main>
 
-      <BottomBar selected={selected} categories={seatCategories} onRemove={handleRemove} total={total} />
+      <BottomBar selected={selected} onRemove={handleRemove} total={total} />
     </div>
   );
 }

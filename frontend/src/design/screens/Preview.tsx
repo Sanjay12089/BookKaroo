@@ -140,7 +140,7 @@ function DesktopFrame({ children, label }: { children: React.ReactNode; label: s
         border: `1px solid ${T.colors.border.default}`,
         borderBottom: 'none',
       }}>
-        {['#EF4444', '#F59E0B', '#10B981'].map((c) => (
+        {[T.colors.semantic.error, T.colors.semantic.warning, T.colors.semantic.success].map((c) => (
           <span key={c} style={{ width: 10, height: 10, borderRadius: '50%', background: c, display: 'inline-block' }} />
         ))}
         <span style={{
