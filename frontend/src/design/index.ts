@@ -39,3 +39,13 @@ export type {
   ToastContainerProps,
   ToastItem,
 } from './DesignSystem';
+
+// ─── Screens ──────────────────────────────────────────────────────────────────
+
+export { default as Home } from './screens/Home';
+export { default as MoviesList } from './screens/MoviesList';
+export { default as MovieDetail } from './screens/MovieDetail';
+export { default as Showtimes } from './screens/Showtimes';
+export { default as SeatSelection } from './screens/SeatSelection';
+
+export * from './screens/mockData';
