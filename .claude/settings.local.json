@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(New-Item -ItemType Directory -Path \"e:\\\\ClaudeTraining\\\\BookKaroo\\\\BookKaroo\\\\frontend\\\\src\\\\design\" -Force)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
