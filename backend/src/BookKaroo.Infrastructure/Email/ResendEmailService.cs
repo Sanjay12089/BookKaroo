@@ -25,23 +25,24 @@ public class ResendEmailService : IEmailService
     }
 
     public async Task SendBookingConfirmationAsync(
-        Booking booking, Show show, User user, byte[] invoicePdf, CancellationToken ct = default)
+        Booking booking, Show show, Movie? movie, User user, byte[] invoicePdf, CancellationToken ct = default)
     {
-        var companyGstin = _config["COMPANY_GSTIN"] ?? "24XXXXX0000X1Z5";
-        var frontendUrl  = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+        var companyGstin  = _config["COMPANY_GSTIN"] ?? "24XXXXX0000X1Z5";
+        var frontendUrl   = _config["FRONTEND_URL"] ?? "http://localhost:5173";
         var openTicketUrl = $"{frontendUrl}/booking/confirmed";
+        var movieTitle    = movie?.Title ?? "Movie";
 
-        var html      = BuildBookingConfirmationHtml(booking, show, user, openTicketUrl, companyGstin);
-        var plainText = BuildBookingConfirmationText(booking, show, user, openTicketUrl);
+        var html      = BuildBookingConfirmationHtml(booking, show, movie, user, openTicketUrl, companyGstin);
+        var plainText = BuildBookingConfirmationText(booking, show, movieTitle, user, openTicketUrl);
         var pdfBase64 = Convert.ToBase64String(invoicePdf);
 
         await SendAsync(
-            to: user.Email,
-            subject: $"Your Tickets — {show.MovieId} — {booking.BookingRef}",
-            html: html,
-            text: plainText,
+            to:          user.Email,
+            subject:     $"Your Tickets — {movieTitle} — {booking.BookingRef}",
+            html:        html,
+            text:        plainText,
             attachments: [new EmailAttachment($"{booking.BookingRef}_GST_Invoice.pdf", pdfBase64)],
-            ct: ct);
+            ct:          ct);
     }
 
     public async Task SendWelcomeAsync(User user, CancellationToken ct = default)
@@ -207,7 +208,7 @@ public class ResendEmailService : IEmailService
     }
 
     private static string BuildBookingConfirmationHtml(
-        Booking booking, Show show, User user, string openTicketUrl, string companyGstin)
+        Booking booking, Show show, Movie? movie, User user, string openTicketUrl, string companyGstin)
     {
         bool hasCoupon       = booking.CouponId.HasValue && booking.Discount > 0;
         var convFeeGst       = Math.Round(booking.ConvenienceFee * 0.18m, 2);
@@ -219,6 +220,8 @@ public class ResendEmailService : IEmailService
         var showDateStr      = show.ShowDate.ToString("ddd, dd MMM yyyy");
         var showTimeStr      = show.ShowTime.ToString(@"hh\:mm tt");
         var bookingRef       = booking.BookingRef;
+        var movieTitle       = movie?.Title ?? "Movie";
+        var certificate      = string.IsNullOrEmpty(movie?.Certificate) ? "" : $" ({movie.Certificate})";
         var ticketAmtStr     = booking.TicketAmount.ToString("F2");
         var convFeeStr       = booking.ConvenienceFee.ToString("F2");
         var convFeeTotalStr  = convFeeTotal.ToString("F2");
@@ -281,7 +284,7 @@ public class ResendEmailService : IEmailService
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4E4E7;border-radius:12px">
                         <tr>
                           <td class="stack" valign="top" style="padding:16px">
-                            <div style="font-size:14px;font-weight:600;color:#18181B;margin-bottom:8px">(Movie Ticket)</div>
+                            <div style="font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:700;color:#18181B;margin-bottom:6px">{{movieTitle}}{{certificate}}</div>
                             <div style="font-size:13px;color:#52525B;line-height:1.5">{{showDateStr}} · {{showTimeStr}}</div>
                           </td>
                         </tr>
@@ -362,14 +365,15 @@ public class ResendEmailService : IEmailService
             """;
     }
 
-    private static string BuildBookingConfirmationText(Booking booking, Show show, User user, string openTicketUrl)
+    private static string BuildBookingConfirmationText(Booking booking, Show show, string movieTitle, User user, string openTicketUrl)
     {
         return $"""
             BookKaroo — Your Booking Is Confirmed!
 
             Booking ID: {booking.BookingRef}
 
-            {show.ShowDate:ddd, dd MMM yyyy}
+            {movieTitle}
+            {show.ShowDate:ddd, dd MMM yyyy} · {show.ShowTime:hh\:mm tt}
 
             ORDER SUMMARY
             Ticket Amount ({booking.TicketQty} tickets): Rs.{booking.TicketAmount:F2}

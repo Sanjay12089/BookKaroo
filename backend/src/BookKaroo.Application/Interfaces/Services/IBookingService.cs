@@ -15,4 +15,8 @@ public interface IBookingService
 
     Task<CancelResponse> CancelAsync(
         string bookingRef, Guid userId, CancellationToken ct = default);
+
+    /// <summary>Generate the GST invoice PDF bytes for a booking on demand.</summary>
+    Task<byte[]> GenerateInvoicePdfAsync(
+        string bookingRef, Guid userId, CancellationToken ct = default);
 }

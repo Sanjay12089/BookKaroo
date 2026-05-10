@@ -87,3 +87,16 @@ export function useBookingDetail(ref: string) {
     staleTime: 5 * 60 * 1000,
   });
 }
+
+export async function downloadInvoicePdf(ref: string): Promise<void> {
+  const response = await api.get(`/api/bookings/${ref}/invoice`, { responseType: 'blob' });
+  const blob = new Blob([response.data as BlobPart], { type: 'application/pdf' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${ref}_GST_Invoice.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
