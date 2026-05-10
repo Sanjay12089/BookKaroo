@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { cn, formatCurrency } from '@/shared/lib/utils';
 import { CountdownRing } from '@/shared/components/ui/CountdownRing';
@@ -74,8 +74,10 @@ export default function SeatSelectionPage() {
 
   // ── Lock expiry ────────────────────────────────────────────────────────────
   const [remaining, setRemaining] = useState<number>(8 * 60);
+  const expiredRef = useRef(false);
 
   useEffect(() => {
+    expiredRef.current = false;
     if (!lockExpiresAt) {
       setRemaining(8 * 60);
       return;
@@ -83,8 +85,11 @@ export default function SeatSelectionPage() {
     const tick = () => {
       const diff = Math.max(0, Math.floor((new Date(lockExpiresAt).getTime() - Date.now()) / 1000));
       setRemaining(diff);
-      if (diff === 0) {
+      if (diff === 0 && !expiredRef.current) {
+        expiredRef.current = true;
         toast('Your seat hold expired. Please reselect.', 'error');
+        // Release locks on backend immediately so seats become available on refresh
+        void releaseMutation.mutateAsync(showId).catch(() => {});
         clearSeats(showId);
       }
     };
