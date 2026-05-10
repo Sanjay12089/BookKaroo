@@ -123,7 +123,16 @@ public class InvoiceBuilder
             CompanyGstin:        companyGstin,
             CompanyPan:          companyPan,
             CompanyStateCode:    companyStateCode,
-            CompanyAddress:      companyAddress);
+            CompanyAddress:      companyAddress,
+            // Full payment summary
+            TicketQty:           booking.TicketQty,
+            TicketAmount:        booking.TicketAmount,
+            ConvenienceFee:      booking.ConvenienceFee,
+            ConvenienceFeeGst:   Math.Round(booking.ConvenienceFee * (isIntraState ? 0.18m : 0.18m), 2),
+            OfferProcessingFee:  booking.OfferProcessingFee,
+            OfferProcessingFeeGst: booking.OfferProcessingFee > 0 ? Math.Round(booking.OfferProcessingFee * 0.18m, 2) : 0m,
+            Discount:            booking.Discount,
+            AmountPaid:          booking.AmountPaid);
     }
 
     private static string GenerateInvoiceNumber(Booking b)

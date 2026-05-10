@@ -25,14 +25,18 @@ public class ResendEmailService : IEmailService
     }
 
     public async Task SendBookingConfirmationAsync(
-        Booking booking, Show show, Movie? movie, User user, byte[] invoicePdf, CancellationToken ct = default)
+        Booking booking, Show show, Movie? movie, User user,
+        byte[] invoicePdf, byte[]? qrCodePng, CancellationToken ct = default)
     {
         var companyGstin  = _config["COMPANY_GSTIN"] ?? "24XXXXX0000X1Z5";
         var frontendUrl   = _config["FRONTEND_URL"] ?? "http://localhost:5173";
-        var openTicketUrl = $"{frontendUrl}/booking/confirmed";
+        // Include booking ref so the page can load data directly from API when opened from email
+        var openTicketUrl = $"{frontendUrl}/booking/confirmed?ref={Uri.EscapeDataString(booking.BookingRef)}";
         var movieTitle    = movie?.Title ?? "Movie";
 
-        var html      = BuildBookingConfirmationHtml(booking, show, movie, user, openTicketUrl, companyGstin);
+        var qrBase64 = qrCodePng is not null ? Convert.ToBase64String(qrCodePng) : null;
+
+        var html      = BuildBookingConfirmationHtml(booking, show, movie, user, openTicketUrl, companyGstin, qrBase64);
         var plainText = BuildBookingConfirmationText(booking, show, movieTitle, user, openTicketUrl);
         var pdfBase64 = Convert.ToBase64String(invoicePdf);
 
@@ -208,7 +212,8 @@ public class ResendEmailService : IEmailService
     }
 
     private static string BuildBookingConfirmationHtml(
-        Booking booking, Show show, Movie? movie, User user, string openTicketUrl, string companyGstin)
+        Booking booking, Show show, Movie? movie, User user, string openTicketUrl, string companyGstin,
+        string? qrBase64)
     {
         bool hasCoupon       = booking.CouponId.HasValue && booking.Discount > 0;
         var convFeeGst       = Math.Round(booking.ConvenienceFee * 0.18m, 2);
@@ -232,6 +237,17 @@ public class ResendEmailService : IEmailService
         var offerFeeGstStr   = offerFeeGst.ToString("F2");
         var discountStr      = booking.Discount.ToString("F2");
         var ticketQty        = booking.TicketQty.ToString();
+        var qrImgSrc         = qrBase64 is not null
+            ? $"data:image/png;base64,{qrBase64}"
+            : null;
+
+        var qrBlock = qrImgSrc is not null ? $$"""
+            <tr><td align="center" class="px" style="padding:0 32px 24px">
+              <div style="font-size:13px;font-weight:700;color:#71717A;letter-spacing:1px;margin-bottom:12px">M-TICKET QR CODE</div>
+              <p style="font-size:12px;color:#52525B;margin:0 0 12px">Scan this QR code at the entry counter</p>
+              <img src="{{qrImgSrc}}" alt="M-Ticket QR Code" width="150" height="150" style="display:block;margin:0 auto;border-radius:8px;border:1px solid #E4E4E7"/>
+            </td></tr>
+            """ : "";
 
         var couponBlock = hasCoupon ? $$"""
             <tr><td colspan="2" style="border-top:1px dashed #E4E4E7;height:1px;line-height:1px;font-size:1px">&nbsp;</td></tr>
@@ -333,13 +349,15 @@ public class ResendEmailService : IEmailService
                       </table>
                     </td></tr>
 
+                    {{qrBlock}}
+
                     <tr><td class="px" style="padding:0 32px 24px">
                       <div style="font-size:13px;font-weight:700;color:#71717A;letter-spacing:1px;margin-bottom:12px">IMPORTANT INSTRUCTIONS</div>
                       <ul style="margin:0;padding-left:20px;color:#52525B;font-size:13px;line-height:1.7">
                         <li>Please carry a valid government-issued photo ID. It will be checked at the venue.</li>
                         <li>Cancellation allowed if show is more than 2 hours away. Convenience fee is non-refundable.</li>
                         <li>Outside food and beverages are not allowed inside the venue.</li>
-                        <li>Show the QR code (in attached invoice) at the entry counter.</li>
+                        <li>Show the QR code above (or in the attached invoice) at the entry counter.</li>
                       </ul>
                     </td></tr>
 
