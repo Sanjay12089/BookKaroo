@@ -6,7 +6,6 @@ using BookKaroo.Infrastructure.Data;
 using BookKaroo.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using QRCoder;
 
 namespace BookKaroo.Infrastructure.Services;
 
@@ -82,18 +81,13 @@ public class NotificationService : INotificationService
             var invoiceModel = await _invoiceBuilder.BuildAsync(booking, show, movie, venue, payment, user, ct);
             var pdfBytes     = _pdfGenerator.Generate(invoiceModel);
 
-            // Generate QR code PNG for email body
-            byte[]? qrBytes = null;
-            try
+            // QR URL for email — use Supabase URL if available, otherwise public QR API
+            // (data: URIs are stripped by Gmail / Outlook, so we need a real HTTPS URL)
+            string? qrUrl = booking.QrUrl;
+            if (string.IsNullOrEmpty(qrUrl))
             {
-                using var gen  = new QRCodeGenerator();
-                var qrData     = gen.CreateQrCode(booking.BookingRef, QRCodeGenerator.ECCLevel.Q);
-                using var code = new PngByteQRCode(qrData);
-                qrBytes = code.GetGraphic(8);  // 8px per module ≈ 200x200 px
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "QR generation failed for email {Ref}", booking.BookingRef);
+                var encoded = Uri.EscapeDataString(booking.BookingRef);
+                qrUrl = $"https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={encoded}&format=png&qzone=1";
             }
 
             // Upload PDF to Supabase Storage (best-effort — does not block email)
@@ -112,8 +106,8 @@ public class NotificationService : INotificationService
                 _logger.LogWarning(ex, "Invoice upload failed for {Ref} — email will still be sent", booking.BookingRef);
             }
 
-            // Send email with PDF and QR attached
-            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, qrBytes, ct);
+            // Send email with PDF attached and QR as a real HTTPS URL
+            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, qrUrl, ct);
             _logger.LogInformation("Booking confirmation email sent for {Ref} to {Email}", booking.BookingRef, user.Email);
         }
         catch (Exception ex)
