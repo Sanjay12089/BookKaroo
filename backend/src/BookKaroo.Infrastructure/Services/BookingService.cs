@@ -4,12 +4,14 @@ using BookKaroo.Application.DTOs.Pricing;
 using BookKaroo.Application.Exceptions;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
+using BookKaroo.Application.Services;
 using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
 using PaymentEntity = BookKaroo.Domain.Entities.Payment;
 using BookKaroo.Infrastructure.Data;
 using BookKaroo.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using QRCoder;
 
@@ -23,8 +25,8 @@ public class BookingService : IBookingService
     private readonly IRepository<Screen>         _screens;
     private readonly IMovieRepository            _movies;
     private readonly ISeatLockRepository         _locks;
-    private readonly INotificationService        _notifications;
     private readonly SupabaseStorageService      _storage;
+    private readonly IServiceScopeFactory        _scopeFactory;
     private readonly ILogger<BookingService>     _logger;
 
     public BookingService(
@@ -34,19 +36,19 @@ public class BookingService : IBookingService
         IRepository<Screen>     screens,
         IMovieRepository        movies,
         ISeatLockRepository     locks,
-        INotificationService    notifications,
         SupabaseStorageService  storage,
+        IServiceScopeFactory    scopeFactory,
         ILogger<BookingService> logger)
     {
-        _db            = db;
-        _shows         = shows;
-        _venues        = venues;
-        _screens       = screens;
-        _movies        = movies;
-        _locks         = locks;
-        _notifications = notifications;
-        _storage       = storage;
-        _logger        = logger;
+        _db           = db;
+        _shows        = shows;
+        _venues       = venues;
+        _screens      = screens;
+        _movies       = movies;
+        _locks        = locks;
+        _storage      = storage;
+        _scopeFactory = scopeFactory;
+        _logger       = logger;
     }
 
     public async Task<BookingDetailResponse> FinalizeBookingAsync(
@@ -59,7 +61,6 @@ public class BookingService : IBookingService
         if (booking.Status != BookingStatus.Pending)
             throw new ConflictException("Booking already processed.");
 
-        // Wrap in execution strategy — required when Npgsql retry policy is configured
         List<string> finalSeatLabels = [];
         PaymentEntity? finalPayment  = null;
 
@@ -107,7 +108,7 @@ public class BookingService : IBookingService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "QR generation failed for {Ref} — continuing", booking.BookingRef);
+                    _logger.LogWarning(ex, "QR upload failed for {Ref} — continuing", booking.BookingRef);
                 }
 
                 await _db.SaveChangesAsync(ct);
@@ -121,11 +122,22 @@ public class BookingService : IBookingService
             }
         });
 
-        // Fire-and-forget notification (outside transaction)
+        // Fire-and-forget notification in its own DI scope so scoped services survive
+        var capturedId  = booking.Id;
+        var capturedRef = booking.BookingRef;
         _ = Task.Run(async () =>
         {
-            try { await _notifications.SendBookingConfirmedAsync(booking); }
-            catch (Exception ex) { _logger.LogError(ex, "Notification failed for {Ref}", booking.BookingRef); }
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var notifications = scope.ServiceProvider.GetRequiredService<INotificationService>();
+            try
+            {
+                await notifications.SendBookingConfirmedAsync(capturedId);
+                _logger.LogInformation("Notification sent for {Ref}", capturedRef);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Notification failed for {Ref}", capturedRef);
+            }
         }, CancellationToken.None);
 
         return await BuildDetailAsync(booking, finalPayment, finalSeatLabels, ct);
@@ -166,7 +178,7 @@ public class BookingService : IBookingService
             _ => query
         };
 
-        var total = await query.CountAsync(ct);
+        var total    = await query.CountAsync(ct);
         var bookings = await query
             .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
@@ -239,14 +251,42 @@ public class BookingService : IBookingService
 
         await _db.SaveChangesAsync(ct);
 
+        var capturedId      = booking.Id;
+        var capturedRef     = booking.BookingRef;
+        var capturedRefund  = refundAmount;
         _ = Task.Run(async () =>
         {
-            try { await _notifications.SendBookingCancelledAsync(booking, refundAmount); }
-            catch (Exception ex) { _logger.LogError(ex, "Cancel notification failed for {Ref}", bookingRef); }
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var notifications = scope.ServiceProvider.GetRequiredService<INotificationService>();
+            try { await notifications.SendBookingCancelledAsync(capturedId, capturedRefund); }
+            catch (Exception ex) { _logger.LogError(ex, "Cancel notification failed for {Ref}", capturedRef); }
         }, CancellationToken.None);
 
         return new CancelResponse(refundAmount, refundId,
             $"Booking cancelled. ₹{refundAmount} will be refunded within 7 business days.");
+    }
+
+    public async Task<byte[]> GenerateInvoicePdfAsync(
+        string bookingRef, Guid userId, CancellationToken ct = default)
+    {
+        var booking = await _db.Bookings
+            .FirstOrDefaultAsync(b => b.BookingRef == bookingRef && b.UserId == userId, ct)
+            ?? throw new NotFoundException("Booking not found.");
+
+        var show    = await _shows.GetByIdAsync(booking.ShowId, ct);
+        var movie   = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
+        var allVenues = await _venues.GetAllAsync(ct);
+        var venue   = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+        var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == booking.Id, ct);
+        var user    = await _db.Users.FirstOrDefaultAsync(u => u.Id == booking.UserId, ct)
+            ?? throw new NotFoundException("User not found.");
+
+        await using var scope = _scopeFactory.CreateAsyncScope();
+        var builder   = scope.ServiceProvider.GetRequiredService<InvoiceBuilder>();
+        var generator = scope.ServiceProvider.GetRequiredService<IInvoicePdfGenerator>();
+
+        var model    = await builder.BuildAsync(booking, show!, movie, venue, payment, user, ct);
+        return generator.Generate(model);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -262,7 +302,7 @@ public class BookingService : IBookingService
         var movie    = show?.MovieId.HasValue == true
             ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
 
-        var bsItems = await _db.BookingSeats
+        var bsItems  = await _db.BookingSeats
             .Where(bs => bs.BookingId == booking.Id)
             .ToListAsync(ct);
 

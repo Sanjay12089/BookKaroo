@@ -46,38 +46,60 @@ public class NotificationService : INotificationService
         _logger         = logger;
     }
 
-    public async Task SendBookingConfirmedAsync(Booking booking, CancellationToken ct = default)
+    public async Task SendBookingConfirmedAsync(Guid bookingId, CancellationToken ct = default)
     {
-        _logger.LogInformation("Sending booking confirmation for {Ref}", booking.BookingRef);
+        _logger.LogInformation("Sending booking confirmation for BookingId={BookingId}", bookingId);
+
+        var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId, ct);
+        if (booking is null)
+        {
+            _logger.LogWarning("Booking {BookingId} not found for notification", bookingId);
+            return;
+        }
 
         var user    = await _users.GetByIdAsync(booking.UserId, ct);
         var show    = await _shows.GetByIdAsync(booking.ShowId, ct);
         var movie   = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
         var allVenues = await _venues.GetAllAsync(ct);
         var venue   = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
-        var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == booking.Id, ct);
+        var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
 
-        if (user is null || show is null)
+        if (user is null)
         {
-            _logger.LogWarning("Cannot send confirmation for {Ref} — user or show not found", booking.BookingRef);
+            _logger.LogWarning("User not found for booking {Ref}", booking.BookingRef);
+            return;
+        }
+        if (show is null)
+        {
+            _logger.LogWarning("Show not found for booking {Ref}", booking.BookingRef);
             return;
         }
 
         try
         {
+            // Build GST invoice
             var invoiceModel = await _invoiceBuilder.BuildAsync(booking, show, movie, venue, payment, user, ct);
             var pdfBytes     = _pdfGenerator.Generate(invoiceModel);
 
-            // Upload PDF to Supabase Storage (best-effort)
-            var invoiceUrl = await _storage.UploadInvoiceAsync(booking.UserId, booking.BookingRef, pdfBytes, ct);
-            if (invoiceUrl is not null && booking.InvoiceUrl is null)
+            // Upload PDF to Supabase Storage (best-effort — does not block email)
+            try
             {
-                booking.InvoiceUrl = invoiceUrl;
-                await _db.SaveChangesAsync(ct);
+                var invoiceUrl = await _storage.UploadInvoiceAsync(booking.UserId, booking.BookingRef, pdfBytes, ct);
+                if (invoiceUrl is not null && booking.InvoiceUrl is null)
+                {
+                    booking.InvoiceUrl = invoiceUrl;
+                    await _db.SaveChangesAsync(ct);
+                    _logger.LogInformation("Invoice uploaded to {Url}", invoiceUrl);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Invoice upload failed for {Ref} — email will still be sent", booking.BookingRef);
             }
 
-            await _email.SendBookingConfirmationAsync(booking, show, user, pdfBytes, ct);
-            _logger.LogInformation("Booking confirmation email sent for {Ref}", booking.BookingRef);
+            // Send email with PDF attached regardless of storage outcome
+            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, ct);
+            _logger.LogInformation("Booking confirmation email sent for {Ref} to {Email}", booking.BookingRef, user.Email);
         }
         catch (Exception ex)
         {
@@ -85,16 +107,15 @@ public class NotificationService : INotificationService
         }
     }
 
-    public async Task SendBookingCancelledAsync(Booking booking, decimal refundAmount, CancellationToken ct = default)
+    public async Task SendBookingCancelledAsync(Guid bookingId, decimal refundAmount, CancellationToken ct = default)
     {
-        _logger.LogInformation("Sending cancellation notification for {Ref}", booking.BookingRef);
+        var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.Id == bookingId, ct);
+        if (booking is null) return;
 
         var user = await _users.GetByIdAsync(booking.UserId, ct);
-        if (user is null)
-        {
-            _logger.LogWarning("Cannot send cancellation for {Ref} — user not found", booking.BookingRef);
-            return;
-        }
+        if (user is null) return;
+
+        _logger.LogInformation("Sending cancellation notification for {Ref}", booking.BookingRef);
 
         try
         {
