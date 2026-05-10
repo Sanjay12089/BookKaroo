@@ -114,13 +114,16 @@ public class QuestPdfInvoiceGenerator : IInvoicePdfGenerator
                 cols.RelativeColumn(8);  // Total
             });
 
-            // Header
+            // Header — must be called exactly once; all cells defined inside the single lambda
             string[] headers = ["Description", "SAC", "Qty", "Price", "Discount",
                 "Taxable", "CGST%", "CGST", "SGST%", "SGST",
                 "IGST%", "IGST", "Cess%", "Cess", "Total"];
 
-            foreach (var h in headers)
-                table.Header(th => th.Cell().Background(Colors.Grey.Lighten2).Padding(3).Text(h).Bold().FontSize(8));
+            table.Header(th =>
+            {
+                foreach (var h in headers)
+                    th.Cell().Background(Colors.Grey.Lighten2).Padding(3).Text(h).Bold().FontSize(8);
+            });
 
             // Rows
             foreach (var line in m.Lines)
