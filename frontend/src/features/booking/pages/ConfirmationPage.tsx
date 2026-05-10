@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { useCheckoutStore } from '@/shared/store/checkoutStore';
@@ -49,18 +49,21 @@ function TicketNotch({ side }: { side: 'left' | 'right' }) {
 
 export default function ConfirmationPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { bookingDetail, orderResponse, contactEmail, clearAll } = useCheckoutStore();
   const [invoiceLoading, setInvoiceLoading] = useState(false);
   const [stampDone, setStampDone] = useState(false);
 
-  const ref = bookingDetail?.bookingRef ?? orderResponse?.bookingRef ?? '';
+  // ref comes from store OR from URL ?ref= param (email link)
+  const urlRef = searchParams.get('ref') ?? '';
+  const ref = bookingDetail?.bookingRef ?? orderResponse?.bookingRef ?? urlRef;
 
-  // Fetch from API if we only have the ref (e.g. page refresh)
+  // Fetch from API when arriving from email link (store is empty, ref in URL)
   const { data: fetched } = useBookingDetail(!bookingDetail && ref ? ref : '');
   const detail = bookingDetail ?? fetched ?? null;
 
   useEffect(() => {
-    if (!bookingDetail && !orderResponse) {
+    if (!bookingDetail && !orderResponse && !urlRef) {
       navigate('/');
     }
   }, []);

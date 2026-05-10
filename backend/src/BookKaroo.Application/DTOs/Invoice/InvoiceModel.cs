@@ -21,7 +21,16 @@ public record InvoiceModel(
     string CompanyGstin,
     string CompanyPan,
     string CompanyStateCode,
-    string CompanyAddress
+    string CompanyAddress,
+    // Full payment summary fields (for the "Amount Paid" summary block)
+    int     TicketQty,
+    decimal TicketAmount,
+    decimal ConvenienceFee,
+    decimal ConvenienceFeeGst,
+    decimal OfferProcessingFee,
+    decimal OfferProcessingFeeGst,
+    decimal Discount,
+    decimal AmountPaid
 );
 
 public record InvoiceLine(
