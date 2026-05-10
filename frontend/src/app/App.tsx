@@ -4,7 +4,9 @@ import { router } from './router';
 import { Providers } from './providers';
 import { ToastContainer } from '@/shared/components/ui/Toast';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { configureApiInterceptors } from '@/shared/lib/api';
+import { useCityStore } from '@/shared/store/cityStore';
+import { configureApiInterceptors, api } from '@/shared/lib/api';
+import type { City } from '@/shared/types';
 
 function AppInit({ children }: { children: React.ReactNode }) {
   const { initialize, isInitialized } = useAuthStore();
@@ -14,10 +16,25 @@ function AppInit({ children }: { children: React.ReactNode }) {
       getToken: () => useAuthStore.getState().accessToken,
       onRefreshFail: () => {
         useAuthStore.getState().clearAuth();
-        // Don't use window.location.href — it causes a full reload loop on every init.
-        // ProtectedRoute handles the /login redirect via React Router when needed.
+        // Don't use window.location.href — causes an infinite reload loop.
+        // ProtectedRoute handles the /login redirect via React Router.
       },
     });
+
+    // Restore city from localStorage before anything renders
+    useCityStore.getState().initFromStorage();
+
+    // Auto-detect city if none persisted (best-effort; fails silently for localhost)
+    if (!useCityStore.getState().selectedCity) {
+      api.get<City>('/api/cities/detect')
+        .then(({ data }) => {
+          if (data && !useCityStore.getState().selectedCity) {
+            useCityStore.getState().setCity(data);
+          }
+        })
+        .catch(() => { /* user will choose via CityModal */ });
+    }
+
     void initialize();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
