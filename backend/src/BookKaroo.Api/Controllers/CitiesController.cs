@@ -28,8 +28,10 @@ public class CitiesController : ControllerBase
     [ProducesResponseType(204)]
     public async Task<IActionResult> Detect(CancellationToken ct)
     {
-        var ip = HttpContext.Connection.RemoteIpAddress?.ToString()
-              ?? Request.Headers["X-Forwarded-For"].FirstOrDefault()
+        // In production behind a proxy, X-Forwarded-For has the real client IP.
+        // RemoteIpAddress is the proxy IP, so check the header first.
+        var ip = Request.Headers["X-Forwarded-For"].FirstOrDefault()
+              ?? HttpContext.Connection.RemoteIpAddress?.ToString()
               ?? "0.0.0.0";
 
         var city = await _cities.DetectFromIpAsync(ip, ct);
