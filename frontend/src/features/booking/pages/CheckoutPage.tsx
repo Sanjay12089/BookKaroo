@@ -33,9 +33,12 @@ export default function CheckoutPage() {
   const { user }                                              = useAuthStore();
   const checkoutStore                                         = useCheckoutStore();
 
-  // Guard: no seats → back to home
+  // Prevents the guard below from firing when payment succeeds and clearSeats is called
+  const paymentCompletedRef = useRef(false);
+
+  // Guard: no seats → back to home (suppressed after successful payment)
   useEffect(() => {
-    if (selectedSeats.length === 0) navigate('/');
+    if (selectedSeats.length === 0 && !paymentCompletedRef.current) navigate('/');
   }, [selectedSeats.length]);
 
   const { data: seatsData } = useShowSeats(showId ?? '');
@@ -169,14 +172,11 @@ export default function CheckoutPage() {
   }
 
   function handlePaymentSuccess(detail: BookingDetailResponse) {
+    // Set flag BEFORE clearSeats so the guard useEffect doesn't fire navigate('/')
+    paymentCompletedRef.current = true;
     checkoutStore.setBookingDetail(detail);
     clearSeats();
     navigate(ROUTES.CONFIRMATION);
-  }
-
-  function handlePaymentFailure(msg: string) {
-    setShowPaymentModal(false);
-    toast(msg, 'error');
   }
 
   // ── Seat group labels ─────────────────────────────────────────────────────
@@ -291,7 +291,6 @@ export default function CheckoutPage() {
           providerOrderId={checkoutStore.orderResponse.providerOrderId}
           amount={checkoutStore.orderResponse.amount}
           onSuccess={handlePaymentSuccess}
-          onFailure={handlePaymentFailure}
           onClose={() => setShowPaymentModal(false)}
         />
       )}

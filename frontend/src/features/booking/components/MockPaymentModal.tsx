@@ -8,7 +8,6 @@ interface Props {
   providerOrderId: string;
   amount:          number;
   onSuccess:       (detail: BookingDetailResponse) => void;
-  onFailure:       (message: string) => void;
   onClose:         () => void;
 }
 
@@ -21,21 +20,26 @@ const METHODS: { id: PayMethod; label: string; icon: string }[] = [
   { id: 'wallet',     label: 'Wallet',               icon: '💰' },
 ];
 
-export function MockPaymentModal({ providerOrderId, amount, onSuccess, onFailure, onClose }: Props) {
-  const [method, setMethod] = useState<PayMethod>('card');
+export function MockPaymentModal({ providerOrderId, amount, onSuccess, onClose }: Props) {
+  const [method,   setMethod]   = useState<PayMethod>('card');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const capture = useMockCapture();
 
-  async function handleCapture(simulate: boolean) {
+  async function handleCapture(simulateFailure: boolean) {
+    setErrorMsg(null);
     try {
-      const result = await capture.mutateAsync({ providerOrderId, simulateFailure: simulate });
-      if (simulate) {
-        onFailure('Payment declined (simulated). Please try again.');
-      } else {
-        onSuccess(result);
-      }
+      const result = await capture.mutateAsync({ providerOrderId, simulateFailure });
+      // Simulate failure: backend throws 402, so this line only runs on unexpected success
+      onSuccess(result);
     } catch (err: unknown) {
-      const msg = (err as ApiError)?.message ?? 'Payment failed.';
-      onFailure(msg);
+      const msg = (err as ApiError)?.message ?? 'Payment failed. Please try again.';
+      if (simulateFailure) {
+        // Show error inline — modal stays open so user can retry
+        setErrorMsg('Payment declined (simulated). Please try again.');
+      } else {
+        // Unexpected error on real success path — also show inline
+        setErrorMsg(msg);
+      }
     }
   }
 
@@ -52,7 +56,8 @@ export function MockPaymentModal({ providerOrderId, amount, onSuccess, onFailure
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full bg-bg-surface2 hover:bg-bg-surface3 flex items-center justify-center text-text-muted hover:text-text-primary transition-colors"
+            disabled={capture.isPending}
+            className="w-8 h-8 rounded-full bg-bg-surface2 hover:bg-bg-surface3 flex items-center justify-center text-text-muted hover:text-text-primary transition-colors disabled:opacity-40"
           >
             ×
           </button>
@@ -63,6 +68,15 @@ export function MockPaymentModal({ providerOrderId, amount, onSuccess, onFailure
           <p className="text-[11px] text-text-muted font-sans uppercase tracking-widest mb-1">Amount to Pay</p>
           <p className="font-display font-black text-3xl text-accent-crimson">₹{amount}</p>
         </div>
+
+        {/* Inline error */}
+        {errorMsg && (
+          <div className="mx-5 mb-3 p-3 rounded-lg bg-semantic-error/10 border border-semantic-error/30 flex items-center gap-2">
+            <span className="text-semantic-error text-sm">✗</span>
+            <p className="text-sm text-semantic-error font-sans flex-1">{errorMsg}</p>
+            <button onClick={() => setErrorMsg(null)} className="text-semantic-error/60 hover:text-semantic-error text-xs">✕</button>
+          </div>
+        )}
 
         {/* Method selector */}
         <div className="px-5 mb-4">
