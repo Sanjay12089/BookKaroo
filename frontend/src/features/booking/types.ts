@@ -131,17 +131,39 @@ export interface BookingDetailResponse {
 }
 
 export interface BookingListItem {
-  id:         string;
-  bookingRef: string;
-  status:     string;
-  movieTitle: string;
-  posterUrl:  string | null;
-  venueName:  string;
-  showDate:   string;
-  showTime:   string;
-  ticketQty:  number;
-  amountPaid: number;
-  createdAt:  string;
+  id:              string;
+  bookingRef:      string;
+  status:          string;
+  title:           string;
+  slug:            string;
+  posterUrl:       string | null;
+  certificate:     string | null;
+  format:          string | null;
+  language:        string | null;
+  showDate:        string;
+  showTime:        string;
+  showDatetime:    string;
+  venueName:       string;
+  venueAddress:    string;
+  screenName:      string;
+  seats:           BookingSeatItem[];
+  ticketQty:       number;
+  amountPaid:      number;
+  discount:        number;
+  paymentMethod:   string | null;
+  invoiceUrl:      string | null;
+  qrUrl:           string | null;
+  canCancel:       boolean;
+  minutesUntilShow: number;
+  createdAt:       string;
+}
+
+export interface PaginatedBookings {
+  items:      BookingListItem[];
+  total:      number;
+  page:       number;
+  pageSize:   number;
+  totalPages: number;
 }
 
 export interface MockCaptureRequest {
@@ -150,6 +172,7 @@ export interface MockCaptureRequest {
 }
 
 export interface CancelResponse {
+  bookingRef:   string;
   refundAmount: number;
   refundId:     string;
   message:      string;

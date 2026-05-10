@@ -5,24 +5,25 @@ import type {
   CreateOrderRequest, CreateOrderResponse,
   ValidateCouponRequest, CouponValidation,
   BookingDetailResponse, MockCaptureRequest,
-  BookingListItem,
+  PaginatedBookings, CancelResponse,
 } from '../types';
 import type { ApiError } from '@/shared/types';
 
-export function useMyBookings() {
-  return useQuery<BookingListItem[]>({
-    queryKey: ['bookings', 'mine'],
+export function useMyBookings(tab: 'upcoming' | 'past' = 'upcoming', page = 1) {
+  return useQuery<PaginatedBookings>({
+    queryKey: ['bookings', 'mine', tab, page],
     queryFn: () =>
-      api.get<{ items: BookingListItem[]; total: number }>('/api/bookings/me')
-        .then((r) => r.data.items),
-    staleTime: 0,
+      api.get<PaginatedBookings>('/api/bookings/me', { params: { tab, page, pageSize: 10 } })
+        .then((r) => r.data),
+    staleTime: 30 * 1000,
   });
 }
 
 export function useCancelBooking() {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (ref: string) => api.post(`/api/bookings/${ref}/cancel`).then((r) => r.data),
+  return useMutation<CancelResponse, ApiError, string>({
+    mutationFn: (ref: string) =>
+      api.post<CancelResponse>(`/api/bookings/${ref}/cancel`).then((r) => r.data),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] }),
   });
 }
