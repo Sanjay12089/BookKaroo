@@ -5,6 +5,7 @@ import type {
   ShowSeatsData, SeatLockResponse,
   CreateOrderRequest, CreateOrderResponse,
   ValidateCouponRequest, CouponValidation,
+  BookingDetailResponse, MockCaptureRequest,
 } from '../types';
 import type { ApiError } from '@/shared/types';
 
@@ -66,5 +67,21 @@ export function useValidateCoupon() {
   return useMutation<CouponValidation, ApiError, ValidateCouponRequest>({
     mutationFn: (data) =>
       api.post<CouponValidation>('/api/coupons/validate', data).then((r) => r.data),
+  });
+}
+
+export function useMockCapture() {
+  return useMutation<BookingDetailResponse, ApiError, MockCaptureRequest>({
+    mutationFn: (data) =>
+      api.post<BookingDetailResponse>('/api/payments/mock-capture', data).then((r) => r.data),
+  });
+}
+
+export function useBookingDetail(ref: string) {
+  return useQuery<BookingDetailResponse>({
+    queryKey: ['booking', ref],
+    queryFn:  () => api.get<BookingDetailResponse>(`/api/bookings/${ref}`).then((r) => r.data),
+    enabled:  !!ref,
+    staleTime: 5 * 60 * 1000,
   });
 }
