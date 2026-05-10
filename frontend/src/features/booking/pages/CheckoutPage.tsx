@@ -10,8 +10,21 @@ import { MockPaymentModal } from '../components/MockPaymentModal';
 import { CountdownRing } from '@/shared/components/ui/CountdownRing';
 import { toast } from '@/shared/components/ui/Toast';
 import { ROUTES } from '@/shared/constants';
-import type { BookingDetailResponse, CouponValidation } from '../types';
+import type { BookingDetailResponse, CouponValidation, ScreenLayout } from '../types';
 import type { ApiError } from '@/shared/types';
+
+// Same fallback as SeatSelectionPage — used when backend has no layout JSON
+const FALLBACK_LAYOUT: ScreenLayout = {
+  rows: 12,
+  cols: 18,
+  aisleAfterCols: [5, 11],
+  blockedSeats: [],
+  categories: [
+    { name: 'Recliner',  rows: ['A', 'B'],                       price: 650, color: '#FFD700' },
+    { name: 'Executive', rows: ['C', 'D', 'E', 'F'],             price: 420, color: '#4169E1' },
+    { name: 'Normal',    rows: ['G', 'H', 'I', 'J', 'K', 'L'],  price: 260, color: '#A1A1AA' },
+  ],
+};
 
 export default function CheckoutPage() {
   const navigate = useNavigate();
@@ -72,19 +85,19 @@ export default function CheckoutPage() {
   }, [lockExpiresAt, showId]);
 
   // ── Pricing ───────────────────────────────────────────────────────────────
-  const layout    = seatsData?.screenLayout;
-  const stateCode = user?.stateCode ?? '27'; // default Maharashtra if not set
+  // Fall back to the same static layout used in SeatSelectionPage so prices
+  // always match what the user saw when picking seats.
+  const layout    = seatsData?.screenLayout ?? FALLBACK_LAYOUT;
+  const stateCode = user?.stateCode ?? '27';
 
   function getSeatPrice(label: string): number {
-    if (!layout) return 260;
     const row = label[0] ?? 'G';
     const cat = layout.categories.find((c) => c.rows.includes(row));
     return cat?.price ?? 260;
   }
 
-  const avgPrice = selectedSeats.length > 0
-    ? selectedSeats.reduce((s, l) => s + getSeatPrice(l), 0) / selectedSeats.length
-    : 260;
+  const ticketTotal = selectedSeats.reduce((s, l) => s + getSeatPrice(l), 0);
+  const avgPrice    = selectedSeats.length > 0 ? ticketTotal / selectedSeats.length : 260;
 
   const breakdown = calculatePricing(
     selectedSeats.length,
