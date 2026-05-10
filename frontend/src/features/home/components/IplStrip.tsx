@@ -1,23 +1,23 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
+import type { EventListItem } from '@/features/events/types';
 
-const TEAMS = [
-  { abbr: 'GT', color: '#1B64A7' }, { abbr: 'MI', color: '#004BA0' },
+const TEAM_AVATARS = [
+  { abbr: 'GT',  color: '#1B64A7' }, { abbr: 'MI',  color: '#004BA0' },
   { abbr: 'RCB', color: '#C41C1C' }, { abbr: 'CSK', color: '#F9CD1B' },
-  { abbr: 'RR', color: '#254AA5' }, { abbr: 'KKR', color: '#3B215C' },
-  { abbr: 'SRH', color: '#D9480F' }, { abbr: 'DC', color: '#0078C4' },
+  { abbr: 'RR',  color: '#254AA5' }, { abbr: 'KKR', color: '#3B215C' },
+  { abbr: 'SRH', color: '#D9480F' }, { abbr: 'DC',  color: '#0078C4' },
 ];
 
-const FIXTURES = [
-  { teams: 'GT vs MI', date: '16 May', time: '7:30 PM', venue: 'Narendra Modi Stadium' },
-  { teams: 'RCB vs KKR', date: '18 May', time: '3:30 PM', venue: 'M Chinnaswamy Stadium' },
-  { teams: 'RR vs CSK', date: '20 May', time: '7:30 PM', venue: 'Sawai Mansingh Stadium' },
-];
+interface IplStripProps {
+  matches?: EventListItem[];
+}
 
-export function IplStrip() {
+export function IplStrip({ matches }: IplStripProps) {
+  const displayMatches = matches?.slice(0, 3) ?? [];
+
   return (
     <section className="my-12 rounded-2xl overflow-hidden border border-[rgba(245,197,107,0.2)] relative">
-      {/* Background */}
       <div
         className="absolute inset-0"
         style={{
@@ -34,17 +34,18 @@ export function IplStrip() {
             The season is on. Tickets are live.
           </h3>
           <p className="text-text-secondary text-sm mb-5">
-            Narendra Modi Stadium, Eden Gardens, Wankhede & 7 more venues.
+            {displayMatches.length > 0
+              ? `${displayMatches.length}+ upcoming matches across iconic stadiums`
+              : 'Narendra Modi Stadium, Eden Gardens, Wankhede & more.'}
           </p>
 
-          {/* Team avatars */}
           <div className="flex gap-2.5 mb-6 flex-wrap">
-            {TEAMS.map((t) => (
+            {TEAM_AVATARS.map((t) => (
               <div
                 key={t.abbr}
                 title={t.abbr}
                 className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold text-white border-2 border-white/10 shadow-md font-mono"
-                style={{ background: t.color }}
+                style={{ background: t.color, color: t.abbr === 'CSK' ? '#000' : '#fff' }}
               >
                 {t.abbr}
               </div>
@@ -60,18 +61,38 @@ export function IplStrip() {
           </Link>
         </div>
 
-        {/* Fixtures */}
-        <div className="flex flex-col gap-2 min-w-[200px]">
-          {FIXTURES.map((f) => (
-            <div
-              key={f.teams}
-              className="px-4 py-2.5 rounded-lg border border-white/10 text-sm font-sans"
-              style={{ background: 'rgba(255,255,255,0.06)' }}
-            >
-              <p className="font-semibold text-text-primary">{f.teams}</p>
-              <p className="text-text-muted text-xs mt-0.5">{f.date} · {f.time}</p>
-            </div>
-          ))}
+        {/* Live fixtures */}
+        <div className="flex flex-col gap-2 min-w-[220px]">
+          {displayMatches.length > 0
+            ? displayMatches.map((m) => (
+                <Link
+                  key={m.id}
+                  to={ROUTES.EVENT_DETAIL(m.slug)}
+                  className="px-4 py-2.5 rounded-lg border border-white/10 text-sm font-sans hover:border-[#F5C56B]/40 transition-colors"
+                  style={{ background: 'rgba(255,255,255,0.06)' }}
+                >
+                  <p className="font-semibold text-text-primary line-clamp-1">{m.title}</p>
+                  <p className="text-text-muted text-xs mt-0.5">{m.eventDateLabel} · {m.eventTimeLabel}</p>
+                </Link>
+              ))
+            : (
+              <>
+                {[
+                  { title: 'GT vs MI', date: '16 May · 7:30 PM' },
+                  { title: 'RCB vs KKR', date: '18 May · 3:30 PM' },
+                  { title: 'RR vs CSK', date: '20 May · 7:30 PM' },
+                ].map((f) => (
+                  <div
+                    key={f.title}
+                    className="px-4 py-2.5 rounded-lg border border-white/10 text-sm font-sans"
+                    style={{ background: 'rgba(255,255,255,0.06)' }}
+                  >
+                    <p className="font-semibold text-text-primary">{f.title}</p>
+                    <p className="text-text-muted text-xs mt-0.5">{f.date}</p>
+                  </div>
+                ))}
+              </>
+            )}
         </div>
       </div>
     </section>

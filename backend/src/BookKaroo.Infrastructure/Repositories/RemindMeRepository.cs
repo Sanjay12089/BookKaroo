@@ -14,4 +14,7 @@ public class RemindMeRepository : Repository<RemindMe>, IRemindMeRepository
 
     public async Task<bool> HasOptedInAsync(Guid userId, Guid movieId, CancellationToken ct = default) =>
         await _db.RemindMes.AnyAsync(r => r.UserId == userId && r.MovieId == movieId, ct);
+
+    public async Task<bool> HasOptedInForEventAsync(Guid userId, Guid eventId, CancellationToken ct = default) =>
+        await _db.RemindMes.AnyAsync(r => r.UserId == userId && r.EventId == eventId, ct);
 }

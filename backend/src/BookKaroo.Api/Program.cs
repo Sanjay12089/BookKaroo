@@ -10,8 +10,8 @@ using BookKaroo.Infrastructure.Data;
 using BookKaroo.Infrastructure.Email;
 using BookKaroo.Infrastructure.Payment;
 using BookKaroo.Infrastructure.Services;
-using BookKaroo.Infrastructure.Pdf;
 using BookKaroo.Infrastructure.Repositories;
+using BookKaroo.Infrastructure.Pdf;
 using BookKaroo.Infrastructure.Storage;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -212,6 +212,8 @@ try
     builder.Services.AddScoped<IRemindMeRepository, RemindMeRepository>();
     builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
     builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+    builder.Services.AddScoped<IEventRepository, EventRepository>();
+    builder.Services.AddScoped<ICmsBannerRepository, CmsBannerRepository>();
 
     // 14. Services (Scoped)
     builder.Services.AddScoped<IAuthService, AuthService>();
@@ -227,6 +229,8 @@ try
     builder.Services.AddScoped<IPaymentService, PaymentService>();
     builder.Services.AddScoped<ISeatLockService, SeatLockService>();
     builder.Services.AddScoped<ISearchService, SearchService>();
+    builder.Services.AddScoped<IEventService, EventService>();
+    builder.Services.AddScoped<ICmsBannerService, CmsBannerService>();
     builder.Services.AddHostedService<SeatLockSweepService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();

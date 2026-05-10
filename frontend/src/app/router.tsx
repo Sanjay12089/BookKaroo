@@ -37,6 +37,10 @@ const ShowtimesPage      = lazy(() => import('@/features/movies/pages/ShowtimesP
 const EventsPage         = lazy(() => import('@/features/events/pages/EventsPage'));
 const EventDetailPage    = lazy(() => import('@/features/events/pages/EventDetailPage'));
 const IplPage            = lazy(() => import('@/features/events/pages/IplPage'));
+const SportsPage         = lazy(() => import('@/features/events/pages/SportsPage'));
+const PlaysPage          = lazy(() => import('@/features/events/pages/PlaysPage'));
+const ActivitiesPage     = lazy(() => import('@/features/events/pages/ActivitiesPage'));
+const ComedyPage         = lazy(() => import('@/features/events/pages/ComedyPage'));
 const SearchResultsPage  = lazy(() => import('@/features/search/pages/SearchResultsPage'));
 const LoginPage          = lazy(() => import('@/features/auth/pages/LoginPage'));
 const SignupPage          = lazy(() => import('@/features/auth/pages/SignupPage'));
@@ -86,9 +90,10 @@ export const router = createBrowserRouter([
   { path: '/movies/:slug/showtimes', element: S(ShowtimesPage) },
   { path: '/events',              element: S(EventsPage) },
   { path: '/events/:slug',        element: S(EventDetailPage) },
-  { path: '/sports',              element: S(EventsPage) },
-  { path: '/plays',               element: S(EventsPage) },
-  { path: '/activities',          element: S(EventsPage) },
+  { path: '/sports',              element: S(SportsPage) },
+  { path: '/plays',               element: S(PlaysPage) },
+  { path: '/activities',          element: S(ActivitiesPage) },
+  { path: '/comedy',              element: S(ComedyPage) },
   { path: '/ipl',                 element: S(IplPage) },
   { path: '/search',              element: S(SearchResultsPage) },
   { path: '/login',               element: S(LoginPage) },

@@ -6,16 +6,6 @@ namespace BookKaroo.Api.Controllers;
 // Each returns 501 so the frontend can show graceful empty states.
 
 [ApiController]
-[Route("api/events")]
-[Produces("application/json")]
-public class EventsController : ControllerBase
-{
-    [HttpGet] public IActionResult GetAll() => Stub();
-    [HttpGet("{slug}")] public IActionResult GetDetail(string slug) => Stub();
-    private IActionResult Stub() => StatusCode(501, new { message = "Coming in next sprint", endpoint = Request.Path.Value });
-}
-
-[ApiController]
 [Route("api/venues")]
 [Produces("application/json")]
 public class VenuesController : ControllerBase
