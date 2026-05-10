@@ -4,13 +4,15 @@ import { router } from './router';
 import { Providers } from './providers';
 import { ToastContainer } from '@/shared/components/ui/Toast';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { configureApiInterceptors } from '@/shared/lib/api';
+import { useCityStore } from '@/shared/store/cityStore';
+import { configureApiInterceptors, api } from '@/shared/lib/api';
+import type { City } from '@/shared/types';
 
 function AppInit({ children }: { children: React.ReactNode }) {
-  const { initialize, clearAuth, accessToken } = useAuthStore();
+  const { initialize } = useAuthStore();
 
   useEffect(() => {
-    // Wire api interceptors to read from store
+    // Wire token interceptors
     configureApiInterceptors({
       getToken: () => useAuthStore.getState().accessToken,
       onRefreshFail: () => {
@@ -19,9 +21,23 @@ function AppInit({ children }: { children: React.ReactNode }) {
       },
     });
 
-    // Attempt to rehydrate user from httpOnly cookie
+    // Restore city from localStorage before anything renders
+    useCityStore.getState().initFromStorage();
+
+    // Auto-detect city if none persisted (best-effort; fails silently for localhost)
+    if (!useCityStore.getState().selectedCity) {
+      api.get<City>('/api/cities/detect')
+        .then(({ data }) => {
+          if (data && !useCityStore.getState().selectedCity) {
+            useCityStore.getState().setCity(data);
+          }
+        })
+        .catch(() => { /* user will choose via CityModal */ });
+    }
+
+    // Rehydrate auth from httpOnly cookie
     void initialize();
-  }, [initialize, clearAuth, accessToken]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <>{children}</>;
 }
