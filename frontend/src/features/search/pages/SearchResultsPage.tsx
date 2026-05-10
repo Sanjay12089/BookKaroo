@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Building2, MapPin } from 'lucide-react';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
@@ -51,6 +51,7 @@ export default function SearchResultsPage() {
   }
 
   const { setCity } = useCityStore();
+  const queryClient = useQueryClient();
 
   function handleCityClick(city: SearchCityResult) {
     setCity({
@@ -58,6 +59,9 @@ export default function SearchResultsPage() {
       state: city.state, stateCode: city.stateCode,
       latitude: 0, longitude: 0,
     });
+    void queryClient.invalidateQueries({ queryKey: ['movies'] });
+    void queryClient.invalidateQueries({ queryKey: ['events'] });
+    void queryClient.invalidateQueries({ queryKey: ['shows'] });
   }
 
   const tabs: { key: Tab; label: string; count: number }[] = [

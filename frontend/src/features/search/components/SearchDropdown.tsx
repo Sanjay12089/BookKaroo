@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { Clock, MapPin, Building2 } from 'lucide-react';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { ROUTES, TMDB_POSTER } from '@/shared/constants';
@@ -26,6 +27,7 @@ export function SearchDropdown({
   onClose,
 }: SearchDropdownProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { setCity } = useCityStore();
 
   function handleMovieClick(slug: string) {
@@ -52,6 +54,9 @@ export function SearchDropdown({
       latitude: 0, longitude: 0,
     };
     setCity(cityObj);
+    void queryClient.invalidateQueries({ queryKey: ['movies'] });
+    void queryClient.invalidateQueries({ queryKey: ['events'] });
+    void queryClient.invalidateQueries({ queryKey: ['shows'] });
     onClose();
   }
 
