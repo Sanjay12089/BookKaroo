@@ -1,6 +1,6 @@
+using BookKaroo.Application.Common;
 using BookKaroo.Application.DTOs.Invoice;
 using BookKaroo.Application.Interfaces.Services;
-using BookKaroo.Infrastructure.Common;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -78,16 +78,15 @@ public class QuestPdfInvoiceGenerator : IInvoicePdfGenerator
                 c.Item().Text($"Customer Email: {m.CustomerEmail}");
             });
 
-            // Right: Company details
+            // Right: Company details from InvoiceModel
             row.RelativeItem().Column(c =>
             {
                 c.Item().Text("Invoice Issued By:").Bold();
-                c.Item().Text("BookKaroo Pvt Ltd");
-                c.Item().Text("GSTIN: 24XXXXX0000X1Z5");
-                c.Item().Text("PAN: XXXXX0000X");
-                c.Item().Text("State: Gujarat | Code: 24");
-                c.Item().Text("701, Demo Tower, SG Highway");
-                c.Item().Text("Bodakdev, Ahmedabad 380054");
+                c.Item().Text(m.CompanyName);
+                c.Item().Text($"GSTIN: {m.CompanyGstin}");
+                c.Item().Text($"PAN: {m.CompanyPan}");
+                c.Item().Text($"State Code: {m.CompanyStateCode}");
+                c.Item().Text(m.CompanyAddress);
             });
         });
     }

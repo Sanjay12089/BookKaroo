@@ -16,7 +16,12 @@ public record InvoiceModel(
     string PaymentTransactionId,
     decimal PaymentTotal,
     DateTime PaymentDateTime,
-    string PaymentMethod
+    string PaymentMethod,
+    string CompanyName,
+    string CompanyGstin,
+    string CompanyPan,
+    string CompanyStateCode,
+    string CompanyAddress
 );
 
 public record InvoiceLine(

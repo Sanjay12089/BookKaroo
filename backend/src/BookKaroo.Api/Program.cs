@@ -229,6 +229,7 @@ try
     builder.Services.AddHostedService<SeatLockSweepService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();
+    builder.Services.AddScoped<BookKaroo.Application.Services.InvoiceBuilder>();
     builder.Services.AddScoped<SupabaseStorageService>();
 
     // 15. Controllers
