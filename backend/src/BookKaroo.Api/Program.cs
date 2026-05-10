@@ -4,7 +4,6 @@ using BookKaroo.Api.Middleware;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Application.Services;
-using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Application.Validators;
 using BookKaroo.Infrastructure.Data;
 using BookKaroo.Infrastructure.Email;
@@ -204,6 +203,7 @@ try
     builder.Services.AddScoped<IShowRepository, ShowRepository>();
     builder.Services.AddScoped<IBookingRepository, BookingRepository>();
     builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Venue>, VenueRepository>();
+    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Screen>, Repository<BookKaroo.Domain.Entities.Screen>>();
     builder.Services.AddScoped<ISeatLockRepository, SeatLockRepository>();
     builder.Services.AddScoped<ICouponRepository, CouponRepository>();
     builder.Services.AddScoped<ISettingRepository, SettingRepository>();
@@ -215,6 +215,7 @@ try
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ICityService, CityService>();
     builder.Services.AddScoped<IMovieService, MovieService>();
+    builder.Services.AddScoped<IShowService, ShowService>();
     builder.Services.AddScoped<IReviewService, ReviewService>();
     builder.Services.AddScoped<IAdminService, AdminService>();
     builder.Services.AddScoped<IPricingService, PricingService>();
