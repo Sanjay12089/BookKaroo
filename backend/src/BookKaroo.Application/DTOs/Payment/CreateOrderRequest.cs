@@ -1,9 +1,8 @@
 namespace BookKaroo.Application.DTOs.Payment;
 
 public record CreateOrderRequest(
-    Guid ShowId,
+    Guid     ShowId,
     string[] Seats,
-    decimal Amount,
-    string Currency = "INR",
-    string? CouponCode = null
+    string   IdempotencyKey,
+    string?  CouponCode = null
 );

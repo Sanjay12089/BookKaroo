@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
 import type { Booking } from '@/shared/types';
-import type { ShowSeatsData, SeatLockResponse } from '../types';
+import type {
+  ShowSeatsData, SeatLockResponse,
+  CreateOrderRequest, CreateOrderResponse,
+  ValidateCouponRequest, CouponValidation,
+} from '../types';
+import type { ApiError } from '@/shared/types';
 
 export function useMyBookings() {
   return useQuery({
@@ -43,5 +48,23 @@ export function useReleaseSeats() {
   return useMutation<void, { message?: string }, string>({
     mutationFn: (showId: string) =>
       api.delete('/api/seat-locks', { params: { showId } }).then(() => undefined),
+  });
+}
+
+// ── Checkout ──────────────────────────────────────────────────────────────────
+
+export function useCreateOrder() {
+  return useMutation<CreateOrderResponse, ApiError, CreateOrderRequest>({
+    mutationFn: (data) =>
+      api.post<CreateOrderResponse>('/api/payments/order', data, {
+        headers: { 'Idempotency-Key': data.idempotencyKey },
+      }).then((r) => r.data),
+  });
+}
+
+export function useValidateCoupon() {
+  return useMutation<CouponValidation, ApiError, ValidateCouponRequest>({
+    mutationFn: (data) =>
+      api.post<CouponValidation>('/api/coupons/validate', data).then((r) => r.data),
   });
 }
