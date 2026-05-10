@@ -27,16 +27,6 @@ public class VenuesController : ControllerBase
 
 
 [ApiController]
-[Route("api/payments")]
-[Produces("application/json")]
-public class PaymentsController : ControllerBase
-{
-    [HttpPost("order")] public IActionResult CreateOrder() => Stub();
-    [HttpPost("mock-capture")] public IActionResult MockCapture() => Stub();
-    private IActionResult Stub() => StatusCode(501, new { message = "Coming in next sprint", endpoint = Request.Path.Value });
-}
-
-[ApiController]
 [Route("api/bookings")]
 [Produces("application/json")]
 public class BookingsController : ControllerBase
@@ -45,15 +35,6 @@ public class BookingsController : ControllerBase
     [HttpGet] public IActionResult GetByUser() => Stub();
     [HttpGet("{ref}")] public IActionResult GetByRef(string @ref) => Stub();
     [HttpPost("{ref}/cancel")] public IActionResult Cancel(string @ref) => Stub();
-    private IActionResult Stub() => StatusCode(501, new { message = "Coming in next sprint", endpoint = Request.Path.Value });
-}
-
-[ApiController]
-[Route("api/coupons")]
-[Produces("application/json")]
-public class CouponsController : ControllerBase
-{
-    [HttpPost("validate")] public IActionResult Validate() => Stub();
     private IActionResult Stub() => StatusCode(501, new { message = "Coming in next sprint", endpoint = Request.Path.Value });
 }
 
