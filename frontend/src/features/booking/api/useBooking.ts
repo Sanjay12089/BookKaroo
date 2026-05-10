@@ -1,18 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
-import type { Booking } from '@/shared/types';
 import type {
   ShowSeatsData, SeatLockResponse,
   CreateOrderRequest, CreateOrderResponse,
   ValidateCouponRequest, CouponValidation,
   BookingDetailResponse, MockCaptureRequest,
+  BookingListItem,
 } from '../types';
 import type { ApiError } from '@/shared/types';
 
 export function useMyBookings() {
-  return useQuery({
+  return useQuery<BookingListItem[]>({
     queryKey: ['bookings', 'mine'],
-    queryFn: () => api.get<Booking[]>('/api/bookings').then((r) => r.data),
+    queryFn: () =>
+      api.get<{ items: BookingListItem[]; total: number }>('/api/bookings/me')
+        .then((r) => r.data.items),
     staleTime: 0,
   });
 }

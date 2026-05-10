@@ -214,28 +214,59 @@ public class PaymentService : IPaymentService
                         var row = seat.Length > 0 ? seat[..1] : "G";
                         var cat = layout.Categories.FirstOrDefault(c =>
                             c.Rows?.Contains(row, StringComparer.OrdinalIgnoreCase) == true);
-                        total += cat?.Price ?? overrides?.GetValueOrDefault("normal", 260m) ?? 260m;
+                        total += cat?.Price ?? FallbackPrice(seat);
                     }
                     return seats.Length > 0 ? Math.Round(total / seats.Length, 2) : 260m;
                 }
             }
             catch { /* fall through */ }
         }
-        return overrides?.GetValueOrDefault("normal", 260m) ?? 260m;
+
+        // No screen layout — mirror the frontend FALLBACK_LAYOUT row-to-price mapping
+        if (seats.Length == 0) return 260m;
+        var avg = seats.Sum(FallbackPrice) / seats.Length;
+        return Math.Round(avg, 2);
     }
 
     private static string GetSeatCategory(string seat, Screen? screen)
     {
-        if (screen?.Layout is null) return "normal";
-        try
+        if (screen?.Layout is not null)
         {
-            var layout = ParseJson<LayoutJson>(screen.Layout);
-            var row    = seat.Length > 0 ? seat[..1] : "G";
-            return layout?.Categories?
-                .FirstOrDefault(c => c.Rows?.Contains(row, StringComparer.OrdinalIgnoreCase) == true)
-                ?.Name?.ToLower() ?? "normal";
+            try
+            {
+                var layout = ParseJson<LayoutJson>(screen.Layout);
+                var row    = seat.Length > 0 ? seat[..1] : "G";
+                var name   = layout?.Categories?
+                    .FirstOrDefault(c => c.Rows?.Contains(row, StringComparer.OrdinalIgnoreCase) == true)
+                    ?.Name?.ToLower();
+                if (name is not null) return name;
+            }
+            catch { /* fall through */ }
         }
-        catch { return "normal"; }
+        return FallbackCategory(seat);
+    }
+
+    // Mirrors frontend FALLBACK_LAYOUT: A-B=Recliner(650), C-F=Executive(420), G-L=Normal(260)
+    private static decimal FallbackPrice(string seat)
+    {
+        var row = seat.Length > 0 ? char.ToUpper(seat[0]) : 'G';
+        return row switch
+        {
+            'A' or 'B'                   => 650m,
+            'C' or 'D' or 'E' or 'F'    => 420m,
+            _                            => 260m,
+        };
+    }
+
+    private static string FallbackCategory(string seat)
+    {
+        var row = seat.Length > 0 ? char.ToUpper(seat[0]) : 'G';
+        return row switch
+        {
+            'A' or 'B'                => "recliner",
+            'C' or 'D' or 'E' or 'F' => "executive",
+            _                         => "normal",
+        };
     }
 
     private static T? ParseJson<T>(string? json) where T : class

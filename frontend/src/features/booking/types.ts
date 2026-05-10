@@ -20,6 +20,7 @@ export interface ScreenLayout {
 
 export interface ShowInfo {
   movieTitle:  string;
+  posterUrl?:  string | null;
   format:      string;
   language:    string;
   showDate:    string;

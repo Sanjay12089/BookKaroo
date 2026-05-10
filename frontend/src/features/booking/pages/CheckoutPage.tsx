@@ -9,7 +9,7 @@ import { OrderSummaryPanel } from '../components/OrderSummaryPanel';
 import { MockPaymentModal } from '../components/MockPaymentModal';
 import { CountdownRing } from '@/shared/components/ui/CountdownRing';
 import { toast } from '@/shared/components/ui/Toast';
-import { ROUTES } from '@/shared/constants';
+import { ROUTES, TMDB_POSTER } from '@/shared/constants';
 import type { BookingDetailResponse, CouponValidation, ScreenLayout } from '../types';
 import type { ApiError } from '@/shared/types';
 
@@ -214,11 +214,13 @@ export default function CheckoutPage() {
           {/* Movie card */}
           <div className="p-5 rounded-xl bg-bg-surface border border-border-default flex gap-4">
             <div className="w-14 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 flex-shrink-0">
-              <div className="w-full h-full bg-gradient-to-br from-accent-indigo/20 to-accent-purple/20" />
+              {show?.posterUrl
+                ? <img src={TMDB_POSTER(show.posterUrl, 'w185')} alt={show.movieTitle} className="w-full h-full object-cover" />
+                : <div className="w-full h-full bg-gradient-to-br from-accent-indigo/20 to-accent-purple/20" />}
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-display font-bold text-lg leading-tight truncate">
-                {show?.movieTitle ?? 'Loading…'}
+                {show?.movieTitle ?? (seatsData === undefined ? 'Loading…' : 'Movie')}
               </p>
               <p className="text-sm text-text-secondary font-sans mt-0.5">
                 {show?.format} · {show?.language}
