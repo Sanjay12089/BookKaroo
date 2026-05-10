@@ -40,7 +40,8 @@ const IplPage            = lazy(() => import('@/features/events/pages/IplPage'))
 const SearchResultsPage  = lazy(() => import('@/features/search/pages/SearchResultsPage'));
 const LoginPage          = lazy(() => import('@/features/auth/pages/LoginPage'));
 const SignupPage          = lazy(() => import('@/features/auth/pages/SignupPage'));
-const ForgotPasswordPage = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
+const ForgotPasswordPage  = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
+const ResetPasswordPage   = lazy(() => import('@/features/auth/pages/ResetPasswordPage'));
 const HelpPage           = lazy(() => import('@/features/help/pages/HelpPage'));
 // Protected
 const SeatSelectionPage  = lazy(() => import('@/features/booking/pages/SeatSelectionPage'));
@@ -63,12 +64,14 @@ const StaticPage         = lazy(() => import('@/features/static/pages/StaticPage
 
 // ── Guards ────────────────────────────────────────────────────────────────────
 function ProtectedRoute() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isInitialized } = useAuthStore();
+  if (!isInitialized) return null;
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 }
 
 function AdminRoute() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated, isInitialized } = useAuthStore();
+  if (!isInitialized) return null;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   if (user?.role !== 'Admin') return <Navigate to="/" replace />;
   return <Outlet />;
@@ -91,6 +94,7 @@ export const router = createBrowserRouter([
   { path: '/login',               element: S(LoginPage) },
   { path: '/signup',              element: S(SignupPage) },
   { path: '/forgot-password',     element: S(ForgotPasswordPage) },
+  { path: '/reset-password',      element: S(ResetPasswordPage) },
   { path: '/help',                element: S(HelpPage) },
 
   // Protected

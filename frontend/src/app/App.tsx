@@ -7,21 +7,27 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { configureApiInterceptors } from '@/shared/lib/api';
 
 function AppInit({ children }: { children: React.ReactNode }) {
-  const { initialize, clearAuth, accessToken } = useAuthStore();
+  const { initialize, isInitialized } = useAuthStore();
 
   useEffect(() => {
-    // Wire api interceptors to read from store
     configureApiInterceptors({
       getToken: () => useAuthStore.getState().accessToken,
       onRefreshFail: () => {
         useAuthStore.getState().clearAuth();
-        window.location.href = '/login';
+        // Don't use window.location.href — it causes a full reload loop on every init.
+        // ProtectedRoute handles the /login redirect via React Router when needed.
       },
     });
-
-    // Attempt to rehydrate user from httpOnly cookie
     void initialize();
-  }, [initialize, clearAuth, accessToken]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg-base">
+        <div className="w-10 h-10 rounded-full border-2 border-accent-indigo/20 border-t-accent-indigo animate-spin" />
+      </div>
+    );
+  }
 
   return <>{children}</>;
 }

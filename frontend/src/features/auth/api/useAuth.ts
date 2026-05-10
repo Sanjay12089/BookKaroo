@@ -15,11 +15,8 @@ export function useSignup() {
       api.post<AuthResponse>('/api/auth/signup', data).then((r) => r.data),
     onSuccess: ({ accessToken, user }) => {
       setAuth(user, accessToken);
-      toast('Welcome to BookKaroo! 🎬', 'success');
+      toast('Welcome to BookKaroo!', 'success');
       navigate(ROUTES.HOME);
-    },
-    onError: (err: { message?: string }) => {
-      toast(err?.message ?? 'Signup failed. Please try again.', 'error');
     },
   });
 }
@@ -34,9 +31,6 @@ export function useLogin() {
     onSuccess: ({ accessToken, user }) => {
       setAuth(user, accessToken);
       navigate(ROUTES.HOME);
-    },
-    onError: (err: { message?: string }) => {
-      toast(err?.message ?? 'Invalid credentials.', 'error');
     },
   });
 }
@@ -58,11 +52,17 @@ export function useForgotPassword() {
   return useMutation({
     mutationFn: (email: string) =>
       api.post('/api/auth/forgot-password', { email }).then((r) => r.data),
+  });
+}
+
+export function useResetPassword() {
+  const navigate = useNavigate();
+  return useMutation({
+    mutationFn: ({ token, newPassword }: { token: string; newPassword: string }) =>
+      api.post('/api/auth/reset-password', { token, newPassword }).then((r) => r.data),
     onSuccess: () => {
-      toast('Reset link sent if the account exists.', 'info');
-    },
-    onError: () => {
-      toast('Something went wrong. Please try again.', 'error');
+      toast('Password reset! Please sign in.', 'success');
+      navigate(ROUTES.LOGIN);
     },
   });
 }
