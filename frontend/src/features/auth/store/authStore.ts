@@ -6,6 +6,7 @@ interface AuthState {
   user: User | null;
   accessToken: string | null;
   isAuthenticated: boolean;
+  isInitialized: boolean;
 }
 
 interface AuthActions {
@@ -18,6 +19,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   user: null,
   accessToken: null,
   isAuthenticated: false,
+  isInitialized: false,
 
   setAuth: (user, token) =>
     set({ user, accessToken: token, isAuthenticated: true }),
@@ -28,11 +30,11 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
   initialize: async () => {
     try {
       const { data } = await api.get<User>('/api/auth/me');
-      // Token is already set via cookie; we don't have an access token here
-      // so just set user — the refresh interceptor will handle token renewal
       set({ user: data, isAuthenticated: true });
     } catch {
       set({ user: null, accessToken: null, isAuthenticated: false });
+    } finally {
+      set({ isInitialized: true });
     }
   },
 }));

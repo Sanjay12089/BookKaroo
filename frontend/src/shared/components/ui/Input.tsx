@@ -5,10 +5,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   hint?: string;
+  rightElement?: React.ReactNode;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, id, className, value, defaultValue, onChange, onFocus, onBlur, ...rest }, ref) => {
+  ({ label, error, hint, id, className, value, defaultValue, onChange, onFocus, onBlur, rightElement, ...rest }, ref) => {
     const [focused, setFocused] = useState(false);
     const [internalValue, setInternalValue] = useState(defaultValue ?? '');
     const inputId = id ?? `bk-input-${Math.random().toString(36).slice(2)}`;
@@ -51,12 +52,18 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className={cn(
               'absolute inset-0 w-full h-full bg-bg-surface rounded-md font-sans text-sm text-text-primary outline-none transition-all duration-150',
               label ? 'pt-5 pb-1.5 px-3.5' : 'px-3.5',
+              rightElement && 'pr-10',
               error
                 ? 'border border-semantic-error focus:ring-2 focus:ring-semantic-error/15'
                 : 'border border-border-default focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15'
             )}
             {...rest}
           />
+          {rightElement && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center">
+              {rightElement}
+            </div>
+          )}
         </div>
         {error && <p className="text-xs text-semantic-error font-sans">{error}</p>}
         {hint && !error && <p className="text-xs text-text-muted font-sans">{hint}</p>}
