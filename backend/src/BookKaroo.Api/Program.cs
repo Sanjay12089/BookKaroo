@@ -9,6 +9,7 @@ using BookKaroo.Application.Validators;
 using BookKaroo.Infrastructure.Data;
 using BookKaroo.Infrastructure.Email;
 using BookKaroo.Infrastructure.Payment;
+using BookKaroo.Infrastructure.Services;
 using BookKaroo.Infrastructure.Pdf;
 using BookKaroo.Infrastructure.Repositories;
 using BookKaroo.Infrastructure.Storage;
@@ -220,6 +221,8 @@ try
     builder.Services.AddScoped<IReviewService, ReviewService>();
     builder.Services.AddScoped<IAdminService, AdminService>();
     builder.Services.AddScoped<IPricingService, PricingService>();
+    builder.Services.AddScoped<ICouponService, CouponService>();
+    builder.Services.AddScoped<IPaymentService, PaymentService>();
     builder.Services.AddScoped<ISeatLockService, SeatLockService>();
     builder.Services.AddHostedService<SeatLockSweepService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();

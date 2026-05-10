@@ -15,7 +15,7 @@ public class MockPaymentProvider : IPaymentProvider
                 "MockPaymentProvider must not be used in Production. Set PAYMENT_PROVIDER=razorpay.");
     }
 
-    public Task<PaymentOrder> CreateOrderAsync(CreateOrderRequest request, CancellationToken ct = default)
+    public Task<PaymentOrder> CreateOrderAsync(ProviderOrderRequest request, CancellationToken ct = default)
     {
         var order = new PaymentOrder(
             OrderId: Guid.NewGuid().ToString(),
