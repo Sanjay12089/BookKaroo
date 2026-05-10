@@ -96,7 +96,10 @@ Test 6 - Forgot password:
   Expected: Mall should be received and should have reset password link, and should be able to reset password from link
   Result: On clikcing Reset Password link, it redirect to home page
 
-  
+  Test 7- Guest user login -> Book ticket -> Choose seat -> asks for login, on login it redirects back to home page
+  - It should redirect back to choose seat
+
+  On changing City from home page city dropdown or search box, movies should updated
   
 
 
