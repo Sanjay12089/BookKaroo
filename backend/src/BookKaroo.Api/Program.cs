@@ -209,11 +209,13 @@ try
     builder.Services.AddScoped<ISettingRepository, SettingRepository>();
     builder.Services.AddScoped<IRemindMeRepository, RemindMeRepository>();
     builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+    builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
     // 14. Services (Scoped)
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<ICityService, CityService>();
     builder.Services.AddScoped<IMovieService, MovieService>();
+    builder.Services.AddScoped<IReviewService, ReviewService>();
     builder.Services.AddScoped<IAdminService, AdminService>();
     builder.Services.AddScoped<IPricingService, PricingService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();

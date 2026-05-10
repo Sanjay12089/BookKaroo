@@ -67,4 +67,14 @@ public class MovieRepository : Repository<Movie>, IMovieRepository
         var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
         return (items, total);
     }
+
+    public async Task<IEnumerable<Movie>> GetRelatedAsync(
+        Guid movieId, string[] genres, int count, CancellationToken ct = default) =>
+        await _db.Movies
+            .Where(m => m.Id != movieId
+                     && m.Status == MovieStatus.Published
+                     && genres.Any(g => m.Genres.Contains(g)))
+            .OrderByDescending(m => m.ImdbRating)
+            .Take(count)
+            .ToListAsync(ct);
 }

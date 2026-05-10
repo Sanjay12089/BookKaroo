@@ -8,13 +8,16 @@ public interface IMovieRepository : IRepository<Movie>
     Task<Movie?> FindBySlugAsync(string slug, CancellationToken ct = default);
 
     Task<(IEnumerable<Movie> Items, int Total)> GetPublishedAsync(
-        string[]?     languages,
-        string[]?     genres,
-        string[]?     formats,
+        string[]?      languages,
+        string[]?      genres,
+        string[]?      formats,
         MovieCategory? category,
-        Guid?         cityId,
-        string?       sort,
-        int           page,
-        int           pageSize,
+        Guid?          cityId,
+        string?        sort,
+        int            page,
+        int            pageSize,
         CancellationToken ct = default);
+
+    Task<IEnumerable<Movie>> GetRelatedAsync(
+        Guid movieId, string[] genres, int count, CancellationToken ct = default);
 }

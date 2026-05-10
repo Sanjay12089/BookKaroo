@@ -9,46 +9,73 @@ namespace BookKaroo.Application.Services;
 
 public class MovieService : IMovieService
 {
-    private readonly IMovieRepository _movies;
-    private readonly IShowRepository _shows;
+    private readonly IMovieRepository               _movies;
+    private readonly IShowRepository                _shows;
     private readonly IRepository<Domain.Entities.Venue> _venues;
+    private readonly IReviewRepository              _reviews;
 
     public MovieService(
-        IMovieRepository movies,
-        IShowRepository shows,
-        IRepository<Domain.Entities.Venue> venues)
+        IMovieRepository               movies,
+        IShowRepository                shows,
+        IRepository<Domain.Entities.Venue> venues,
+        IReviewRepository              reviews)
     {
-        _movies = movies;
-        _shows  = shows;
-        _venues = venues;
+        _movies  = movies;
+        _shows   = shows;
+        _venues  = venues;
+        _reviews = reviews;
     }
 
     public async Task<MovieListPagedResponse> GetListAsync(MovieFilterRequest filter, CancellationToken ct = default)
     {
         MovieCategory? cat = filter.Category switch
         {
-            "NowShowing"  => MovieCategory.NowShowing,
-            "ComingSoon"  => MovieCategory.ComingSoon,
-            "Exclusive"   => MovieCategory.Exclusive,
-            "Premiere"    => MovieCategory.Premiere,
-            _             => null
+            "NowShowing" => MovieCategory.NowShowing,
+            "ComingSoon" => MovieCategory.ComingSoon,
+            "Exclusive"  => MovieCategory.Exclusive,
+            "Premiere"   => MovieCategory.Premiere,
+            _            => null
         };
 
         var (items, total) = await _movies.GetPublishedAsync(
-            filter.Languages, filter.Genres, filter.Formats,
-            cat, filter.CityId, filter.Sort,
-            filter.Page, filter.PageSize, ct);
+            filter.Languages, filter.Genres, filter.Formats, cat,
+            filter.CityId, filter.Sort, filter.Page, filter.PageSize, ct);
 
-        var dtos      = items.Select(Map);
         var totalPages = filter.PageSize == 0 ? 0 : (int)Math.Ceiling((double)total / filter.PageSize);
-        return new MovieListPagedResponse(dtos, total, filter.Page, filter.PageSize, totalPages);
+        return new MovieListPagedResponse(items.Select(MapList), total, filter.Page, filter.PageSize, totalPages);
     }
 
-    public async Task<MovieListResponse> GetDetailAsync(string slug, CancellationToken ct = default)
+    public async Task<MovieDetailResponse> GetDetailAsync(string slug, Guid? userId, CancellationToken ct = default)
     {
         var movie = await _movies.FindBySlugAsync(slug, ct)
             ?? throw new NotFoundException($"Movie '{slug}' not found.");
-        return Map(movie);
+
+        var avgRating    = await _reviews.GetAverageRatingAsync(movie.Id, ct);
+        var distribution = await _reviews.GetRatingDistributionAsync(movie.Id, ct);
+        var totalReviews = distribution.Values.Sum();
+        var related      = await _movies.GetRelatedAsync(movie.Id, movie.Genres, 3, ct);
+
+        var canReview = false;
+        if (userId.HasValue)
+        {
+            var hasBooked   = await _reviews.HasUserBookedMovieAsync(userId.Value, movie.Id, ct);
+            var hasReviewed = await _reviews.HasUserReviewedAsync(userId.Value, movie.Id, ct);
+            canReview = hasBooked && !hasReviewed;
+        }
+
+        return new MovieDetailResponse(
+            movie.Id, movie.Title, movie.Slug, movie.Description, movie.DurationMin,
+            movie.Languages, movie.Formats, movie.Genres,
+            movie.Certificate, movie.ReleaseDate?.ToString("yyyy-MM-dd"),
+            movie.PosterUrl, movie.BackdropUrl, movie.TrailerUrl,
+            movie.ImdbRating, movie.Status.ToString(), movie.Category.ToString(),
+            ParseCast(movie.Cast),
+            ParseCrew(movie.Crew),
+            avgRating,
+            distribution,
+            totalReviews,
+            related.Select(MapList),
+            canReview);
     }
 
     public async Task<ShowtimesResponse> GetShowtimesAsync(string slug, string? date, CancellationToken ct = default)
@@ -56,10 +83,7 @@ public class MovieService : IMovieService
         var movie = await _movies.FindBySlugAsync(slug, ct)
             ?? throw new NotFoundException($"Movie '{slug}' not found.");
 
-        var showDate = date is not null
-            ? DateOnly.Parse(date)
-            : DateOnly.FromDateTime(DateTime.Today);
-
+        var showDate  = date is not null ? DateOnly.Parse(date) : DateOnly.FromDateTime(DateTime.Today);
         var shows     = (await _shows.GetByMovieAndDateAsync(movie.Id, showDate, ct)).ToList();
         var allVenues = (await _venues.GetAllAsync(ct)).ToDictionary(v => v.Id);
 
@@ -78,36 +102,59 @@ public class MovieService : IMovieService
                         ? JsonSerializer.Deserialize<Dictionary<string, decimal>>(s.PriceOverrides)
                         : null;
                     var price = overrides?.GetValueOrDefault("normal", 180m) ?? 180m;
-
                     return new ShowtimeSlotResponse(
-                        s.Id,
-                        s.ShowTime.ToString(@"hh\:mm"),
-                        s.Format ?? "2D",
-                        s.Language ?? "Hindi",
-                        SeatsLeft: 100,
-                        Price: price);
+                        s.Id, s.ShowTime.ToString(@"hh\:mm"),
+                        s.Format ?? "2D", s.Language ?? "Hindi", SeatsLeft: 100, Price: price);
                 }).OrderBy(s => s.ShowTime).ToArray();
 
-                var fromPrice = slots.Any() ? slots.Min(s => s.Price) : 180m;
-
                 return new ShowtimeVenueResponse(
-                    g.Key,
-                    venue?.Name ?? "Unknown Venue",
-                    venue?.Address,
-                    null,
-                    amenities,
-                    fromPrice,
-                    slots);
+                    g.Key, venue?.Name ?? "Unknown Venue", venue?.Address, null, amenities,
+                    slots.Any() ? slots.Min(s => s.Price) : 180m, slots);
             })
             .ToArray();
 
         return new ShowtimesResponse(grouped);
     }
 
-    private static MovieListResponse Map(Domain.Entities.Movie m) => new(
+    // ── Mappers ──────────────────────────────────────────────────────────────────
+
+    private static MovieListResponse MapList(Domain.Entities.Movie m) => new(
         m.Id, m.Title, m.Slug, m.Description, m.DurationMin,
         m.Languages, m.Formats, m.Genres,
         m.Certificate, m.ReleaseDate?.ToString("yyyy-MM-dd"),
         m.PosterUrl, m.BackdropUrl, m.TrailerUrl,
         m.ImdbRating, m.Status.ToString(), m.Category.ToString());
+
+    private static CastMember[] ParseCast(string? json)
+    {
+        if (json is null) return [];
+        try
+        {
+            return JsonSerializer.Deserialize<JsonElement[]>(json)?
+                .Select(e => new CastMember(
+                    e.TryGetProperty("name",         out var n) ? n.GetString() ?? "" : "",
+                    e.TryGetProperty("character",    out var c) ? c.GetString() ?? "" : "",
+                    e.TryGetProperty("profile_path", out var p) ? p.GetString()       : null))
+                .Take(10)
+                .ToArray() ?? [];
+        }
+        catch { return []; }
+    }
+
+    private static CrewMember[] ParseCrew(string? json)
+    {
+        if (json is null) return [];
+        try
+        {
+            return JsonSerializer.Deserialize<JsonElement[]>(json)?
+                .Where(e => e.TryGetProperty("department", out var d)
+                         && d.GetString() is "Directing" or "Writing" or "Production")
+                .Select(e => new CrewMember(
+                    e.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "",
+                    e.TryGetProperty("job",  out var j) ? j.GetString() ?? "" : ""))
+                .Take(10)
+                .ToArray() ?? [];
+        }
+        catch { return []; }
+    }
 }
