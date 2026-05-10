@@ -1,55 +1,58 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-interface SeatState {
-  showId: string | null;
-  selectedSeats: string[];    // seat labels e.g. ["H12", "H13"]
-  lockId: string | null;
-  lockExpiresAt: string | null; // ISO string
+interface SeatStoreState {
+  showId:       string | null;
+  selectedSeats: string[];
+  lockId:        string | null;
+  lockExpiresAt: string | null;
 }
 
-interface SeatActions {
-  selectSeat: (showId: string, seatLabel: string) => void;
-  deselectSeat: (seatLabel: string) => void;
-  clearSeats: () => void;
-  setLock: (lockId: string, expiresAt: string) => void;
+interface SeatStoreActions {
+  selectSeat:   (seat: string) => void;
+  deselectSeat: (seat: string) => void;
+  clearSeats:   (newShowId?: string) => void;
+  setLock:      (lockId: string, expiresAt: string) => void;
+  setShowId:    (showId: string) => void;
 }
 
 const MAX_SEATS = 10;
 
-export const useSeatStore = create<SeatState & SeatActions>()(
+export const useSeatStore = create<SeatStoreState & SeatStoreActions>()(
   persist(
-    (set) => ({
-      showId: null,
+    (set, get) => ({
+      showId:        null,
       selectedSeats: [],
-      lockId: null,
+      lockId:        null,
       lockExpiresAt: null,
 
-      selectSeat: (showId, seatLabel) =>
-        set((state) => {
-          // If switching shows, clear existing selection
-          const currentShowId = state.showId === showId ? state.showId : null;
-          const existing = currentShowId ? state.selectedSeats : [];
-
-          if (existing.includes(seatLabel) || existing.length >= MAX_SEATS) return state;
-          return {
-            showId,
-            selectedSeats: [...existing, seatLabel],
-          };
+      selectSeat: (seat) =>
+        set((s) => {
+          if (s.selectedSeats.includes(seat) || s.selectedSeats.length >= MAX_SEATS) return s;
+          return { selectedSeats: [...s.selectedSeats, seat] };
         }),
 
-      deselectSeat: (seatLabel) =>
-        set((state) => ({
-          selectedSeats: state.selectedSeats.filter((s) => s !== seatLabel),
-        })),
+      deselectSeat: (seat) =>
+        set((s) => ({ selectedSeats: s.selectedSeats.filter((l) => l !== seat) })),
 
-      clearSeats: () =>
-        set({ showId: null, selectedSeats: [], lockId: null, lockExpiresAt: null }),
+      clearSeats: (newShowId) =>
+        set({
+          selectedSeats: [],
+          lockId:        null,
+          lockExpiresAt: null,
+          showId:        newShowId ?? null,
+        }),
 
       setLock: (lockId, expiresAt) => set({ lockId, lockExpiresAt: expiresAt }),
+
+      setShowId: (showId) => {
+        if (get().showId !== showId) {
+          set({ showId, selectedSeats: [], lockId: null, lockExpiresAt: null });
+        }
+      },
     }),
     {
-      name: 'bk-seat-selection',
+      name:    'bk-seat-selection',
       storage: createJSONStorage(() => sessionStorage),
     }
   )
