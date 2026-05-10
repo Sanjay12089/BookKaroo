@@ -59,67 +59,76 @@ public class BookingService : IBookingService
         if (booking.Status != BookingStatus.Pending)
             throw new ConflictException("Booking already processed.");
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        try
+        // Wrap in execution strategy — required when Npgsql retry policy is configured
+        List<string> finalSeatLabels = [];
+        PaymentEntity? finalPayment  = null;
+
+        var strategy = _db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
         {
-            // a. Update payment
-            var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
-            if (payment is not null)
-            {
-                payment.ProviderPaymentId = providerPaymentId;
-                payment.Status            = PaymentStatus.Captured;
-                payment.CapturedAt        = DateTime.UtcNow;
-                payment.Method            = "mock";
-            }
-
-            // b. Confirm booking
-            booking.Status = BookingStatus.Confirmed;
-
-            // c. Delete seat locks for this show + seats
-            var seatLabels = await _db.BookingSeats
-                .Where(bs => bs.BookingId == bookingId)
-                .Select(bs => bs.SeatLabel)
-                .ToListAsync(ct);
-
-            var locks = await _db.SeatLocks
-                .Where(sl => sl.ShowId == booking.ShowId && seatLabels.Contains(sl.SeatLabel))
-                .ToListAsync(ct);
-            _db.SeatLocks.RemoveRange(locks);
-
-            // d. Invoice number
-            booking.InvoiceNumber = $"TIN{DateTime.UtcNow:yy}{booking.Id:N}"[..14].ToUpper();
-
-            // e. QR code
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
             try
             {
-                var qrBytes = GenerateQr(booking.BookingRef);
-                var qrUrl   = await _storage.UploadQrAsync(booking.BookingRef, qrBytes, ct);
-                if (qrUrl is not null) booking.QrUrl = qrUrl;
+                // a. Update payment
+                var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
+                if (payment is not null)
+                {
+                    payment.ProviderPaymentId = providerPaymentId;
+                    payment.Status            = PaymentStatus.Captured;
+                    payment.CapturedAt        = DateTime.UtcNow;
+                    payment.Method            = "mock";
+                }
+                finalPayment = payment;
+
+                // b. Confirm booking
+                booking.Status = BookingStatus.Confirmed;
+
+                // c. Delete seat locks for this show + seats
+                var seatLabels = await _db.BookingSeats
+                    .Where(bs => bs.BookingId == bookingId)
+                    .Select(bs => bs.SeatLabel)
+                    .ToListAsync(ct);
+                finalSeatLabels = seatLabels;
+
+                var locks = await _db.SeatLocks
+                    .Where(sl => sl.ShowId == booking.ShowId && seatLabels.Contains(sl.SeatLabel))
+                    .ToListAsync(ct);
+                _db.SeatLocks.RemoveRange(locks);
+
+                // d. Invoice number
+                booking.InvoiceNumber = $"TIN{DateTime.UtcNow:yy}{booking.Id:N}"[..14].ToUpper();
+
+                // e. QR code (best-effort — failure does not abort the transaction)
+                try
+                {
+                    var qrBytes = GenerateQr(booking.BookingRef);
+                    var qrUrl   = await _storage.UploadQrAsync(booking.BookingRef, qrBytes, ct);
+                    if (qrUrl is not null) booking.QrUrl = qrUrl;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "QR generation failed for {Ref} — continuing", booking.BookingRef);
+                }
+
+                await _db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+                _logger.LogInformation("Booking finalized: {Ref}", booking.BookingRef);
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogWarning(ex, "QR generation failed for {Ref} — continuing", booking.BookingRef);
+                await tx.RollbackAsync(ct);
+                throw;
             }
+        });
 
-            await _db.SaveChangesAsync(ct);
-            await tx.CommitAsync(ct);
-
-            _logger.LogInformation("Booking finalized: {Ref}", booking.BookingRef);
-
-            // f. Fire-and-forget notification
-            _ = Task.Run(async () =>
-            {
-                try { await _notifications.SendBookingConfirmedAsync(booking); }
-                catch (Exception ex) { _logger.LogError(ex, "Notification failed for {Ref}", booking.BookingRef); }
-            }, CancellationToken.None);
-
-            return await BuildDetailAsync(booking, payment, seatLabels, ct);
-        }
-        catch
+        // Fire-and-forget notification (outside transaction)
+        _ = Task.Run(async () =>
         {
-            await tx.RollbackAsync(ct);
-            throw;
-        }
+            try { await _notifications.SendBookingConfirmedAsync(booking); }
+            catch (Exception ex) { _logger.LogError(ex, "Notification failed for {Ref}", booking.BookingRef); }
+        }, CancellationToken.None);
+
+        return await BuildDetailAsync(booking, finalPayment, finalSeatLabels, ct);
     }
 
     public async Task<BookingDetailResponse> GetByRefAsync(

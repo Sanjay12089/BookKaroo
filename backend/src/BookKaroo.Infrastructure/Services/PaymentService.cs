@@ -102,91 +102,95 @@ public class PaymentService : IPaymentService
         var stateCode = user.StateCode ?? "24";
         var breakdown = await _pricing.CalculateAsync(request.Seats.Length, seatPrice, stateCode, coupon, ct);
 
-        // ── Persist in transaction ────────────────────────────────────────────
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        try
+        // ── Persist in transaction (wrapped in execution strategy for Npgsql retry) ─
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            var booking = new Booking
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            try
             {
-                BookingRef         = GenerateBookingRef(),
-                UserId             = userId,
-                ShowId             = request.ShowId,
-                TicketQty          = request.Seats.Length,
-                TicketAmount       = breakdown.TicketAmount,
-                ConvenienceFee     = breakdown.ConvenienceFee,
-                OfferProcessingFee = breakdown.OfferProcessingFee,
-                TaxableAmount      = breakdown.TaxableAmount,
-                Cgst               = breakdown.Cgst,
-                Sgst               = breakdown.Sgst,
-                Igst               = breakdown.Igst,
-                Discount           = breakdown.Discount,
-                AmountPaid         = breakdown.AmountPaid,
-                CustomerStateCode  = stateCode,
-                CouponId           = coupon?.Id,
-                Status             = BookingStatus.Pending,
-            };
-            await _db.Bookings.AddAsync(booking, ct);
-
-            foreach (var seat in request.Seats)
-            {
-                await _db.BookingSeats.AddAsync(new BookingSeat
+                var booking = new Booking
                 {
-                    BookingId = booking.Id,
-                    SeatLabel = seat,
-                    Category  = GetSeatCategory(seat, screen),
-                    Price     = seatPrice,
-                }, ct);
-            }
+                    BookingRef         = GenerateBookingRef(),
+                    UserId             = userId,
+                    ShowId             = request.ShowId,
+                    TicketQty          = request.Seats.Length,
+                    TicketAmount       = breakdown.TicketAmount,
+                    ConvenienceFee     = breakdown.ConvenienceFee,
+                    OfferProcessingFee = breakdown.OfferProcessingFee,
+                    TaxableAmount      = breakdown.TaxableAmount,
+                    Cgst               = breakdown.Cgst,
+                    Sgst               = breakdown.Sgst,
+                    Igst               = breakdown.Igst,
+                    Discount           = breakdown.Discount,
+                    AmountPaid         = breakdown.AmountPaid,
+                    CustomerStateCode  = stateCode,
+                    CouponId           = coupon?.Id,
+                    Status             = BookingStatus.Pending,
+                };
+                await _db.Bookings.AddAsync(booking, ct);
 
-            var providerOrderId = $"MOCK-{Guid.NewGuid():N}";
-            await _db.Payments.AddAsync(new PaymentEntity
-            {
-                BookingId       = booking.Id,
-                Provider        = PaymentProvider.Mock,
-                ProviderOrderId = providerOrderId,
-                Amount          = breakdown.AmountPaid,
-                Currency        = "INR",
-                Status          = PaymentStatus.Created,
-                IdempotencyKey  = request.IdempotencyKey,
-            }, ct);
-
-            if (coupon != null)
-            {
-                coupon.CurrentUsage++;
-                _db.Coupons.Update(coupon);
-                await _db.CouponUsages.AddAsync(new CouponUsage
+                foreach (var seat in request.Seats)
                 {
-                    CouponId  = coupon.Id,
-                    UserId    = userId,
-                    BookingId = booking.Id,
+                    await _db.BookingSeats.AddAsync(new BookingSeat
+                    {
+                        BookingId = booking.Id,
+                        SeatLabel = seat,
+                        Category  = GetSeatCategory(seat, screen),
+                        Price     = seatPrice,
+                    }, ct);
+                }
+
+                var providerOrderId = $"MOCK-{Guid.NewGuid():N}";
+                await _db.Payments.AddAsync(new PaymentEntity
+                {
+                    BookingId       = booking.Id,
+                    Provider        = PaymentProvider.Mock,
+                    ProviderOrderId = providerOrderId,
+                    Amount          = breakdown.AmountPaid,
+                    Currency        = "INR",
+                    Status          = PaymentStatus.Created,
+                    IdempotencyKey  = request.IdempotencyKey,
                 }, ct);
+
+                if (coupon != null)
+                {
+                    coupon.CurrentUsage++;
+                    _db.Coupons.Update(coupon);
+                    await _db.CouponUsages.AddAsync(new CouponUsage
+                    {
+                        CouponId  = coupon.Id,
+                        UserId    = userId,
+                        BookingId = booking.Id,
+                    }, ct);
+                }
+
+                await _db.SaveChangesAsync(ct);
+
+                var response = new CreateOrderResponse(
+                    booking.Id, booking.BookingRef, providerOrderId,
+                    "mock", breakdown.AmountPaid, "INR", breakdown);
+
+                await _db.IdempotencyKeys.AddAsync(new IdempotencyKey
+                {
+                    Key        = request.IdempotencyKey,
+                    UserId     = userId,
+                    Endpoint   = "/api/payments/order",
+                    Response   = JsonSerializer.Serialize(response, JsonOpts),
+                    StatusCode = 200,
+                }, ct);
+                await _db.SaveChangesAsync(ct);
+
+                await tx.CommitAsync(ct);
+                _logger.LogInformation("Order {Ref} created for user {UserId}", booking.BookingRef, userId);
+                return response;
             }
-
-            await _db.SaveChangesAsync(ct);
-
-            var response = new CreateOrderResponse(
-                booking.Id, booking.BookingRef, providerOrderId,
-                "mock", breakdown.AmountPaid, "INR", breakdown);
-
-            await _db.IdempotencyKeys.AddAsync(new IdempotencyKey
+            catch
             {
-                Key        = request.IdempotencyKey,
-                UserId     = userId,
-                Endpoint   = "/api/payments/order",
-                Response   = JsonSerializer.Serialize(response, JsonOpts),
-                StatusCode = 200,
-            }, ct);
-            await _db.SaveChangesAsync(ct);
-
-            await tx.CommitAsync(ct);
-            _logger.LogInformation("Order {Ref} created for user {UserId}", booking.BookingRef, userId);
-            return response;
-        }
-        catch
-        {
-            await tx.RollbackAsync(ct);
-            throw;
-        }
+                await tx.RollbackAsync(ct);
+                throw;
+            }
+        });
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
