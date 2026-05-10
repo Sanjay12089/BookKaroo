@@ -27,18 +27,6 @@ public class VenuesController : ControllerBase
 
 
 [ApiController]
-[Route("api/bookings")]
-[Produces("application/json")]
-public class BookingsController : ControllerBase
-{
-    [HttpPost] public IActionResult Create() => Stub();
-    [HttpGet] public IActionResult GetByUser() => Stub();
-    [HttpGet("{ref}")] public IActionResult GetByRef(string @ref) => Stub();
-    [HttpPost("{ref}/cancel")] public IActionResult Cancel(string @ref) => Stub();
-    private IActionResult Stub() => StatusCode(501, new { message = "Coming in next sprint", endpoint = Request.Path.Value });
-}
-
-[ApiController]
 [Route("api/search")]
 [Produces("application/json")]
 public class SearchController : ControllerBase
