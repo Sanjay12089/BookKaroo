@@ -1,0 +1,21 @@
+-- ============================================================
+-- BookKaroo — schema.sql (master)
+-- This is the same as migrations/001_init.sql.
+-- Run in Supabase SQL Editor (paste entire file).
+-- ============================================================
+-- Copy content of migrations/001_init.sql here.
+-- (Kept separate to allow incremental migration tracking.)
+-- ============================================================
+
+-- ⚠️ See migrations/001_init.sql for the full schema DDL.
+-- Run seeds in order after schema is applied:
+--   seeds/01_settings.sql
+--   seeds/02_cities.sql
+--   seeds/03_users.sql
+--   seeds/04_venues_screens.sql
+--   seeds/05_movies.sql
+--   seeds/06_events.sql
+--   seeds/07_shows.sql
+--   seeds/08_coupons.sql
+--   seeds/09_banners.sql
+-- ============================================================
