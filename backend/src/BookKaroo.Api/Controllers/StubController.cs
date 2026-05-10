@@ -25,14 +25,6 @@ public class VenuesController : ControllerBase
     private IActionResult Stub() => StatusCode(501, new { message = "Coming in next sprint", endpoint = Request.Path.Value });
 }
 
-[ApiController]
-[Route("api/shows")]
-[Produces("application/json")]
-public class ShowsController : ControllerBase
-{
-    [HttpGet("{showId:guid}/seats")] public IActionResult GetSeats(Guid showId) => Stub();
-    private IActionResult Stub() => StatusCode(501, new { message = "Coming in next sprint", endpoint = Request.Path.Value });
-}
 
 [ApiController]
 [Route("api/payments")]

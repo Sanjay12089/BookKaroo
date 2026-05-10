@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
 import type { Movie, PaginatedResponse } from '@/shared/types';
-import type { MovieDetail, PaginatedReviews } from '../types';
+import type { MovieDetail, PaginatedReviews, ShowtimesGrouped } from '../types';
 import { STALE } from '@/shared/lib/queryClient';
 import { toast } from '@/shared/components/ui/Toast';
 
@@ -56,15 +56,17 @@ export function useMovieDetail(slug: string) {
   });
 }
 
-// ── Showtimes ─────────────────────────────────────────────────────────────────
+// ── Showtimes (city-aware, availability-enriched) ─────────────────────────────
 
-export function useShowtimes(slug: string, date?: string) {
-  return useQuery({
-    queryKey: ['showtimes', slug, date],
+export function useShowtimes(movieId: string, cityId: string, date: string) {
+  return useQuery<ShowtimesGrouped>({
+    queryKey: ['showtimes', movieId, cityId, date],
     queryFn: () =>
-      api.get(`/api/movies/${slug}/showtimes${date ? `?date=${date}` : ''}`).then((r) => r.data),
-    staleTime: STALE.SHOWTIMES,
-    enabled: !!slug,
+      api.get<ShowtimesGrouped>(`/api/movies/${movieId}/showtimes`, {
+        params: { cityId, date },
+      }).then((r) => r.data),
+    staleTime: 60 * 1000,
+    enabled: !!movieId && !!cityId,
   });
 }
 

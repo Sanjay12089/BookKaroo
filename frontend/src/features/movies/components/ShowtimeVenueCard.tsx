@@ -1,0 +1,95 @@
+import { cn } from '@/shared/lib/utils';
+import type { ShowtimeVenueGroup, ShowtimeItem } from '../types';
+
+interface Props {
+  venue:        ShowtimeVenueGroup;
+  onSelectShow: (showId: string) => void;
+}
+
+const AMENITY_ICONS: Record<string, string> = {
+  Parking:           '🅿',
+  'Food Court':      '🍿',
+  'M-Ticket':        '📱',
+  'Wheelchair Access': '♿',
+  Accessible:        '♿',
+  Recliner:          '🛋',
+  'Dolby Atmos':     '🎵',
+  Dolby:             '🔊',
+  IMAX:              '🎬',
+  '4DX':             '🌀',
+};
+
+const AVAIL_CLASSES: Record<ShowtimeItem['availability'], string> = {
+  green:    'bg-emerald-500/10 border-emerald-500/40 text-emerald-400',
+  orange:   'bg-amber-500/10  border-amber-500/40  text-amber-400',
+  red:      'bg-rose-500/10   border-rose-500/40   text-rose-400',
+  sold_out: 'bg-bg-surface3  border-border-default text-text-muted cursor-not-allowed opacity-50',
+};
+
+export function ShowtimeVenueCard({ venue, onSelectShow }: Props) {
+  const lowestPrice = venue.shows.length
+    ? Math.min(...venue.shows.map((s) => s.lowestPrice))
+    : 0;
+
+  return (
+    <div className="p-5 rounded-xl bg-bg-surface border border-border-default hover:border-border-strong transition-colors duration-150 mb-3">
+      {/* Venue header */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-sm flex-shrink-0">
+            🎬
+          </div>
+          <div>
+            <h3 className="font-semibold text-text-primary text-base leading-snug">{venue.venueName}</h3>
+            <div className="flex gap-2 items-center text-xs text-text-muted font-sans mt-0.5 flex-wrap">
+              {venue.venueArea && <span>{venue.venueArea}</span>}
+              {venue.distance  && <><span>·</span><span className="font-medium text-text-secondary">{venue.distance}</span></>}
+              <span>·</span>
+              <span>from <strong className="text-emerald-400">₹{lowestPrice}</strong></span>
+            </div>
+
+            {/* Amenity pills */}
+            {venue.amenities.length > 0 && (
+              <div className="flex gap-1.5 flex-wrap mt-2">
+                {venue.amenities.map((a) => (
+                  <span
+                    key={a}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-bg-surface2 border border-border-default text-text-secondary font-sans"
+                  >
+                    {AMENITY_ICONS[a] ?? '·'} {a}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Time chips */}
+      <div className="flex flex-wrap gap-2">
+        {venue.shows.map((show) => {
+          const isSold = show.availability === 'sold_out';
+          return (
+            <button
+              key={show.showId}
+              disabled={isSold}
+              onClick={() => !isSold && onSelectShow(show.showId)}
+              className={cn(
+                'flex flex-col gap-0.5 text-left px-3.5 py-2 rounded-lg border transition-all duration-150',
+                AVAIL_CLASSES[show.availability],
+                !isSold && 'hover:scale-105'
+              )}
+            >
+              <span className={cn('font-bold text-sm font-mono', isSold && 'line-through')}>
+                {show.time}
+              </span>
+              <span className="text-[10px] opacity-70">
+                {show.format} · {show.language}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
