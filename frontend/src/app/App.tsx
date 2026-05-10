@@ -14,7 +14,8 @@ function AppInit({ children }: { children: React.ReactNode }) {
       getToken: () => useAuthStore.getState().accessToken,
       onRefreshFail: () => {
         useAuthStore.getState().clearAuth();
-        window.location.href = '/login';
+        // Don't use window.location.href — it causes a full reload loop on every init.
+        // ProtectedRoute handles the /login redirect via React Router when needed.
       },
     });
     void initialize();
