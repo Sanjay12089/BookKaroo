@@ -50,11 +50,14 @@ export default function SearchResultsPage() {
     setSearchParams(params, { replace: true });
   }
 
-  const { setCity, cities } = useCityStore();
+  const { setCity } = useCityStore();
 
   function handleCityClick(city: SearchCityResult) {
-    const found = cities.find((c) => c.id === city.id);
-    if (found) setCity(found);
+    setCity({
+      id: city.id, name: city.name, slug: city.slug,
+      state: city.state, stateCode: city.stateCode,
+      latitude: 0, longitude: 0,
+    });
   }
 
   const tabs: { key: Tab; label: string; count: number }[] = [

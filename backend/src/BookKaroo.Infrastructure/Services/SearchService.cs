@@ -72,7 +72,7 @@ public class SearchService : ISearchService
                      && c.IsActive
                      && EF.Functions.ILike(c.Name, $"%{query}%"))
             .Take(3)
-            .Select(c => new SearchCityResult(c.Id, c.Name, c.Slug, c.State))
+            .Select(c => new SearchCityResult(c.Id, c.Name, c.Slug, c.State, c.StateCode))
             .ToListAsync(ct);
 
         int total = movies.Count + events.Count + venues.Count + cities.Count;

@@ -37,7 +37,8 @@ public record SearchCityResult(
     Guid   Id,
     string Name,
     string Slug,
-    string State)
+    string State,
+    string StateCode)
 {
     public string Type => "city";
 }

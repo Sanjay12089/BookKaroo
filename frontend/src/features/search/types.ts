@@ -29,11 +29,12 @@ export interface SearchVenueResult {
 }
 
 export interface SearchCityResult {
-  id:    string;
-  name:  string;
-  slug:  string;
-  state: string;
-  type:  'city';
+  id:        string;
+  name:      string;
+  slug:      string;
+  state:     string;
+  stateCode: string;
+  type:      'city';
 }
 
 export interface SearchResponse {

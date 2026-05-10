@@ -3,6 +3,7 @@ import { Clock, MapPin, Building2 } from 'lucide-react';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { ROUTES, TMDB_POSTER } from '@/shared/constants';
 import { useCityStore } from '@/shared/store/cityStore';
+import type { City } from '@/shared/types';
 import type { SearchResponse, SearchCityResult } from '../types';
 
 interface SearchDropdownProps {
@@ -25,7 +26,7 @@ export function SearchDropdown({
   onClose,
 }: SearchDropdownProps) {
   const navigate = useNavigate();
-  const { setCity, cities } = useCityStore();
+  const { setCity } = useCityStore();
 
   function handleMovieClick(slug: string) {
     onSelectResult(query);
@@ -45,8 +46,12 @@ export function SearchDropdown({
   }
 
   function handleCityClick(city: SearchCityResult) {
-    const found = cities.find((c) => c.id === city.id);
-    if (found) setCity(found);
+    const cityObj: City = {
+      id: city.id, name: city.name, slug: city.slug,
+      state: city.state, stateCode: city.stateCode,
+      latitude: 0, longitude: 0,
+    };
+    setCity(cityObj);
     onClose();
   }
 
