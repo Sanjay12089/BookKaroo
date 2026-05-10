@@ -21,3 +21,18 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T)
 
   return [stored, setValue];
 }
+
+export function useRecentSearches() {
+  const MAX = 5;
+  const KEY = 'bookkaroo_recent_searches';
+  const [searches, setSearches] = useLocalStorage<string[]>(KEY, []);
+
+  const add = (query: string) => {
+    const updated = [query, ...searches.filter((s) => s !== query)].slice(0, MAX);
+    setSearches(updated);
+  };
+
+  const clear = () => setSearches([]);
+
+  return { searches, add, clear };
+}

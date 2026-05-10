@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapPin, Search, X, User, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { MapPin, User, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useCityStore } from '@/shared/store/cityStore';
 import { useCities } from '@/features/cities/api/useCities';
 import { CityModal } from '@/shared/components/CityModal';
+import { SearchBar } from '@/shared/components/SearchBar';
 import { Button } from '@/shared/components/ui/Button';
 import { ThemeToggle } from '@/design/ThemeContext';
 import { api } from '@/shared/lib/api';
@@ -18,11 +19,9 @@ const LOGO_TEXT = (
 );
 
 export function Header() {
-  const [scrolled, setScrolled] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled, setScrolled]         = useState(false);
   const [cityModalOpen, setCityModalOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [userMenuOpen, setUserMenuOpen]   = useState(false);
 
   const { isAuthenticated, user, clearAuth } = useAuthStore();
   const { selectedCity } = useCityStore();
@@ -41,15 +40,6 @@ export function Header() {
     window.addEventListener('scroll', handler);
     return () => window.removeEventListener('scroll', handler);
   }, []);
-
-  function handleSearch(e: React.FormEvent) {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      navigate(`${ROUTES.SEARCH}?q=${encodeURIComponent(searchQuery.trim())}`);
-      setSearchOpen(false);
-      setSearchQuery('');
-    }
-  }
 
   async function handleLogout() {
     try {
@@ -88,32 +78,8 @@ export function Header() {
             <ChevronDown size={13} />
           </button>
 
-          {/* Search bar */}
-          <form
-            onSubmit={handleSearch}
-            className={cn(
-              'flex-1 transition-all duration-[220ms]',
-              'hidden md:flex items-center gap-2 px-4 py-2 rounded-full bg-bg-surface border font-sans text-sm',
-              searchOpen
-                ? 'border-accent-indigo ring-2 ring-accent-indigo/15'
-                : 'border-border-default hover:border-border-strong cursor-pointer'
-            )}
-          >
-            <Search size={15} className="text-text-muted flex-shrink-0" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onFocus={() => setSearchOpen(true)}
-              onBlur={() => !searchQuery && setSearchOpen(false)}
-              placeholder="Search movies, events, venues…"
-              className="flex-1 bg-transparent outline-none text-text-primary placeholder:text-text-muted"
-            />
-            {searchQuery && (
-              <button type="button" onClick={() => setSearchQuery('')} className="text-text-muted">
-                <X size={14} />
-              </button>
-            )}
-          </form>
+          {/* Search bar — handles desktop form + mobile icon internally */}
+          <SearchBar className="flex-1" />
 
           {/* Nav links */}
           <nav className="hidden lg:flex items-center gap-1">
@@ -135,13 +101,6 @@ export function Header() {
 
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
-            {/* Mobile search */}
-            <button
-              className="md:hidden text-text-secondary hover:text-text-primary"
-              onClick={() => setSearchOpen(!searchOpen)}
-            >
-              <Search size={20} />
-            </button>
 
             {isAuthenticated && user ? (
               <div className="relative">
@@ -203,25 +162,6 @@ export function Header() {
             )}
           </div>
         </div>
-
-        {/* Mobile search bar */}
-        {searchOpen && (
-          <div className="md:hidden px-4 pb-3">
-            <form onSubmit={handleSearch} className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-bg-surface border border-accent-indigo ring-2 ring-accent-indigo/15">
-              <Search size={15} className="text-text-muted" />
-              <input
-                autoFocus
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search…"
-                className="flex-1 bg-transparent outline-none text-sm text-text-primary placeholder:text-text-muted font-sans"
-              />
-              <button type="button" onClick={() => { setSearchOpen(false); setSearchQuery(''); }}>
-                <X size={14} className="text-text-muted" />
-              </button>
-            </form>
-          </div>
-        )}
       </header>
 
       {/* City Modal */}

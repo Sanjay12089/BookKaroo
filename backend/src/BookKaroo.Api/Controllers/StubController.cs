@@ -27,15 +27,6 @@ public class VenuesController : ControllerBase
 
 
 [ApiController]
-[Route("api/search")]
-[Produces("application/json")]
-public class SearchController : ControllerBase
-{
-    [HttpGet] public IActionResult Search() => Stub();
-    private IActionResult Stub() => StatusCode(501, new { message = "Coming in next sprint", endpoint = Request.Path.Value });
-}
-
-[ApiController]
 [Route("api/admin")]
 [Produces("application/json")]
 public class AdminController : ControllerBase

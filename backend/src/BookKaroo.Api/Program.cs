@@ -226,6 +226,7 @@ try
     builder.Services.AddScoped<INotificationService, NotificationService>();
     builder.Services.AddScoped<IPaymentService, PaymentService>();
     builder.Services.AddScoped<ISeatLockService, SeatLockService>();
+    builder.Services.AddScoped<ISearchService, SearchService>();
     builder.Services.AddHostedService<SeatLockSweepService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();
