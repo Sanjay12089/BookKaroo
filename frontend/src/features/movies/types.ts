@@ -63,3 +63,27 @@ export interface PaginatedReviews {
   pageSize:   number;
   totalPages: number;
 }
+
+// ── Showtimes (city-aware, with availability) ──────────────────────────────────
+
+export interface ShowtimeItem {
+  showId:       string;
+  time:         string;
+  format:       string;
+  language:     string;
+  availability: 'green' | 'orange' | 'red' | 'sold_out';
+  lowestPrice:  number;
+}
+
+export interface ShowtimeVenueGroup {
+  venueId:   string;
+  venueName: string;
+  venueArea: string;
+  distance:  string | null;
+  amenities: string[];
+  shows:     ShowtimeItem[];
+}
+
+export interface ShowtimesGrouped {
+  venues: ShowtimeVenueGroup[];
+}
