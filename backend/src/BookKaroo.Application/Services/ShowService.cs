@@ -12,15 +12,18 @@ public class ShowService : IShowService
     private readonly IShowRepository                  _shows;
     private readonly IRepository<Domain.Entities.Venue>  _venues;
     private readonly IRepository<Domain.Entities.Screen> _screens;
+    private readonly IMovieRepository                 _movies;
 
     public ShowService(
         IShowRepository                   shows,
         IRepository<Domain.Entities.Venue>   venues,
-        IRepository<Domain.Entities.Screen>  screens)
+        IRepository<Domain.Entities.Screen>  screens,
+        IMovieRepository                  movies)
     {
         _shows   = shows;
         _venues  = venues;
         _screens = screens;
+        _movies  = movies;
     }
 
     public async Task<ShowtimesGroupedResponse> GetShowtimesAsync(
@@ -83,16 +86,31 @@ public class ShowService : IShowService
         var availability = await _shows.GetSeatAvailabilityAsync(showId, ct);
 
         object? layout = null;
-        var screenId = show.ScreenId;
         var allScreens = await _screens.GetAllAsync(ct);
-        var screen = allScreens.FirstOrDefault(s => s.Id == screenId);
+        var screen = allScreens.FirstOrDefault(s => s.Id == show.ScreenId);
         if (screen?.Layout is not null)
         {
             try { layout = JsonSerializer.Deserialize<object>(screen.Layout); }
             catch { /* leave null */ }
         }
 
-        return new ShowSeatsResponse(showId, layout, availability.BookedSeats, availability.LockedSeats);
+        // Resolve metadata for checkout page display
+        var allVenues = await _venues.GetAllAsync(ct);
+        var venue     = allVenues.FirstOrDefault(v => v.Id == show.VenueId);
+        var movie     = show.MovieId.HasValue
+            ? await _movies.GetByIdAsync(show.MovieId.Value, ct) : null;
+
+        var showMeta = new ShowMetadata(
+            MovieTitle: movie?.Title ?? "Movie",
+            PosterUrl:  movie?.PosterUrl,
+            Format:     show.Format ?? "2D",
+            Language:   show.Language ?? "Hindi",
+            ShowDate:   show.ShowDate.ToString("yyyy-MM-dd"),
+            ShowTime:   show.ShowTime.ToString(@"hh\:mm"),
+            VenueName:  venue?.Name ?? "Cinema",
+            ScreenName: screen?.Name ?? "Screen");
+
+        return new ShowSeatsResponse(showId, layout, availability.BookedSeats, availability.LockedSeats, showMeta);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

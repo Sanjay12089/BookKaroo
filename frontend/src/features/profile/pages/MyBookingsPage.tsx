@@ -5,39 +5,44 @@ import { GlassCard } from '@/shared/components/ui/Card';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useMyBookings } from '@/features/booking/api/useBooking';
-import { ROUTES } from '@/shared/constants';
-import { formatDate, formatCurrency } from '@/shared/lib/utils';
-import type { Booking } from '@/shared/types';
+import { ROUTES, TMDB_POSTER } from '@/shared/constants';
+import { formatCurrency } from '@/shared/lib/utils';
+import type { BookingListItem } from '@/features/booking/types';
 
 const STATUS_STYLE: Record<string, { label: string; className: string }> = {
   Confirmed:  { label: 'CONFIRMED',  className: 'bg-semantic-success/12 text-[#6EE7B7] border border-semantic-success/28' },
   Completed:  { label: 'COMPLETED',  className: 'bg-bg-surface3 text-text-muted border border-border-default' },
   Cancelled:  { label: 'CANCELLED',  className: 'bg-accent-crimson/12 text-[#FF6770] border border-accent-crimson/25' },
   Pending:    { label: 'PENDING',    className: 'bg-semantic-warning/12 text-[#FCD34D] border border-semantic-warning/28' },
+  Refunded:   { label: 'REFUNDED',   className: 'bg-bg-surface3 text-text-muted border border-border-default' },
 };
 
-function BookingCard({ booking }: { booking: Booking }) {
+function BookingCard({ booking }: { booking: BookingListItem }) {
   const style = STATUS_STYLE[booking.status] ?? STATUS_STYLE.Pending;
   const canCancel = booking.status === 'Confirmed';
 
   return (
     <div className="p-5 rounded-xl bg-bg-surface border border-border-default hover:border-border-strong transition-colors">
-      <div className="flex gap-5 items-start">
-        {/* Poster placeholder */}
-        <div className="w-16 aspect-[2/3] rounded-lg bg-gradient-to-br from-accent-indigo/40 to-accent-purple/40 flex-shrink-0 flex items-center justify-center text-2xl">
-          🎬
+      <div className="flex gap-4 items-start">
+        {/* Poster */}
+        <div className="w-16 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 flex-shrink-0">
+          {booking.posterUrl
+            ? <img src={TMDB_POSTER(booking.posterUrl, 'w185')} alt={booking.movieTitle} className="w-full h-full object-cover" />
+            : <div className="w-full h-full bg-gradient-to-br from-accent-indigo/40 to-accent-purple/40 flex items-center justify-center text-2xl">🎬</div>
+          }
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold font-sans ${style.className}`}>
               {style.label}
             </span>
           </div>
 
-          <p className="font-display font-semibold text-lg text-text-primary leading-snug">{booking.bookingRef}</p>
-          <p className="text-sm text-text-secondary font-sans mt-1">{formatDate(booking.createdAt)}</p>
-          <p className="text-sm text-text-muted font-sans">{booking.ticketQty} ticket{booking.ticketQty > 1 ? 's' : ''}</p>
+          <p className="font-display font-semibold text-base text-text-primary leading-snug truncate">{booking.movieTitle}</p>
+          <p className="text-sm text-text-secondary font-sans mt-0.5">{booking.venueName}</p>
+          <p className="text-sm text-text-muted font-sans">{booking.showDate} · {booking.showTime}</p>
+          <p className="text-xs text-text-muted font-mono mt-1">{booking.bookingRef}</p>
 
           <div className="flex gap-3 mt-3 flex-wrap">
             <Link to={`/booking/confirmed?ref=${booking.bookingRef}`}>
@@ -55,7 +60,9 @@ function BookingCard({ booking }: { booking: Booking }) {
           <div className="font-display font-semibold text-xl text-text-primary">
             {formatCurrency(booking.amountPaid)}
           </div>
-          <p className="text-xs font-mono text-text-muted mt-1">{booking.bookingRef}</p>
+          <p className="text-xs text-text-muted font-sans mt-1">
+            {booking.ticketQty} ticket{booking.ticketQty !== 1 ? 's' : ''}
+          </p>
         </div>
       </div>
     </div>
@@ -67,9 +74,10 @@ export default function MyBookingsPage() {
   const { data: bookings, isLoading } = useMyBookings();
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
 
-  const upcoming = (bookings ?? []).filter(b => b.status === 'Confirmed' || b.status === 'Pending');
-  const past = (bookings ?? []).filter(b => b.status !== 'Confirmed' && b.status !== 'Pending');
-  const shown = tab === 'upcoming' ? upcoming : past;
+  const list     = bookings ?? [];
+  const upcoming = list.filter(b => b.status === 'Confirmed' || b.status === 'Pending');
+  const past     = list.filter(b => b.status !== 'Confirmed' && b.status !== 'Pending');
+  const shown    = tab === 'upcoming' ? upcoming : past;
 
   return (
     <PublicLayout>
@@ -95,11 +103,11 @@ export default function MyBookingsPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Total Bookings', value: String((bookings ?? []).length) },
+            { label: 'Total Bookings', value: String(list.length) },
             { label: 'Upcoming',       value: String(upcoming.length) },
-            { label: 'Total Spent',    value: formatCurrency((bookings ?? []).reduce((s, b) => s + b.amountPaid, 0)) },
+            { label: 'Total Spent',    value: formatCurrency(list.reduce((s, b) => s + b.amountPaid, 0)) },
           ].map(({ label, value }) => (
-            <GlassCard key={label} style={{ padding: "16px 20px" }}>
+            <GlassCard key={label} style={{ padding: '16px 20px' }}>
               <div className="font-display font-semibold text-2xl text-text-primary">{value}</div>
               <div className="text-[11px] text-text-muted uppercase tracking-wider mt-1 font-sans">{label}</div>
             </GlassCard>
