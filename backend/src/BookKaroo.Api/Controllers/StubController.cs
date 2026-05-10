@@ -1,52 +1,9 @@
-using BookKaroo.Application.DTOs.Movies;
-using BookKaroo.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookKaroo.Api.Controllers;
 
-// ─── Movies — fully implemented ───────────────────────────────────────────────
-
-[ApiController]
-[Route("api/movies")]
-[Produces("application/json")]
-public class MoviesController : ControllerBase
-{
-    private readonly IMovieService _movies;
-    public MoviesController(IMovieService movies) => _movies = movies;
-
-    /// <summary>List movies with optional filters and pagination.</summary>
-    [HttpGet]
-    [ProducesResponseType(typeof(MovieListPagedResponse), 200)]
-    public async Task<IActionResult> GetAll(
-        [FromQuery] string? language,
-        [FromQuery] string? genre,
-        [FromQuery] string? format,
-        [FromQuery] string? category,
-        [FromQuery] string? sort,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
-        CancellationToken ct = default)
-    {
-        var filter = new MovieFilterRequest(language, genre, format, category, sort,
-            Math.Clamp(page, 1, int.MaxValue),
-            Math.Clamp(pageSize, 1, 100));
-        return Ok(await _movies.GetListAsync(filter, ct));
-    }
-
-    /// <summary>Get movie detail by slug.</summary>
-    [HttpGet("{slug}")]
-    [ProducesResponseType(typeof(MovieListResponse), 200)]
-    [ProducesResponseType(404)]
-    public async Task<IActionResult> GetDetail(string slug, CancellationToken ct) =>
-        Ok(await _movies.GetDetailAsync(slug, ct));
-
-    /// <summary>Get showtimes for a movie, grouped by venue.</summary>
-    [HttpGet("{slug}/showtimes")]
-    [ProducesResponseType(typeof(ShowtimesResponse), 200)]
-    [ProducesResponseType(404)]
-    public async Task<IActionResult> GetShowtimes(string slug, [FromQuery] string? date, CancellationToken ct) =>
-        Ok(await _movies.GetShowtimesAsync(slug, date, ct));
-}
+// Placeholder controllers for endpoints implemented in later sprints.
+// Each returns 501 so the frontend can show graceful empty states.
 
 [ApiController]
 [Route("api/events")]

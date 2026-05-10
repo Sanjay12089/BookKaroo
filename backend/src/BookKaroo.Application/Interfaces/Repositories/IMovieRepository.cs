@@ -6,7 +6,15 @@ namespace BookKaroo.Application.Interfaces.Repositories;
 public interface IMovieRepository : IRepository<Movie>
 {
     Task<Movie?> FindBySlugAsync(string slug, CancellationToken ct = default);
+
     Task<(IEnumerable<Movie> Items, int Total)> GetPublishedAsync(
-        string? language, string? genre, string? format, MovieCategory? category,
-        string? sort, int page, int pageSize, CancellationToken ct = default);
+        string[]?     languages,
+        string[]?     genres,
+        string[]?     formats,
+        MovieCategory? category,
+        Guid?         cityId,
+        string?       sort,
+        int           page,
+        int           pageSize,
+        CancellationToken ct = default);
 }

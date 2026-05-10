@@ -19,7 +19,7 @@ public class MovieService : IMovieService
         IRepository<Domain.Entities.Venue> venues)
     {
         _movies = movies;
-        _shows = shows;
+        _shows  = shows;
         _venues = venues;
     }
 
@@ -35,11 +35,13 @@ public class MovieService : IMovieService
         };
 
         var (items, total) = await _movies.GetPublishedAsync(
-            filter.Language, filter.Genre, filter.Format, cat,
-            filter.Sort, filter.Page, filter.PageSize, ct);
+            filter.Languages, filter.Genres, filter.Formats,
+            cat, filter.CityId, filter.Sort,
+            filter.Page, filter.PageSize, ct);
 
-        var dtos = items.Select(Map);
-        return new MovieListPagedResponse(dtos, total, filter.Page, filter.PageSize);
+        var dtos      = items.Select(Map);
+        var totalPages = filter.PageSize == 0 ? 0 : (int)Math.Ceiling((double)total / filter.PageSize);
+        return new MovieListPagedResponse(dtos, total, filter.Page, filter.PageSize, totalPages);
     }
 
     public async Task<MovieListResponse> GetDetailAsync(string slug, CancellationToken ct = default)
@@ -58,10 +60,9 @@ public class MovieService : IMovieService
             ? DateOnly.Parse(date)
             : DateOnly.FromDateTime(DateTime.Today);
 
-        var shows = (await _shows.GetByMovieAndDateAsync(movie.Id, showDate, ct)).ToList();
+        var shows     = (await _shows.GetByMovieAndDateAsync(movie.Id, showDate, ct)).ToList();
         var allVenues = (await _venues.GetAllAsync(ct)).ToDictionary(v => v.Id);
 
-        // Group shows by venue
         var grouped = shows
             .GroupBy(s => s.VenueId)
             .Select(g =>
@@ -83,7 +84,7 @@ public class MovieService : IMovieService
                         s.ShowTime.ToString(@"hh\:mm"),
                         s.Format ?? "2D",
                         s.Language ?? "Hindi",
-                        SeatsLeft: 100,    // real-time from Supabase Realtime in Phase 1.5
+                        SeatsLeft: 100,
                         Price: price);
                 }).OrderBy(s => s.ShowTime).ToArray();
 

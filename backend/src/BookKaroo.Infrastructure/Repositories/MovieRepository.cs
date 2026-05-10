@@ -14,26 +14,53 @@ public class MovieRepository : Repository<Movie>, IMovieRepository
         await _db.Movies.FirstOrDefaultAsync(m => m.Slug == slug, ct);
 
     public async Task<(IEnumerable<Movie> Items, int Total)> GetPublishedAsync(
-        string? language, string? genre, string? format, MovieCategory? category,
-        string? sort, int page, int pageSize, CancellationToken ct = default)
+        string[]?      languages,
+        string[]?      genres,
+        string[]?      formats,
+        MovieCategory? category,
+        Guid?          cityId,
+        string?        sort,
+        int            page,
+        int            pageSize,
+        CancellationToken ct = default)
     {
         var query = _db.Movies.Where(m => m.Status == MovieStatus.Published);
 
-        if (!string.IsNullOrEmpty(language))
-            query = query.Where(m => m.Languages.Contains(language));
-        if (!string.IsNullOrEmpty(genre))
-            query = query.Where(m => m.Genres.Contains(genre));
-        if (!string.IsNullOrEmpty(format))
-            query = query.Where(m => m.Formats.Contains(format));
+        // Multi-value array overlap: movie must have at least one of the selected values
+        if (languages?.Length > 0)
+            query = query.Where(m => languages.Any(l => m.Languages.Contains(l)));
+        if (genres?.Length > 0)
+            query = query.Where(m => genres.Any(g => m.Genres.Contains(g)));
+        if (formats?.Length > 0)
+            query = query.Where(m => formats.Any(f => m.Formats.Contains(f)));
         if (category.HasValue)
             query = query.Where(m => m.Category == category.Value);
+
+        // City filter: only movies with scheduled shows in the given city today or later
+        if (cityId.HasValue)
+        {
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var venueIdsInCity = _db.Venues
+                .Where(v => v.CityId == cityId.Value)
+                .Select(v => v.Id);
+
+            var movieIdsInCity = _db.Shows
+                .Where(s => venueIdsInCity.Contains(s.VenueId)
+                         && s.ShowDate >= today
+                         && s.MovieId != null
+                         && s.Status != ShowStatus.Cancelled)
+                .Select(s => s.MovieId!.Value)
+                .Distinct();
+
+            query = query.Where(m => movieIdsInCity.Contains(m.Id));
+        }
 
         query = sort switch
         {
             "rating"  => query.OrderByDescending(m => m.ImdbRating),
             "release" => query.OrderByDescending(m => m.ReleaseDate),
             "az"      => query.OrderBy(m => m.Title),
-            _         => query.OrderByDescending(m => m.CreatedAt)
+            _         => query.OrderByDescending(m => m.ImdbRating) // popularity ≈ IMDb rating
         };
 
         var total = await query.CountAsync(ct);
