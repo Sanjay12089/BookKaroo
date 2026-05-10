@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, Search, X, User, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import { ROUTES, CITIES } from '@/shared/constants';
+import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
-import { Modal } from '@/shared/components/ui/Modal';
+import { useCityStore } from '@/shared/store/cityStore';
+import { useCities } from '@/features/cities/api/useCities';
+import { CityModal } from '@/shared/components/CityModal';
 import { Button } from '@/shared/components/ui/Button';
 import { ThemeToggle } from '@/design/ThemeContext';
 import { api } from '@/shared/lib/api';
@@ -22,20 +23,24 @@ export function Header() {
   const [cityModalOpen, setCityModalOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [citySearch, setCitySearch] = useState('');
-  const [selectedCity, setSelectedCity] = useLocalStorage<string>('bk-city', 'Ahmedabad');
+
   const { isAuthenticated, user, clearAuth } = useAuthStore();
+  const { selectedCity } = useCityStore();
+  const { data: cities } = useCities();
   const navigate = useNavigate();
+
+  // Auto-open city modal on first visit (no city persisted)
+  useEffect(() => {
+    if (cities && cities.length > 0 && !selectedCity) {
+      setCityModalOpen(true);
+    }
+  }, [cities, selectedCity]);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handler);
     return () => window.removeEventListener('scroll', handler);
   }, []);
-
-  const filteredCities = CITIES.filter((c) =>
-    c.name.toLowerCase().includes(citySearch.toLowerCase())
-  );
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -48,9 +53,9 @@ export function Header() {
 
   async function handleLogout() {
     try {
-      await api.post('/api/auth/logout'); // clears httpOnly refresh cookie on server
+      await api.post('/api/auth/logout');
     } catch {
-      // ignore errors — clear locally regardless
+      // ignore — clear locally regardless
     }
     clearAuth();
     setUserMenuOpen(false);
@@ -79,7 +84,7 @@ export function Header() {
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-surface border border-border-default text-text-secondary text-sm font-sans hover:border-border-strong transition-colors duration-150 flex-shrink-0"
           >
             <MapPin size={13} className="text-accent-crimson" />
-            {selectedCity}
+            {selectedCity?.name ?? 'Select City'}
             <ChevronDown size={13} />
           </button>
 
@@ -129,7 +134,6 @@ export function Header() {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            {/* Theme toggle */}
             <ThemeToggle />
             {/* Mobile search */}
             <button
@@ -193,11 +197,7 @@ export function Header() {
                 )}
               </div>
             ) : (
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => navigate(ROUTES.LOGIN)}
-              >
+              <Button variant="primary" size="sm" onClick={() => navigate(ROUTES.LOGIN)}>
                 Sign In
               </Button>
             )}
@@ -224,38 +224,8 @@ export function Header() {
         )}
       </header>
 
-      {/* City selector modal */}
-      <Modal open={cityModalOpen} onClose={() => { setCityModalOpen(false); setCitySearch(''); }} title="Choose your city">
-        <div className="space-y-3">
-          <input
-            autoFocus
-            value={citySearch}
-            onChange={(e) => setCitySearch(e.target.value)}
-            placeholder="Search city…"
-            className="w-full px-4 py-2.5 rounded-lg bg-bg-base border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo"
-          />
-          <div className="max-h-64 overflow-y-auto grid grid-cols-2 gap-1.5">
-            {filteredCities.map((city) => (
-              <button
-                key={city.slug}
-                onClick={() => {
-                  setSelectedCity(city.name);
-                  setCityModalOpen(false);
-                  setCitySearch('');
-                }}
-                className={cn(
-                  'px-3 py-2 rounded-md text-sm font-sans text-left transition-colors duration-150',
-                  selectedCity === city.name
-                    ? 'bg-accent-crimson/12 text-accent-crimson border border-accent-crimson/25'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface2'
-                )}
-              >
-                {city.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </Modal>
+      {/* City Modal */}
+      <CityModal open={cityModalOpen} onClose={() => setCityModalOpen(false)} />
     </>
   );
 }
