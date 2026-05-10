@@ -6,8 +6,8 @@ import { Chip } from '@/shared/components/ui/Chip';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useMovies, type MovieFilters } from '../api/useMovies';
 import { LANGUAGES, GENRES, FORMATS } from '@/shared/constants';
-import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
 import { useCities } from '@/features/cities/api/useCities';
+import { useCityStore } from '@/shared/store/cityStore';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -37,7 +37,7 @@ function toggle(arr: string[], val: string): string[] {
 
 export default function MoviesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedCityName] = useLocalStorage<string>('bk-city', '');
+  const { cityName: selectedCityName } = useCityStore();
   const { data: cities = [] } = useCities();
 
   // Derive cityId from the persisted city name

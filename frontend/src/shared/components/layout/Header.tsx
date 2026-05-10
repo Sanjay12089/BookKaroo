@@ -4,8 +4,8 @@ import { MapPin, Search, X, User, LogOut, ChevronDown, LayoutDashboard } from 'l
 import { cn } from '@/shared/lib/utils';
 import { ROUTES, CITIES } from '@/shared/constants';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useLocalStorage } from '@/shared/hooks/useLocalStorage';
 import { Modal } from '@/shared/components/ui/Modal';
+import { useCityStore } from '@/shared/store/cityStore';
 import { Button } from '@/shared/components/ui/Button';
 import { ThemeToggle } from '@/design/ThemeContext';
 import { api } from '@/shared/lib/api';
@@ -23,7 +23,7 @@ export function Header() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [citySearch, setCitySearch] = useState('');
-  const [selectedCity, setSelectedCity] = useLocalStorage<string>('bk-city', 'Ahmedabad');
+  const { cityName: selectedCity, setCityName: setSelectedCity } = useCityStore();
   const { isAuthenticated, user, clearAuth } = useAuthStore();
   const navigate = useNavigate();
 
