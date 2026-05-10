@@ -6,10 +6,11 @@ import { useAuthStore } from '@/features/auth/store/authStore';
 import { useShowSeats, useCreateOrder, useValidateCoupon, useReleaseSeats } from '../api/useBooking';
 import { calculatePricing } from '@/shared/lib/pricing';
 import { OrderSummaryPanel } from '../components/OrderSummaryPanel';
+import { MockPaymentModal } from '../components/MockPaymentModal';
 import { CountdownRing } from '@/shared/components/ui/CountdownRing';
 import { toast } from '@/shared/components/ui/Toast';
 import { ROUTES } from '@/shared/constants';
-import type { CouponValidation } from '../types';
+import type { BookingDetailResponse, CouponValidation } from '../types';
 import type { ApiError } from '@/shared/types';
 
 export default function CheckoutPage() {
@@ -43,6 +44,9 @@ export default function CheckoutPage() {
 
   // T&C
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+
+  // Payment modal
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   // Countdown
   const [remaining, setRemaining] = useState(8 * 60);
@@ -137,7 +141,8 @@ export default function CheckoutPage() {
       checkoutStore.setContact(mobile, email);
       if (appliedCoupon) checkoutStore.setCoupon(appliedCoupon.code, appliedCoupon);
 
-      navigate(ROUTES.CONFIRMATION);
+      // Open mock payment modal instead of navigating directly
+      setShowPaymentModal(true);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.statusCode === 409) {
@@ -148,6 +153,17 @@ export default function CheckoutPage() {
         toast(apiErr?.message ?? 'Payment failed. Please try again.', 'error');
       }
     }
+  }
+
+  function handlePaymentSuccess(detail: BookingDetailResponse) {
+    checkoutStore.setBookingDetail(detail);
+    clearSeats();
+    navigate(ROUTES.CONFIRMATION);
+  }
+
+  function handlePaymentFailure(msg: string) {
+    setShowPaymentModal(false);
+    toast(msg, 'error');
   }
 
   // ── Seat group labels ─────────────────────────────────────────────────────
@@ -256,6 +272,16 @@ export default function CheckoutPage() {
           onPay={() => void handlePay()}
         />
       </div>
+
+      {showPaymentModal && checkoutStore.orderResponse && (
+        <MockPaymentModal
+          providerOrderId={checkoutStore.orderResponse.providerOrderId}
+          amount={checkoutStore.orderResponse.amount}
+          onSuccess={handlePaymentSuccess}
+          onFailure={handlePaymentFailure}
+          onClose={() => setShowPaymentModal(false)}
+        />
+      )}
     </div>
   );
 }

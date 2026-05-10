@@ -222,6 +222,8 @@ try
     builder.Services.AddScoped<IAdminService, AdminService>();
     builder.Services.AddScoped<IPricingService, PricingService>();
     builder.Services.AddScoped<ICouponService, CouponService>();
+    builder.Services.AddScoped<IBookingService, BookingService>();
+    builder.Services.AddScoped<INotificationService, NotificationService>();
     builder.Services.AddScoped<IPaymentService, PaymentService>();
     builder.Services.AddScoped<ISeatLockService, SeatLockService>();
     builder.Services.AddHostedService<SeatLockSweepService>();

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using BookKaroo.Application.DTOs.Booking;
 using BookKaroo.Application.DTOs.Payment;
 using BookKaroo.Application.DTOs.Pricing;
 using PaymentEntity = BookKaroo.Domain.Entities.Payment;
@@ -22,6 +23,7 @@ public class PaymentService : IPaymentService
     private readonly IRepository<Screen>     _screens;
     private readonly IPricingService         _pricing;
     private readonly ICouponService          _couponSvc;
+    private readonly IBookingService         _bookingSvc;
     private readonly BookKarooDbContext      _db;
     private readonly ILogger<PaymentService> _logger;
 
@@ -33,18 +35,20 @@ public class PaymentService : IPaymentService
         IRepository<Screen>  screens,
         IPricingService      pricing,
         ICouponService       couponSvc,
+        IBookingService      bookingSvc,
         BookKarooDbContext   db,
         ILogger<PaymentService> logger)
     {
-        _shows     = shows;
-        _users     = users;
-        _locks     = locks;
-        _coupons   = coupons;
-        _screens   = screens;
-        _pricing   = pricing;
-        _couponSvc = couponSvc;
-        _db        = db;
-        _logger    = logger;
+        _shows      = shows;
+        _users      = users;
+        _locks      = locks;
+        _coupons    = coupons;
+        _screens    = screens;
+        _pricing    = pricing;
+        _couponSvc  = couponSvc;
+        _bookingSvc = bookingSvc;
+        _db         = db;
+        _logger     = logger;
     }
 
     public async Task<CreateOrderResponse> CreateOrderAsync(
@@ -243,6 +247,31 @@ public class PaymentService : IPaymentService
         var suffix = new string(Enumerable.Range(0, 6)
             .Select(_ => chars[Random.Shared.Next(chars.Length)]).ToArray());
         return $"BK{DateTime.UtcNow:yyyyMMdd}{suffix}";
+    }
+
+    public async Task<BookingDetailResponse> MockCaptureAsync(
+        string providerOrderId, Guid userId, bool simulateFailure, CancellationToken ct = default)
+    {
+        var payment = await _db.Payments
+            .FirstOrDefaultAsync(p => p.ProviderOrderId == providerOrderId, ct)
+            ?? throw new NotFoundException("Order not found.");
+
+        var booking = await _db.Bookings
+            .FirstOrDefaultAsync(b => b.Id == payment.BookingId, ct)
+            ?? throw new NotFoundException("Booking not found.");
+
+        if (booking.UserId != userId)
+            throw new ForbiddenException("You do not own this booking.");
+
+        if (simulateFailure)
+        {
+            payment.Status = PaymentStatus.Failed;
+            await _db.SaveChangesAsync(ct);
+            throw new AppException("Payment declined (simulated).", 402);
+        }
+
+        var providerPaymentId = $"MOCK-PAY-{Guid.NewGuid():N}";
+        return await _bookingSvc.FinalizeBookingAsync(booking.Id, providerPaymentId, ct);
     }
 
     private record LayoutJson(LayoutCategory[]? Categories);

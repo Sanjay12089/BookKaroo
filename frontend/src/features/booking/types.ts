@@ -82,3 +82,74 @@ export interface CouponValidation {
   discount:    number;
   description: string;
 }
+
+// ── Booking detail ────────────────────────────────────────────────────────────
+
+export interface BookingSeatItem {
+  label:    string;
+  category: string;
+  price:    number;
+}
+
+export interface BookingMovieInfo {
+  title:       string;
+  slug:        string;
+  posterUrl:   string | null;
+  certificate: string | null;
+  format:      string | null;
+  language:    string | null;
+}
+
+export interface BookingShowInfo {
+  date:       string;
+  time:       string;
+  venueName:  string;
+  screenName: string;
+  city:       string;
+}
+
+export interface BookingPaymentInfo {
+  method:             string | null;
+  capturedAt:         string | null;
+  providerPaymentId:  string | null;
+}
+
+export interface BookingDetailResponse {
+  bookingRef:    string;
+  status:        string;
+  createdAt:     string;
+  movie:         BookingMovieInfo;
+  show:          BookingShowInfo;
+  seats:         BookingSeatItem[];
+  pricing:       import('@/shared/types').PricingBreakdown;
+  payment:       BookingPaymentInfo;
+  qrUrl:         string | null;
+  invoiceUrl:    string | null;
+  invoiceNumber: string | null;
+  bookingId:     string;
+}
+
+export interface BookingListItem {
+  id:         string;
+  bookingRef: string;
+  status:     string;
+  movieTitle: string;
+  posterUrl:  string | null;
+  venueName:  string;
+  showDate:   string;
+  showTime:   string;
+  ticketQty:  number;
+  amountPaid: number;
+  createdAt:  string;
+}
+
+export interface MockCaptureRequest {
+  providerOrderId: string;
+  simulateFailure: boolean;
+}
+
+export interface CancelResponse {
+  refundAmount: number;
+  refundId:     string;
+  message:      string;
+}
