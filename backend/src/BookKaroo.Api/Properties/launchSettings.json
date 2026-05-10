@@ -27,11 +27,11 @@
 
         "PAYMENT_PROVIDER": "mock",
 
-        "RESEND_API_KEY": "re_placeholder",
+        "RESEND_API_KEY": "re_A2tdeXiD_D3dMEkq8UenhaZQqPU3CGZS2",
         "RESEND_FROM": "BookKaroo <onboarding@resend.dev>",
 
-        "TMDB_API_KEY": "placeholder_tmdb_key",
-        "TMDB_BEARER": "placeholder_tmdb_bearer",
+        "TMDB_API_KEY": "0ceecc6b4de5dabd57af1d2f637983e7",
+        "TMDB_BEARER": "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiIwY2VlY2M2YjRkZTVkYWJkNTdhZjFkMmY2Mzc5ODNlNyIsIm5iZiI6MTc3ODI2NDY4MS40MDEsInN1YiI6IjY5ZmUyYTY5MjM0ZWFkMTFlMWY2ODQ3ZSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.D2VnL3HNRrP-E-h-1FXGQBCUwpmdtHKiEJMBEwRTlZM",
 
         "CORS_ALLOWED_ORIGINS": "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000"
       }

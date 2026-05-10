@@ -7,7 +7,7 @@ import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useUpdateProfile } from '../api/useProfile';
-import { CITIES } from '@/shared/constants';
+import { useCities } from '@/features/cities/api/useCities';
 import { toast } from '@/shared/components/ui/Toast';
 
 const schema = z.object({
@@ -21,14 +21,28 @@ type FormValues = z.infer<typeof schema>;
 export default function ProfilePage() {
   const { user } = useAuthStore();
   const { mutate: update, isPending } = useUpdateProfile();
+  const { data: cities = [] } = useCities();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: user?.name ?? '', mobile: user?.mobile ?? '', gender: user?.gender ?? '', cityId: user?.cityId ?? '' },
+    defaultValues: {
+      name:   user?.name   ?? '',
+      mobile: user?.mobile ?? '',
+      gender: user?.gender ?? '',
+      cityId: user?.cityId ?? '',
+    },
   });
 
+  // Re-populate form whenever user data loads/changes
   useEffect(() => {
-    if (user) reset({ name: user.name, mobile: user.mobile, gender: user.gender ?? '', cityId: user.cityId ?? '' });
+    if (user) {
+      reset({
+        name:   user.name,
+        mobile: user.mobile,
+        gender: user.gender ?? '',
+        cityId: user.cityId ?? '',
+      });
+    }
   }, [user, reset]);
 
   function onSubmit(data: FormValues) {
@@ -38,8 +52,9 @@ export default function ProfilePage() {
   return (
     <PublicLayout>
       <div className="max-w-[560px] mx-auto px-6 py-12">
+        {/* Avatar + name header */}
         <div className="flex items-center gap-4 mb-8">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white font-display font-bold text-2xl">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white font-display font-bold text-2xl flex-shrink-0">
             {user?.name?.charAt(0).toUpperCase() ?? 'U'}
           </div>
           <div>
@@ -48,23 +63,31 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Edit form */}
         <div className="p-7 rounded-2xl bg-bg-surface border border-border-default">
           <h2 className="font-semibold text-lg mb-5 font-sans">Edit Profile</h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Email (read-only) */}
+            {/* Email — read only */}
             <div>
-              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">Email</label>
+              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">
+                Email
+              </label>
               <div className="px-3.5 py-3 rounded-md bg-bg-surface2 border border-border-default text-text-muted text-sm font-sans">
-                {user?.email} <span className="text-[10px] bg-accent-indigo/12 text-[#A5B4FC] px-1.5 py-0.5 rounded-full ml-2">Cannot change</span>
+                {user?.email}
+                <span className="text-[10px] bg-accent-indigo/12 text-[#A5B4FC] px-1.5 py-0.5 rounded-full ml-2">
+                  Cannot change
+                </span>
               </div>
             </div>
 
-            <Input label="Full Name" error={errors.name?.message} {...register('name')} />
-            <Input label="Mobile Number" error={errors.mobile?.message} {...register('mobile')} />
+            <Input label="Full Name"      error={errors.name?.message}   {...register('name')} />
+            <Input label="Mobile Number"  error={errors.mobile?.message} {...register('mobile')} />
 
             {/* Gender */}
             <div>
-              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">Gender</label>
+              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">
+                Gender
+              </label>
               <select
                 {...register('gender')}
                 className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo"
@@ -76,15 +99,19 @@ export default function ProfilePage() {
               </select>
             </div>
 
-            {/* City */}
+            {/* City — loaded from API so UUIDs match DB */}
             <div>
-              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">City</label>
+              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">
+                City
+              </label>
               <select
                 {...register('cityId')}
                 className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo"
               >
                 <option value="">Select city</option>
-                {CITIES.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+                {cities.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
               </select>
             </div>
 
@@ -108,8 +135,12 @@ export default function ProfilePage() {
         {/* Danger zone */}
         <div className="p-5 rounded-xl bg-semantic-error/05 border border-semantic-error/20 mt-4">
           <p className="font-semibold text-sm text-semantic-error font-sans mb-1">Danger Zone</p>
-          <p className="text-xs text-text-muted font-sans mb-3">Deleting your account is permanent and cannot be undone.</p>
-          <button className="text-xs text-semantic-error underline font-sans">Delete my account</button>
+          <p className="text-xs text-text-muted font-sans mb-3">
+            Deleting your account is permanent and cannot be undone.
+          </p>
+          <button className="text-xs text-semantic-error underline font-sans">
+            Delete my account
+          </button>
         </div>
       </div>
     </PublicLayout>

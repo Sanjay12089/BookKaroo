@@ -11,5 +11,7 @@ public record UserResponse(
     bool EmailVerified,
     Guid? CityId,
     string? StateCode,
-    string? ProfilePicUrl
+    string? ProfilePicUrl,
+    string? Gender,
+    DateOnly? Dob
 );

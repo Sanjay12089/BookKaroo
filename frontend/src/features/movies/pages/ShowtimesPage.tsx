@@ -153,7 +153,7 @@ export default function ShowtimesPage() {
 
   return (
     <PublicLayout>
-      <div className="max-w-[1280px] mx-auto px-6 pb-20">
+      <div className="max-w-[1280px] mx-auto px-6 pb-20 lg:pb-20 pb-32">
         {/* Movie mini header */}
         <header className="flex gap-5 items-center py-6 mb-2">
           <div className="w-14 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 flex-shrink-0">
@@ -205,6 +205,17 @@ export default function ShowtimesPage() {
             </span>
           ))}
         </div>
+
+        {/* Mobile sticky bottom CTA */}
+        {selectedShowId && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-bg-surface/95 backdrop-blur-md border-t border-border-default lg:hidden">
+            <Link to={ROUTES.SEAT_SELECTION(selectedShowId)}>
+              <button className="w-full py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-base font-sans shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)]">
+                Choose Seats →
+              </button>
+            </Link>
+          </div>
+        )}
 
         {/* Venue list + sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
