@@ -160,52 +160,105 @@ public class BookingService : IBookingService
     }
 
     public async Task<PaginatedBookings> GetByUserAsync(
-        Guid userId, string? status, int page, int pageSize, CancellationToken ct = default)
+        Guid userId, string? tab, int page, int pageSize, CancellationToken ct = default)
     {
         var now   = DateTime.UtcNow;
-        var query = _db.Bookings.Where(b => b.UserId == userId);
+        var query = _db.Bookings.Where(b => b.UserId == userId && b.DeletedAt == null);
 
-        query = status switch
+        query = tab switch
         {
-            "upcoming" => query.Where(b =>
-                b.Status == BookingStatus.Confirmed &&
-                _db.Shows.Any(s => s.Id == b.ShowId && s.ShowDatetime > now)),
-            "past" => query.Where(b =>
-                (b.Status == BookingStatus.Confirmed &&
-                 _db.Shows.Any(s => s.Id == b.ShowId && s.ShowDatetime <= now)) ||
-                b.Status == BookingStatus.Cancelled ||
-                b.Status == BookingStatus.Refunded),
-            _ => query
+            "upcoming" => query
+                .Where(b => b.Status == BookingStatus.Confirmed &&
+                            _db.Shows.Any(s => s.Id == b.ShowId && s.ShowDatetime > now))
+                .OrderBy(b => _db.Shows.Where(s => s.Id == b.ShowId).Select(s => s.ShowDatetime).FirstOrDefault()),
+            "past" => query
+                .Where(b => (b.Status == BookingStatus.Confirmed &&
+                             _db.Shows.Any(s => s.Id == b.ShowId && s.ShowDatetime <= now)) ||
+                            b.Status == BookingStatus.Cancelled ||
+                            b.Status == BookingStatus.Refunded)
+                .OrderByDescending(b => _db.Shows.Where(s => s.Id == b.ShowId).Select(s => s.ShowDatetime).FirstOrDefault()),
+            _ => query.OrderByDescending(b => b.CreatedAt)
         };
 
         var total    = await query.CountAsync(ct);
         var bookings = await query
-            .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
 
+        // Pre-load all venues and screens to avoid per-booking round trips
+        var allVenues  = (await _venues.GetAllAsync(ct)).ToList();
+        var allScreens = (await _screens.GetAllAsync(ct)).ToList();
+
         var items = new List<BookingListItem>();
         foreach (var b in bookings)
         {
-            var show    = await _shows.GetByIdAsync(b.ShowId, ct);
-            var movie   = show?.MovieId.HasValue == true
-                ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
-            var allVenues = await _venues.GetAllAsync(ct);
-            var venue   = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+            var show   = await _shows.GetByIdAsync(b.ShowId, ct);
+            var venue  = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+            var screen = show is not null ? allScreens.FirstOrDefault(s => s.Id == show.ScreenId) : null;
+
+            Movie?  movie = null;
+            Event?  evt   = null;
+            string  title = "Unknown";
+            string  slug  = "";
+            string? poster        = null;
+            string? certificate   = null;
+            string? format        = show?.Format;
+            string? language      = show?.Language;
+
+            if (show?.MovieId.HasValue == true)
+            {
+                movie       = await _movies.GetByIdAsync(show.MovieId!.Value, ct);
+                title       = movie?.Title ?? "Unknown";
+                slug        = movie?.Slug ?? "";
+                poster      = movie?.PosterUrl;
+                certificate = movie?.Certificate;
+            }
+            else if (show?.EventId.HasValue == true)
+            {
+                evt   = await _db.Events.FirstOrDefaultAsync(e => e.Id == show.EventId!.Value, ct);
+                title = evt?.Title ?? "Unknown";
+                slug  = evt?.Slug  ?? "";
+                poster = evt?.PosterUrl;
+            }
+
+            var seats = await _db.BookingSeats
+                .Where(bs => bs.BookingId == b.Id)
+                .Select(bs => new BookingSeatItem(bs.SeatLabel, bs.Category, bs.Price))
+                .ToListAsync(ct);
+
+            var showDatetime = show?.ShowDatetime ?? DateTime.MinValue;
+            var minutesLeft  = (showDatetime - now).TotalMinutes;
+            var canCancel    = b.Status == BookingStatus.Confirmed && minutesLeft > 120;
+
+            var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == b.Id, ct);
 
             items.Add(new BookingListItem(
-                Id:         b.Id,
-                BookingRef: b.BookingRef,
-                Status:     b.Status.ToString(),
-                MovieTitle: movie?.Title ?? "Unknown",
-                PosterUrl:  movie?.PosterUrl,
-                VenueName:  venue?.Name ?? "Unknown",
-                ShowDate:   show?.ShowDate.ToString("yyyy-MM-dd") ?? "",
-                ShowTime:   show?.ShowTime.ToString(@"hh\:mm") ?? "",
-                TicketQty:  b.TicketQty,
-                AmountPaid: b.AmountPaid,
-                CreatedAt:  b.CreatedAt));
+                Id:             b.Id,
+                BookingRef:     b.BookingRef,
+                Status:         b.Status.ToString(),
+                Title:          title,
+                Slug:           slug,
+                PosterUrl:      poster,
+                Certificate:    certificate,
+                Format:         format,
+                Language:       language,
+                ShowDate:       show?.ShowDate.ToString("ddd, dd MMM yyyy") ?? "",
+                ShowTime:       show?.ShowTime.ToString("hh\\:mm tt") ?? "",
+                ShowDatetime:   showDatetime,
+                VenueName:      venue?.Name    ?? "Unknown",
+                VenueAddress:   venue?.Address ?? "",
+                ScreenName:     screen?.Name   ?? "Screen",
+                Seats:          seats,
+                TicketQty:      b.TicketQty,
+                AmountPaid:     b.AmountPaid,
+                Discount:       b.Discount,
+                PaymentMethod:  payment?.Method ?? b.PaymentMethodLabel,
+                InvoiceUrl:     b.InvoiceUrl,
+                QrUrl:          b.QrUrl,
+                CanCancel:      canCancel,
+                MinutesUntilShow: minutesLeft,
+                CreatedAt:      b.CreatedAt));
         }
 
         return new PaginatedBookings(
@@ -262,8 +315,8 @@ public class BookingService : IBookingService
             catch (Exception ex) { _logger.LogError(ex, "Cancel notification failed for {Ref}", capturedRef); }
         }, CancellationToken.None);
 
-        return new CancelResponse(refundAmount, refundId,
-            $"Booking cancelled. ₹{refundAmount} will be refunded within 7 business days.");
+        return new CancelResponse(booking.BookingRef, refundAmount, refundId,
+            $"Booking cancelled. ₹{refundAmount:F2} will be refunded within 7 business days.");
     }
 
     public async Task<byte[]> GenerateInvoicePdfAsync(

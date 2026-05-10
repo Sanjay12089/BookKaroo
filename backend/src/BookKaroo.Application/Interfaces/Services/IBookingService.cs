@@ -11,7 +11,7 @@ public interface IBookingService
         string bookingRef, Guid userId, CancellationToken ct = default);
 
     Task<PaginatedBookings> GetByUserAsync(
-        Guid userId, string? status, int page, int pageSize, CancellationToken ct = default);
+        Guid userId, string? tab, int page, int pageSize, CancellationToken ct = default);
 
     Task<CancelResponse> CancelAsync(
         string bookingRef, Guid userId, CancellationToken ct = default);

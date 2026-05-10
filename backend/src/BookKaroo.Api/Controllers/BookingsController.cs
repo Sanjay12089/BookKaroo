@@ -20,13 +20,13 @@ public class BookingsController : ControllerBase
     [HttpGet("me")]
     [ProducesResponseType(typeof(PaginatedBookings), 200)]
     public async Task<IActionResult> GetMine(
-        [FromQuery] string? status,
+        [FromQuery] string? tab,
         [FromQuery] int page     = 1,
         [FromQuery] int pageSize = 10,
         CancellationToken ct = default)
     {
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        return Ok(await _bookings.GetByUserAsync(userId, status, page, pageSize, ct));
+        return Ok(await _bookings.GetByUserAsync(userId, tab, page, pageSize, ct));
     }
 
     /// <summary>Get booking detail by booking reference.</summary>
