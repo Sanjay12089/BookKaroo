@@ -4,126 +4,110 @@ import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { GlassCard } from '@/shared/components/ui/Card';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useMyBookings } from '@/features/booking/api/useBooking';
-import { ROUTES, TMDB_POSTER } from '@/shared/constants';
+import { useMyBookings, useCancelBooking } from '@/features/booking/api/useBooking';
+import { BookingCard } from '../components/BookingCard';
+import { CancelConfirmModal } from '../components/CancelConfirmModal';
+import { toast } from '@/shared/components/ui/Toast';
+import { ROUTES } from '@/shared/constants';
 import { formatCurrency } from '@/shared/lib/utils';
 import type { BookingListItem } from '@/features/booking/types';
 
-const STATUS_STYLE: Record<string, { label: string; className: string }> = {
-  Confirmed:  { label: 'CONFIRMED',  className: 'bg-semantic-success/12 text-[#6EE7B7] border border-semantic-success/28' },
-  Completed:  { label: 'COMPLETED',  className: 'bg-bg-surface3 text-text-muted border border-border-default' },
-  Cancelled:  { label: 'CANCELLED',  className: 'bg-accent-crimson/12 text-[#FF6770] border border-accent-crimson/25' },
-  Pending:    { label: 'PENDING',    className: 'bg-semantic-warning/12 text-[#FCD34D] border border-semantic-warning/28' },
-  Refunded:   { label: 'REFUNDED',   className: 'bg-bg-surface3 text-text-muted border border-border-default' },
-};
-
-function BookingCard({ booking }: { booking: BookingListItem }) {
-  const style = STATUS_STYLE[booking.status] ?? STATUS_STYLE.Pending;
-  const canCancel = booking.status === 'Confirmed';
-
-  return (
-    <div className="p-5 rounded-xl bg-bg-surface border border-border-default hover:border-border-strong transition-colors">
-      <div className="flex gap-4 items-start">
-        {/* Poster */}
-        <div className="w-16 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 flex-shrink-0">
-          {booking.posterUrl
-            ? <img src={TMDB_POSTER(booking.posterUrl, 'w185')} alt={booking.movieTitle} className="w-full h-full object-cover" />
-            : <div className="w-full h-full bg-gradient-to-br from-accent-indigo/40 to-accent-purple/40 flex items-center justify-center text-2xl">🎬</div>
-          }
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-            <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold font-sans ${style.className}`}>
-              {style.label}
-            </span>
-          </div>
-
-          <p className="font-display font-semibold text-base text-text-primary leading-snug truncate">{booking.movieTitle}</p>
-          <p className="text-sm text-text-secondary font-sans mt-0.5">{booking.venueName}</p>
-          <p className="text-sm text-text-muted font-sans">{booking.showDate} · {booking.showTime}</p>
-          <p className="text-xs text-text-muted font-mono mt-1">{booking.bookingRef}</p>
-
-          <div className="flex gap-3 mt-3 flex-wrap">
-            <Link to={`/booking/confirmed?ref=${booking.bookingRef}`}>
-              <button className="px-4 py-1.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white text-xs font-semibold font-sans">
-                View Ticket →
-              </button>
-            </Link>
-            {canCancel && (
-              <button className="text-xs text-semantic-error font-sans underline">Cancel Booking</button>
-            )}
-          </div>
-        </div>
-
-        <div className="text-right flex-shrink-0">
-          <div className="font-display font-semibold text-xl text-text-primary">
-            {formatCurrency(booking.amountPaid)}
-          </div>
-          <p className="text-xs text-text-muted font-sans mt-1">
-            {booking.ticketQty} ticket{booking.ticketQty !== 1 ? 's' : ''}
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-}
+type Tab = 'upcoming' | 'past';
 
 export default function MyBookingsPage() {
   const { user } = useAuthStore();
-  const { data: bookings, isLoading } = useMyBookings();
-  const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [tab, setTab]   = useState<Tab>('upcoming');
+  const [page, setPage] = useState(1);
+  const [cancellingBooking, setCancellingBooking] = useState<BookingListItem | null>(null);
 
-  const list     = bookings ?? [];
-  const upcoming = list.filter(b => b.status === 'Confirmed' || b.status === 'Pending');
-  const past     = list.filter(b => b.status !== 'Confirmed' && b.status !== 'Pending');
-  const shown    = tab === 'upcoming' ? upcoming : past;
+  const { data: upcomingData } = useMyBookings('upcoming', 1);
+  const { data: pastData }     = useMyBookings('past', 1);
+  const { data: currentData, isLoading: currentLoading } = useMyBookings(tab, page);
+
+  const { mutate: cancelBooking, isPending: cancelling } = useCancelBooking();
+
+  const upcomingCount  = upcomingData?.total ?? 0;
+  const pastCount      = pastData?.total     ?? 0;
+  const totalBookings  = upcomingCount + pastCount;
+  const totalSpent     = [
+    ...(upcomingData?.items ?? []),
+    ...(pastData?.items ?? []),
+  ].reduce((sum, b) => sum + b.amountPaid, 0);
+
+  const isLoading  = currentLoading;
+  const items      = currentData?.items ?? [];
+  const totalPages = currentData?.totalPages ?? 1;
+
+  function handleCancelConfirm() {
+    if (!cancellingBooking) return;
+    cancelBooking(cancellingBooking.bookingRef, {
+      onSuccess: (res) => {
+        toast(res.message, 'success');
+        setCancellingBooking(null);
+      },
+      onError: (err) => {
+        const msg = (err as { message?: string }).message ?? 'Cancellation failed.';
+        toast(msg, 'error');
+      },
+    });
+  }
 
   return (
     <PublicLayout>
-      <div className="max-w-[960px] mx-auto px-6 py-10">
-        {/* Profile header */}
-        <header className="flex items-center gap-5 pb-8 mb-8 border-b border-border-default">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white font-display font-bold text-2xl flex-shrink-0">
-            {user?.name?.charAt(0).toUpperCase() ?? 'U'}
+      {/* Profile header */}
+      <div className="bg-gradient-to-b from-bg-surface2 to-bg-base border-b border-border-default">
+        <div className="max-w-3xl mx-auto px-6 py-8">
+          <div className="flex items-center gap-5 mb-6">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white font-display font-bold text-2xl flex-shrink-0 border-[3px] border-border-strong">
+              {user?.name?.charAt(0).toUpperCase() ?? 'U'}
+            </div>
+            <div>
+              <h1 className="font-display font-semibold text-xl text-text-primary">{user?.name}</h1>
+              <p className="text-sm text-text-muted font-sans">{user?.email}</p>
+            </div>
+            <div className="ml-auto">
+              <Link to={ROUTES.PROFILE}>
+                <button className="px-4 py-2 rounded-full bg-bg-surface border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans">
+                  Edit Profile
+                </button>
+              </Link>
+            </div>
           </div>
-          <div>
-            <h1 className="font-display font-semibold text-2xl text-text-primary">{user?.name}</h1>
-            <p className="text-text-muted text-sm font-sans">{user?.email}</p>
-          </div>
-          <div className="ml-auto">
-            <Link to={ROUTES.PROFILE}>
-              <button className="px-4 py-2 rounded-full bg-bg-surface border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans">
-                Edit Profile
-              </button>
-            </Link>
-          </div>
-        </header>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[
-            { label: 'Total Bookings', value: String(list.length) },
-            { label: 'Upcoming',       value: String(upcoming.length) },
-            { label: 'Total Spent',    value: formatCurrency(list.reduce((s, b) => s + b.amountPaid, 0)) },
-          ].map(({ label, value }) => (
-            <GlassCard key={label} style={{ padding: '16px 20px' }}>
-              <div className="font-display font-semibold text-2xl text-text-primary">{value}</div>
-              <div className="text-[11px] text-text-muted uppercase tracking-wider mt-1 font-sans">{label}</div>
-            </GlassCard>
-          ))}
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'Total Bookings', value: String(totalBookings) },
+              { label: 'Upcoming',       value: String(upcomingCount) },
+              { label: 'Total Spent',    value: formatCurrency(totalSpent) },
+            ].map(({ label, value }) => (
+              <GlassCard key={label} style={{ padding: '14px 18px' }}>
+                <div className="font-display font-bold text-xl text-accent-crimson">{value}</div>
+                <div className="text-[10px] text-text-muted uppercase tracking-wider mt-0.5 font-sans">{label}</div>
+              </GlassCard>
+            ))}
+          </div>
         </div>
+      </div>
 
+      {/* Tabs + content */}
+      <div className="max-w-3xl mx-auto px-6 py-6">
         {/* Tabs */}
         <div className="flex gap-1 border-b border-border-default mb-6">
           {(['upcoming', 'past'] as const).map((t) => {
-            const count = t === 'upcoming' ? upcoming.length : past.length;
+            const count = t === 'upcoming' ? upcomingCount : pastCount;
             return (
-              <button key={t} onClick={() => setTab(t)}
+              <button
+                key={t}
+                onClick={() => { setTab(t); setPage(1); }}
                 className={`relative px-4 py-3 text-sm font-medium font-sans capitalize transition-colors ${
-                  tab === t ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary'}`}>
+                  tab === t ? 'text-accent-crimson' : 'text-text-muted hover:text-text-secondary'
+                }`}
+              >
                 {t}
-                <span className="ml-2 text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-bg-surface2 text-text-muted">{count}</span>
+                <span className="ml-2 text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-bg-surface2 text-text-muted">
+                  {count}
+                </span>
                 {tab === t && (
                   <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-accent-crimson rounded-full" />
                 )}
@@ -135,24 +119,72 @@ export default function MyBookingsPage() {
         {/* Booking list */}
         {isLoading ? (
           <div className="space-y-4">
-            {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} height={120} className="rounded-xl" />)}
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} height={150} className="rounded-xl" />
+            ))}
           </div>
-        ) : shown.length === 0 ? (
+        ) : items.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
-            <span className="text-4xl mb-3">🎬</span>
-            <p className="text-text-secondary font-sans">No {tab} bookings</p>
-            <Link to={ROUTES.MOVIES} className="mt-4">
-              <button className="px-6 py-2.5 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold font-sans">
-                Browse Movies
-              </button>
-            </Link>
+            <span className="text-5xl mb-4">{tab === 'upcoming' ? '🎟' : '📽'}</span>
+            <p className="text-text-secondary font-sans font-medium">
+              {tab === 'upcoming' ? 'No upcoming bookings' : 'No past bookings'}
+            </p>
+            <p className="text-sm text-text-muted font-sans mt-1">
+              {tab === 'upcoming'
+                ? 'Book a movie or event to see it here'
+                : 'Your booking history will appear here'}
+            </p>
+            {tab === 'upcoming' && (
+              <Link to={ROUTES.MOVIES} className="mt-5">
+                <button className="px-6 py-2.5 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold font-sans">
+                  Explore Movies →
+                </button>
+              </Link>
+            )}
           </div>
         ) : (
-          <div className="space-y-4">
-            {shown.map((b) => <BookingCard key={b.id} booking={b} />)}
-          </div>
+          <>
+            <div className="space-y-4">
+              {items.map((b) => (
+                <BookingCard
+                  key={b.id}
+                  booking={b}
+                  onCancel={setCancellingBooking}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center gap-1.5 mt-8">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`w-8 h-8 rounded-full text-sm font-sans font-medium transition-colors ${
+                      p === page
+                        ? 'bg-accent-crimson text-white'
+                        : 'bg-bg-surface border border-border-default text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      {/* Cancel confirmation modal */}
+      {cancellingBooking && (
+        <CancelConfirmModal
+          booking={cancellingBooking}
+          isPending={cancelling}
+          onConfirm={handleCancelConfirm}
+          onClose={() => !cancelling && setCancellingBooking(null)}
+        />
+      )}
     </PublicLayout>
   );
 }
