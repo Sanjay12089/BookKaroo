@@ -16,7 +16,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const isControlled = value !== undefined;
     const currentValue = isControlled ? value : internalValue;
     const hasValue = String(currentValue).length > 0;
-    const floated = focused || hasValue;
+    // date inputs always show browser format hint (mm/dd/yyyy) so keep label floated
+    const { placeholder, type, ...inputRest } = rest;
+    const isDate = type === 'date';
+    const floated = focused || hasValue || isDate;
 
     return (
       <div className={cn('flex flex-col gap-1', className)}>
@@ -42,7 +45,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
+            type={type}
             value={isControlled ? value : internalValue}
+            placeholder={floated ? placeholder : ''}
             onChange={(e) => {
               if (!isControlled) setInternalValue(e.target.value);
               onChange?.(e);
@@ -57,7 +62,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 ? 'border border-semantic-error focus:ring-2 focus:ring-semantic-error/15'
                 : 'border border-border-default focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15'
             )}
-            {...rest}
+            {...inputRest}
           />
           {rightElement && (
             <div className="absolute right-2 top-1/2 -translate-y-1/2 z-20 flex items-center">
