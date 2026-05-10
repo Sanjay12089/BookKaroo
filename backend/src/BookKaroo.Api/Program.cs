@@ -1,5 +1,6 @@
 using System.Text;
 using AspNetCoreRateLimit;
+using BookKaroo.Api.BackgroundServices;
 using BookKaroo.Api.Middleware;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
@@ -219,6 +220,8 @@ try
     builder.Services.AddScoped<IReviewService, ReviewService>();
     builder.Services.AddScoped<IAdminService, AdminService>();
     builder.Services.AddScoped<IPricingService, PricingService>();
+    builder.Services.AddScoped<ISeatLockService, SeatLockService>();
+    builder.Services.AddHostedService<SeatLockSweepService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();
     builder.Services.AddScoped<SupabaseStorageService>();
