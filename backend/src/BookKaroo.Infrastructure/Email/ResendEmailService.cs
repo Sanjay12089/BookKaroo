@@ -27,27 +27,51 @@ public class ResendEmailService : IEmailService
     public async Task SendBookingConfirmationAsync(
         Booking booking, Show show, User user, byte[] invoicePdf, CancellationToken ct = default)
     {
-        var html = BuildBookingConfirmationHtml(booking, show, user);
-        var pdfBase64 = System.Convert.ToBase64String(invoicePdf);
+        var companyGstin = _config["COMPANY_GSTIN"] ?? "24XXXXX0000X1Z5";
+        var frontendUrl  = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+        var openTicketUrl = $"{frontendUrl}/booking/confirmed";
+
+        var html      = BuildBookingConfirmationHtml(booking, show, user, openTicketUrl, companyGstin);
+        var plainText = BuildBookingConfirmationText(booking, show, user, openTicketUrl);
+        var pdfBase64 = Convert.ToBase64String(invoicePdf);
 
         await SendAsync(
             to: user.Email,
-            subject: $"Your Tickets — {booking.BookingRef}",
+            subject: $"Your Tickets — {show.MovieId} — {booking.BookingRef}",
             html: html,
+            text: plainText,
             attachments: [new EmailAttachment($"{booking.BookingRef}_GST_Invoice.pdf", pdfBase64)],
             ct: ct);
     }
 
     public async Task SendWelcomeAsync(User user, CancellationToken ct = default)
     {
+        var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
         var html = $"""
-            <div style="font-family:sans-serif;max-width:600px;margin:auto">
-              <h2>Welcome to BookKaroo, {user.Name}! 🎬</h2>
-              <p>Book the moment. Karo it now.</p>
-              <a href="https://bookkaroo.com/movies" style="background:#E50914;color:white;padding:12px 24px;border-radius:6px;text-decoration:none">
-                Explore Movies
-              </a>
-            </div>
+            <!DOCTYPE html>
+            <html lang="en">
+            <body style="margin:0;padding:0;background:#F4F4F5;font-family:sans-serif">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F4F5">
+                <tr><td align="center" style="padding:24px 16px">
+                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden">
+                    <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
+                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                    </td></tr>
+                    <tr><td style="padding:32px">
+                      <h2 style="color:#18181B;margin:0 0 12px">Welcome to BookKaroo, {user.Name}! 🎬</h2>
+                      <p style="color:#52525B;line-height:1.6">Book the moment. Karo it now. Discover movies, events, and shows in your city.</p>
+                      <a href="{frontendUrl}/movies" style="display:inline-block;background:linear-gradient(135deg,#E50914,#A855F7);color:#FFF;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
+                        Explore Movies
+                      </a>
+                    </td></tr>
+                    <tr><td align="center" style="background:#FAFAFA;padding:20px;color:#71717A;font-size:12px">
+                      © 2026 BookKaroo Pvt Ltd. All rights reserved.
+                    </td></tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
             """;
 
         await SendAsync(user.Email, $"Welcome to BookKaroo, {user.Name}! 🎬", html, ct: ct);
@@ -55,50 +79,89 @@ public class ResendEmailService : IEmailService
 
     public async Task SendPasswordResetAsync(User user, string token, CancellationToken ct = default)
     {
-        var resetUrl = $"https://bookkaroo.com/reset-password?token={Uri.EscapeDataString(token)}";
+        var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+        var resetUrl    = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}";
+
         var html = $"""
-            <div style="font-family:sans-serif;max-width:600px;margin:auto">
-              <h2>Reset your BookKaroo password</h2>
-              <p>We received a password reset request for <strong>{user.Email}</strong>.</p>
-              <p>This link expires in 1 hour.</p>
-              <a href="{resetUrl}" style="background:#E50914;color:white;padding:12px 24px;border-radius:6px;text-decoration:none">
-                Reset Password
-              </a>
-              <p style="color:#71717A;font-size:12px;margin-top:24px">
-                If you didn't request this, you can safely ignore this email.
-              </p>
-            </div>
+            <!DOCTYPE html>
+            <html lang="en">
+            <body style="margin:0;padding:0;background:#F4F4F5;font-family:sans-serif">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F4F5">
+                <tr><td align="center" style="padding:24px 16px">
+                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden">
+                    <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
+                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                    </td></tr>
+                    <tr><td style="padding:32px">
+                      <h2 style="color:#18181B;margin:0 0 12px">Reset your BookKaroo password</h2>
+                      <p style="color:#52525B">We received a password reset request for <strong>{user.Email}</strong>. This link expires in 1 hour.</p>
+                      <a href="{resetUrl}" style="display:inline-block;background:#E50914;color:#FFF;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
+                        Reset Password
+                      </a>
+                      <p style="color:#71717A;font-size:12px;margin-top:24px">If you didn't request this, you can safely ignore this email.</p>
+                    </td></tr>
+                    <tr><td align="center" style="background:#FAFAFA;padding:20px;color:#71717A;font-size:12px">
+                      © 2026 BookKaroo Pvt Ltd. All rights reserved.
+                    </td></tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
             """;
 
         await SendAsync(user.Email, "Reset your BookKaroo password", html, ct: ct);
     }
 
-    public async Task SendBookingCancelledAsync(Booking booking, decimal refundAmount, CancellationToken ct = default)
+    public async Task SendBookingCancelledAsync(
+        Booking booking, User user, decimal refundAmount, CancellationToken ct = default)
     {
         var html = $"""
-            <div style="font-family:sans-serif;max-width:600px;margin:auto">
-              <h2>Booking Cancelled — {booking.BookingRef}</h2>
-              <p>Your booking has been cancelled.</p>
-              <p><strong>Refund Amount:</strong> ₹{refundAmount:F2}</p>
-              <p>Refunds are processed within 7 business days.</p>
-            </div>
+            <!DOCTYPE html>
+            <html lang="en">
+            <body style="margin:0;padding:0;background:#F4F4F5;font-family:sans-serif">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F4F5">
+                <tr><td align="center" style="padding:24px 16px">
+                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden">
+                    <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
+                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                    </td></tr>
+                    <tr><td style="padding:32px">
+                      <h2 style="color:#18181B;margin:0 0 12px">Booking Cancelled</h2>
+                      <p style="color:#52525B">Hi {user.Name}, your booking <strong style="font-family:monospace">{booking.BookingRef}</strong> has been cancelled.</p>
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4E4E7;border-radius:12px;margin-top:16px">
+                        <tr><td style="padding:16px;font-size:14px;font-weight:600">Refund Amount</td><td align="right" style="padding:16px;font-size:14px;font-weight:700;color:#10B981">₹{refundAmount:F2}</td></tr>
+                      </table>
+                      <p style="color:#52525B;margin-top:16px">Refunds are processed within <strong>7 business days</strong> to your original payment method.</p>
+                      <p style="color:#71717A;font-size:13px">Note: Convenience fees are non-refundable.</p>
+                    </td></tr>
+                    <tr><td align="center" style="background:#FAFAFA;padding:20px;color:#71717A;font-size:12px">
+                      Need help? Contact us at support@bookkaroo.com<br/>© 2026 BookKaroo Pvt Ltd.
+                    </td></tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
             """;
 
         await SendAsync(
-            // We don't have user email here directly; BookingService should pass it via the User entity
-            to: "noreply@bookkaroo.com", // placeholder — in real use, inject user lookup
+            to: user.Email,
             subject: $"Your booking {booking.BookingRef} has been cancelled",
             html: html,
             ct: ct);
     }
 
+    // ── Private helpers ───────────────────────────────────────────────────────
+
     private async Task SendAsync(
         string to, string subject, string html,
+        string? text = null,
         IEnumerable<EmailAttachment>? attachments = null,
         CancellationToken ct = default)
     {
         var apiKey = _config["RESEND_API_KEY"];
-        var from = _config["RESEND_FROM"] ?? "BookKaroo <onboarding@resend.dev>";
+        var from   = _config["RESEND_FROM"] ?? "BookKaroo <onboarding@resend.dev>";
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
@@ -106,19 +169,22 @@ public class ResendEmailService : IEmailService
             return;
         }
 
+        var attachList = attachments?.Select(a => new { filename = a.Filename, content = a.ContentBase64 }).ToArray();
+
         var payload = new
         {
             from,
-            to = new[] { to },
+            to          = new[] { to },
             subject,
             html,
-            attachments = attachments?.Select(a => new { filename = a.Filename, content = a.ContentBase64 }).ToArray()
+            text,
+            attachments = attachList
         };
 
         var client = _http.CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
-        var json = JsonSerializer.Serialize(payload);
+        var json    = JsonSerializer.Serialize(payload);
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
         try
@@ -129,6 +195,10 @@ public class ResendEmailService : IEmailService
                 var body = await response.Content.ReadAsStringAsync(ct);
                 _logger.LogError("Resend API error {Status}: {Body}", response.StatusCode, body);
             }
+            else
+            {
+                _logger.LogInformation("Email sent to {To}: {Subject}", to, subject);
+            }
         }
         catch (Exception ex)
         {
@@ -136,30 +206,183 @@ public class ResendEmailService : IEmailService
         }
     }
 
-    private static string BuildBookingConfirmationHtml(Booking booking, Show show, User user)
+    private static string BuildBookingConfirmationHtml(
+        Booking booking, Show show, User user, string openTicketUrl, string companyGstin)
+    {
+        bool hasCoupon       = booking.CouponId.HasValue && booking.Discount > 0;
+        var convFeeGst       = Math.Round(booking.ConvenienceFee * 0.18m, 2);
+        var convFeeTotal     = Math.Round(booking.ConvenienceFee + convFeeGst, 2);
+        var offerFeeGst      = booking.OfferProcessingFee > 0 ? Math.Round(booking.OfferProcessingFee * 0.18m, 2) : 0m;
+        var offerFeeTotal    = Math.Round(booking.OfferProcessingFee + offerFeeGst, 2);
+        var confirmNum       = booking.Id.ToString("N")[..6].ToUpper();
+        var bookingDt        = booking.CreatedAt.ToLocalTime().ToString("ddd, dd MMM yyyy | hh:mm tt");
+        var showDateStr      = show.ShowDate.ToString("ddd, dd MMM yyyy");
+        var showTimeStr      = show.ShowTime.ToString(@"hh\:mm tt");
+        var bookingRef       = booking.BookingRef;
+        var ticketAmtStr     = booking.TicketAmount.ToString("F2");
+        var convFeeStr       = booking.ConvenienceFee.ToString("F2");
+        var convFeeTotalStr  = convFeeTotal.ToString("F2");
+        var convFeeGstStr    = convFeeGst.ToString("F2");
+        var amountPaidStr    = booking.AmountPaid.ToString("F2");
+        var offerFeeTotalStr = offerFeeTotal.ToString("F2");
+        var offerFeeStr      = booking.OfferProcessingFee.ToString("F2");
+        var offerFeeGstStr   = offerFeeGst.ToString("F2");
+        var discountStr      = booking.Discount.ToString("F2");
+        var ticketQty        = booking.TicketQty.ToString();
+
+        var couponBlock = hasCoupon ? $$"""
+            <tr><td colspan="2" style="border-top:1px dashed #E4E4E7;height:1px;line-height:1px;font-size:1px">&nbsp;</td></tr>
+            <tr><td style="padding:16px 16px 4px;font-size:14px;font-weight:600;color:#18181B">Offer Processing Fee</td><td align="right" style="padding:16px 16px 4px;font-size:14px;font-weight:600;color:#18181B">Rs.{{offerFeeTotalStr}}</td></tr>
+            <tr><td style="padding:0 16px 4px;font-size:13px;color:#71717A">Base Amount</td><td align="right" style="padding:0 16px 4px;font-size:13px;color:#71717A">Rs.{{offerFeeStr}}</td></tr>
+            <tr><td style="padding:0 16px 16px;font-size:13px;color:#71717A">GST 18%</td><td align="right" style="padding:0 16px 16px;font-size:13px;color:#71717A">Rs.{{offerFeeGstStr}}</td></tr>
+            <tr><td colspan="2" style="border-top:1px dashed #E4E4E7;height:1px;line-height:1px;font-size:1px">&nbsp;</td></tr>
+            <tr><td style="padding:16px;font-size:14px;font-weight:600;color:#10B981">DISCOUNT</td><td align="right" style="padding:16px;font-size:14px;font-weight:600;color:#10B981">- Rs.{{discountStr}}</td></tr>
+            """ : "";
+
+        return $$"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8"/>
+              <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+              <title>BookKaroo — Your Tickets</title>
+              <style>
+                @media (max-width:620px) {
+                  .container { width:100% !important; }
+                  .px { padding-left:16px !important;padding-right:16px !important; }
+                  .stack { display:block !important;width:100% !important; }
+                }
+                body,table,td { font-family:'Inter','Segoe UI',Helvetica,Arial,sans-serif; }
+                img { border:0;outline:none;text-decoration:none; }
+                a { color:#E50914;text-decoration:none; }
+              </style>
+            </head>
+            <body style="margin:0;padding:0;background:#F4F4F5">
+              <div style="display:none;max-height:0;overflow:hidden">
+                Your booking {{bookingRef}} is confirmed. Seats on {{showDateStr}}.
+              </div>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F4F5">
+                <tr><td align="center" style="padding:24px 16px">
+                  <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.06)">
+
+                    <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
+                      <span style="font-family:'Playfair Display',Georgia,serif;font-size:32px;font-weight:700;color:#FFF;letter-spacing:-0.5px">
+                        Book<span style="color:#E50914">Karoo</span>
+                      </span>
+                    </td></tr>
+
+                    <tr><td align="center" class="px" style="padding:28px 32px 8px">
+                      <span style="display:inline-block;width:48px;height:48px;line-height:48px;border-radius:50%;background:rgba(16,185,129,0.15);color:#10B981;font-size:24px">✓</span>
+                      <div style="font-size:24px;font-weight:700;color:#10B981;padding:8px 0 4px">Your booking is confirmed!</div>
+                      <div style="font-size:14px;color:#71717A">Booking ID <strong style="color:#18181B;font-family:monospace">{{bookingRef}}</strong></div>
+                    </td></tr>
+
+                    <tr><td class="px" style="padding:24px 32px">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4E4E7;border-radius:12px">
+                        <tr>
+                          <td class="stack" valign="top" style="padding:16px">
+                            <div style="font-size:14px;font-weight:600;color:#18181B;margin-bottom:8px">(Movie Ticket)</div>
+                            <div style="font-size:13px;color:#52525B;line-height:1.5">{{showDateStr}} · {{showTimeStr}}</div>
+                          </td>
+                        </tr>
+                      </table>
+                    </td></tr>
+
+                    <tr><td align="center" class="px" style="padding:8px 32px 24px">
+                      <a href="{{openTicketUrl}}" style="display:inline-block;background:linear-gradient(135deg,#E50914,#A855F7);color:#FFF;font-size:15px;font-weight:600;padding:14px 36px;border-radius:8px;text-decoration:none">
+                        Open Ticket
+                      </a>
+                    </td></tr>
+
+                    <tr><td class="px" style="padding:0 32px"><hr style="border:0;border-top:1px solid #E4E4E7"/></td></tr>
+
+                    <tr><td class="px" style="padding:24px 32px">
+                      <div style="font-size:13px;font-weight:700;color:#71717A;letter-spacing:1px;margin-bottom:16px">ORDER SUMMARY</div>
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4E4E7;border-radius:12px">
+                        <tr><td style="padding:16px 16px 4px;font-size:14px;font-weight:600;color:#18181B">TICKET AMOUNT</td><td align="right" style="padding:16px 16px 4px;font-size:14px;font-weight:600;color:#18181B">Rs.{{ticketAmtStr}}</td></tr>
+                        <tr><td style="padding:0 16px 16px;font-size:13px;color:#71717A">Quantity</td><td align="right" style="padding:0 16px 16px;font-size:13px;color:#71717A">{{ticketQty}} tickets</td></tr>
+                        <tr><td colspan="2" style="border-top:1px dashed #E4E4E7;height:1px;line-height:1px;font-size:1px">&nbsp;</td></tr>
+                        <tr><td style="padding:16px 16px 4px;font-size:14px;font-weight:600;color:#18181B">CONVENIENCE FEES</td><td align="right" style="padding:16px 16px 4px;font-size:14px;font-weight:600;color:#18181B">Rs.{{convFeeTotalStr}}</td></tr>
+                        <tr><td style="padding:0 16px 4px;font-size:13px;color:#71717A">Base Amount</td><td align="right" style="padding:0 16px 4px;font-size:13px;color:#71717A">Rs.{{convFeeStr}}</td></tr>
+                        <tr><td style="padding:0 16px 16px;font-size:13px;color:#71717A">GST 18%</td><td align="right" style="padding:0 16px 16px;font-size:13px;color:#71717A">Rs.{{convFeeGstStr}}</td></tr>
+                        {{couponBlock}}
+                        <tr><td colspan="2" style="border-top:2px solid #E4E4E7;height:2px;line-height:2px;font-size:1px">&nbsp;</td></tr>
+                        <tr><td style="padding:20px 16px;font-size:16px;font-weight:700;color:#18181B">AMOUNT PAID</td><td align="right" style="padding:20px 16px;font-size:18px;font-weight:700;color:#E50914">Rs.{{amountPaidStr}}</td></tr>
+                      </table>
+                    </td></tr>
+
+                    <tr><td class="px" style="padding:0 32px 24px">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FAFAFA;border-radius:8px">
+                        <tr>
+                          <td style="padding:16px;width:33%;vertical-align:top">
+                            <div style="font-size:11px;font-weight:600;color:#71717A;letter-spacing:0.5px;margin-bottom:4px">BOOKING DATE</div>
+                            <div style="font-size:13px;font-weight:600;color:#18181B">{{bookingDt}}</div>
+                          </td>
+                          <td style="padding:16px;width:33%;vertical-align:top">
+                            <div style="font-size:11px;font-weight:600;color:#71717A;letter-spacing:0.5px;margin-bottom:4px">PAYMENT</div>
+                            <div style="font-size:13px;font-weight:600;color:#18181B">Mock Payment (Test Mode)</div>
+                          </td>
+                          <td style="padding:16px;width:33%;vertical-align:top">
+                            <div style="font-size:11px;font-weight:600;color:#71717A;letter-spacing:0.5px;margin-bottom:4px">CONFIRMATION #</div>
+                            <div style="font-size:13px;font-weight:600;color:#18181B">{{confirmNum}}</div>
+                          </td>
+                        </tr>
+                      </table>
+                    </td></tr>
+
+                    <tr><td class="px" style="padding:0 32px 24px">
+                      <div style="font-size:13px;font-weight:700;color:#71717A;letter-spacing:1px;margin-bottom:12px">IMPORTANT INSTRUCTIONS</div>
+                      <ul style="margin:0;padding-left:20px;color:#52525B;font-size:13px;line-height:1.7">
+                        <li>Please carry a valid government-issued photo ID. It will be checked at the venue.</li>
+                        <li>Cancellation allowed if show is more than 2 hours away. Convenience fee is non-refundable.</li>
+                        <li>Outside food and beverages are not allowed inside the venue.</li>
+                        <li>Show the QR code (in attached invoice) at the entry counter.</li>
+                      </ul>
+                    </td></tr>
+
+                    <tr><td align="center" style="background:#FAFAFA;padding:24px 32px">
+                      <div style="font-size:12px;color:#71717A;line-height:1.6">
+                        Need help? Visit our <a href="https://bookkaroo.com/help" style="color:#E50914">Help Centre</a><br/>
+                        GST collected is paid to the department.<br/>
+                        999799 — Other Services n.e.c. PAN Based GSTN: {{companyGstin}}
+                      </div>
+                      <div style="margin-top:16px">
+                        <span style="font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:700;color:#0A0E1A">
+                          Book<span style="color:#E50914">Karoo</span>
+                        </span>
+                      </div>
+                      <div style="font-size:11px;color:#A1A1AA;margin-top:8px">© 2026 BookKaroo Pvt Ltd. All rights reserved.</div>
+                    </td></tr>
+
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
+            """;
+    }
+
+    private static string BuildBookingConfirmationText(Booking booking, Show show, User user, string openTicketUrl)
     {
         return $"""
-            <div style="font-family:sans-serif;max-width:600px;margin:auto;background:#F4F4F5;padding:24px">
-              <div style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px;text-align:center;border-radius:12px 12px 0 0">
-                <span style="font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
-              </div>
-              <div style="background:#FFF;padding:28px;border-radius:0 0 12px 12px">
-                <div style="text-align:center;margin-bottom:24px">
-                  <div style="width:48px;height:48px;line-height:48px;border-radius:50%;background:rgba(16,185,129,.15);color:#10B981;font-size:24px;display:inline-block">✓</div>
-                  <h2 style="color:#10B981;margin:8px 0">Your booking is confirmed!</h2>
-                  <p style="color:#71717A">Booking ID <strong style="color:#18181B;font-family:monospace">{booking.BookingRef}</strong></p>
-                </div>
-                <table style="width:100%;border:1px solid #E4E4E7;border-radius:12px;border-collapse:collapse">
-                  <tr><td style="padding:16px;font-size:14px;font-weight:600">TICKET AMOUNT</td><td align="right" style="padding:16px;font-size:14px;font-weight:600">₹{booking.TicketAmount:F2}</td></tr>
-                  <tr><td style="padding:8px 16px;font-size:13px;color:#71717A">Convenience Fees</td><td align="right" style="padding:8px 16px;font-size:13px;color:#71717A">₹{(booking.ConvenienceFee + booking.Cgst + booking.Sgst + booking.Igst):F2}</td></tr>
-                  {(booking.Discount > 0 ? $"<tr><td style='padding:8px 16px;font-size:13px;color:#10B981'>Discount</td><td align='right' style='padding:8px 16px;font-size:13px;color:#10B981'>-₹{booking.Discount:F2}</td></tr>" : "")}
-                  <tr style="border-top:2px solid #E4E4E7"><td style="padding:16px;font-size:16px;font-weight:700">AMOUNT PAID</td><td align="right" style="padding:16px;font-size:18px;font-weight:700;color:#E50914">₹{booking.AmountPaid:F2}</td></tr>
-                </table>
-                <div style="margin-top:24px;font-size:12px;color:#71717A;text-align:center">
-                  GST collected is remitted to the department.<br>© 2026 BookKaroo Pvt Ltd
-                </div>
-              </div>
-            </div>
+            BookKaroo — Your Booking Is Confirmed!
+
+            Booking ID: {booking.BookingRef}
+
+            {show.ShowDate:ddd, dd MMM yyyy}
+
+            ORDER SUMMARY
+            Ticket Amount ({booking.TicketQty} tickets): Rs.{booking.TicketAmount:F2}
+            Convenience Fees: Rs.{booking.ConvenienceFee:F2} + GST
+            {(booking.Discount > 0 ? $"Discount: -Rs.{booking.Discount:F2}" : "")}
+            AMOUNT PAID: Rs.{booking.AmountPaid:F2}
+
+            Booking Date: {booking.CreatedAt:ddd, dd MMM yyyy | hh:mm tt}
+            Payment: Mock Payment (Test Mode)
+
+            View ticket: {openTicketUrl}
+
+            GST Invoice attached.
             """;
     }
 
