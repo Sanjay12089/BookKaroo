@@ -2,58 +2,85 @@ import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { HeroCarousel } from '../components/HeroCarousel';
 import { MovieRail } from '../components/MovieRail';
 import { IplStrip } from '../components/IplStrip';
-import { EventGrid } from '../components/EventGrid';
-import { useNowShowing, useComingSoon, useEvents } from '../api/useHome';
+import { EventRail } from '../components/EventRail';
+import { useHomeData } from '../api/useHome';
+import { useCityStore } from '@/shared/store/cityStore';
 import { ROUTES } from '@/shared/constants';
 
-// Trust band stats
 const STATS = [
   { num: '4,200+', label: 'screens nationwide' },
-  { num: '98%', label: 'on-time entry' },
-  { num: '2.1M', label: 'tickets monthly' },
-  { num: '4.8★', label: 'average app rating' },
+  { num: '98%',   label: 'on-time entry' },
+  { num: '2.1M',  label: 'tickets monthly' },
+  { num: '4.8★',  label: 'average app rating' },
 ];
 
 export default function HomePage() {
-  const nowShowing = useNowShowing();
-  const comingSoon = useComingSoon();
-  const events = useEvents();
+  const { selectedCity } = useCityStore();
+  const cityId = selectedCity?.id ?? null;
 
-  // Use first 3 movies for hero (or empty array while loading)
-  const heroMovies = nowShowing.data?.items.slice(0, 3) ?? [];
+  const { data, isLoading } = useHomeData(cityId);
+
+  const heroMovies = data?.nowShowing?.slice(0, 3) ?? [];
 
   return (
     <PublicLayout>
       {/* Hero */}
-      <HeroCarousel movies={heroMovies} isLoading={nowShowing.isLoading} />
+      <HeroCarousel movies={heroMovies} isLoading={isLoading} />
 
       <div className="max-w-[1280px] mx-auto px-6 pt-12">
         {/* Now Showing */}
         <MovieRail
           title="Now Showing"
           eyebrow="In cinemas now"
-          movies={nowShowing.data?.items}
-          isLoading={nowShowing.isLoading}
+          movies={data?.nowShowing}
+          isLoading={isLoading}
           seeAllHref={ROUTES.MOVIES}
-          seeAllLabel={`View all ${nowShowing.data?.total ?? 0} →`}
+          seeAllLabel={`View all ${data?.nowShowing?.length ?? 0}+ →`}
         />
 
         {/* IPL Strip */}
-        <IplStrip />
+        <IplStrip matches={data?.iplMatches} />
 
         {/* Coming Soon */}
         <MovieRail
           title="Mark Your Calendar"
           eyebrow="Coming soon"
-          movies={comingSoon.data?.items}
-          isLoading={comingSoon.isLoading}
+          movies={data?.comingSoon}
+          isLoading={isLoading}
           coming
           seeAllHref={`${ROUTES.MOVIES}?category=ComingSoon`}
           seeAllLabel="Set reminders →"
         />
 
-        {/* Events */}
-        <EventGrid isLoading={events.isLoading} />
+        {/* Live Events */}
+        <EventRail
+          title="Live Events & Concerts"
+          eyebrow="Happening near you"
+          events={data?.liveEvents}
+          isLoading={isLoading}
+          seeAllHref={ROUTES.EVENTS}
+          seeAllLabel="All events →"
+        />
+
+        {/* Plays */}
+        <EventRail
+          title="Plays & Theatre"
+          eyebrow="Stage performances"
+          events={data?.plays}
+          isLoading={isLoading}
+          seeAllHref={ROUTES.PLAYS}
+          seeAllLabel="All plays →"
+        />
+
+        {/* Stand-Up Comedy */}
+        <EventRail
+          title="Stand-Up Comedy"
+          eyebrow="Laugh out loud"
+          events={data?.comedy}
+          isLoading={isLoading}
+          seeAllHref={ROUTES.EVENTS + '?type=comedy'}
+          seeAllLabel="All shows →"
+        />
 
         {/* Trust band */}
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4 py-8 border-t border-b border-border-default mb-0">
