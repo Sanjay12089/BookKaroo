@@ -5,20 +5,23 @@ import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useMovieDetail, useShowtimes } from '../api/useMovies';
+import { ShowtimeVenueCard } from '../components/ShowtimeVenueCard';
+import { useCityStore } from '@/shared/store/cityStore';
 import { ROUTES, TMDB_POSTER } from '@/shared/constants';
 
 // ── Date strip helpers ────────────────────────────────────────────────────────
+
 function buildDates() {
   const base = new Date();
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(base);
     d.setDate(base.getDate() + i);
+    const days   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return {
-      label: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : days[d.getDay()],
-      day: d.getDate(),
-      month: months[d.getMonth()],
+      label:   i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : days[d.getDay()],
+      day:     d.getDate(),
+      month:   months[d.getMonth()],
       isoDate: d.toISOString().split('T')[0],
     };
   });
@@ -26,136 +29,44 @@ function buildDates() {
 
 const DATES = buildDates();
 
-// ── Availability colours ───────────────────────────────────────────────────────
-type Avail = 'good' | 'fast' | 'low' | 'sold';
-const AVAIL_COLORS: Record<Avail, string> = {
-  good: '#10B981', fast: '#F59E0B', low: '#EF4444', sold: '#71717A',
-};
-const AVAIL_LABELS: Record<Avail, string> = {
-  good: 'Available', fast: 'Filling fast', low: 'Few left', sold: 'Sold Out',
-};
+const AVAIL_LEGEND = [
+  { color: '#10B981', label: 'Available'    },
+  { color: '#F59E0B', label: 'Filling Fast' },
+  { color: '#F43F5E', label: 'Almost Full'  },
+  { color: '#71717A', label: 'Sold Out'     },
+] as const;
 
-// ── Amenity icons ─────────────────────────────────────────────────────────────
-const AMENITY_ICONS: Record<string, string> = {
-  Parking: '🅿', 'Food Court': '🍿', 'M-Ticket': '📱', Accessible: '♿',
-  Recliner: '🛋', Dolby: '🔊', '4DX': '🌀',
-};
-
-// ── Types from API response ───────────────────────────────────────────────────
-interface ShowSlot { id: string; showTime: string; format: string; language: string; seatsLeft?: number; }
-interface VenueGroup { venueId: string; venueName: string; area?: string; distance?: string; amenities: string[]; fromPrice: number; shows: ShowSlot[]; }
-
-// ── Venue Card ─────────────────────────────────────────────────────────────────
-function VenueCard({ vg, selectedShowId, onSelect }: { vg: VenueGroup; selectedShowId: string | null; onSelect: (id: string) => void }) {
-  const [hovered, setHovered] = useState(false);
-
-  function availFor(seatsLeft?: number): Avail {
-    if (!seatsLeft) return 'sold';
-    if (seatsLeft > 50) return 'good';
-    if (seatsLeft > 15) return 'fast';
-    return 'low';
-  }
-
-  return (
-    <div
-      className={cn('p-5 rounded-xl bg-bg-surface border transition-colors duration-150', hovered ? 'border-border-strong' : 'border-border-default')}
-      onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
-    >
-      {/* Venue header */}
-      <div className="flex items-start gap-3 mb-4">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-sm flex-shrink-0">🎬</div>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-text-primary text-base leading-snug">{vg.venueName}</h3>
-          <div className="flex gap-2 items-center text-xs text-text-muted font-sans mt-1 flex-wrap">
-            {vg.area && <span>{vg.area}</span>}
-            {vg.distance && <><span>·</span><span className="font-medium text-text-secondary">{vg.distance}</span></>}
-            <span>·</span><span>from ₹{vg.fromPrice}</span>
-          </div>
-          {/* Amenity badges */}
-          <div className="flex gap-1.5 flex-wrap mt-2">
-            {vg.amenities.map((a) => (
-              <span key={a} className="text-[10px] px-2 py-0.5 rounded-full bg-bg-surface2 border border-border-default text-text-secondary font-sans">
-                {AMENITY_ICONS[a] ?? '·'} {a}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Show time chips */}
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(130px,1fr))] gap-2">
-        {vg.shows.map((show) => {
-          const avail = availFor(show.seatsLeft);
-          const isSold = avail === 'sold';
-          const isSelected = selectedShowId === show.id;
-          const color = AVAIL_COLORS[avail];
-
-          return (
-            <button
-              key={show.id}
-              disabled={isSold}
-              onClick={() => !isSold && onSelect(show.id)}
-              className={cn(
-                'relative flex flex-col gap-0.5 text-left p-3 rounded-lg border transition-all duration-150 overflow-hidden',
-                isSelected
-                  ? 'bg-gradient-to-br from-accent-indigo to-accent-purple border-transparent shadow-[0_8px_24px_rgba(99,102,241,0.4)]'
-                  : isSold
-                  ? 'bg-bg-surface2 border-border-default opacity-45 cursor-not-allowed'
-                  : 'bg-bg-surface2 border-border-default hover:border-border-strong hover:-translate-y-0.5 cursor-pointer'
-              )}
-            >
-              {/* Left colour stripe */}
-              {!isSelected && !isSold && (
-                <span className="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-lg" style={{ background: color }} />
-              )}
-              <span className={cn('font-bold text-sm', isSelected ? 'text-white' : 'text-text-primary', isSold && 'line-through')}>
-                {show.showTime.slice(0, 5)}
-              </span>
-              <span className={cn('text-[10px]', isSelected ? 'text-white/80' : 'text-text-muted')} style={!isSelected && !isSold ? { color } : undefined}>
-                {show.format} · {show.language}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ShowtimesPage() {
-  const { slug = '' } = useParams();
-  const [dateIdx, setDateIdx] = useState(0);
-  const [selectedShowId, setSelectedShowId] = useState<string | null>(null);
+  const { slug = '' }      = useParams();
+  const { selectedCity }   = useCityStore();
+  const cityId             = selectedCity?.id ?? '';
+
+  const [dateIdx,         setDateIdx]         = useState(0);
+  const [selectedShowId,  setSelectedShowId]  = useState<string | null>(null);
 
   const { data: movie, isLoading: movieLoading } = useMovieDetail(slug);
-  const { data: showtimesData, isLoading: showsLoading } = useShowtimes(slug, DATES[dateIdx].isoDate);
+  const { data, isLoading: showsLoading } = useShowtimes(
+    movie?.id ?? '',
+    cityId,
+    DATES[dateIdx].isoDate
+  );
 
-  // The API returns raw shows grouped by venue — we need to group them here
-  const venueGroups: VenueGroup[] = (() => {
-    const raw = (showtimesData as { venues?: VenueGroup[] } | null)?.venues ?? [];
-    if (raw.length) return raw;
-
-    // Fallback: raw array of shows
-    const shows = (showtimesData as ShowSlot[] | null) ?? [];
-    if (!shows.length) return [];
-
-    // Group by venue if flat array returned
-    const map = new Map<string, VenueGroup>();
-    shows.forEach((s: ShowSlot & { venueId?: string; venueName?: string }) => {
-      const vid = s.venueId ?? 'unknown';
-      if (!map.has(vid)) map.set(vid, { venueId: vid, venueName: s.venueName ?? 'Venue', area: '', distance: '', amenities: [], fromPrice: 180, shows: [] });
-      map.get(vid)!.shows.push(s);
-    });
-    return [...map.values()];
-  })();
+  const venues = data?.venues ?? [];
 
   const posterUrl = movie?.posterUrl ? TMDB_POSTER(movie.posterUrl) : null;
 
+  function handleSelectShow(showId: string) {
+    setSelectedShowId(showId);
+  }
+
   return (
     <PublicLayout>
-      <div className="max-w-[1280px] mx-auto px-6 pb-20 lg:pb-20 pb-32">
-        {/* Movie mini header */}
-        <header className="flex gap-5 items-center py-6 mb-2">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 pb-24 lg:pb-20">
+
+        {/* Movie mini-header */}
+        <header className="flex gap-4 items-center py-6 mb-2">
           <div className="w-14 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 flex-shrink-0">
             {posterUrl
               ? <img src={posterUrl} alt={movie?.title} className="w-full h-full object-cover" />
@@ -175,7 +86,7 @@ export default function ShowtimesPage() {
         </header>
 
         {/* Date strip (sticky) */}
-        <div className="sticky top-16 z-20 -mx-6 px-6 pb-4 bg-bg-base/95 backdrop-blur-md border-b border-border-default mb-6">
+        <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 bg-bg-base/95 backdrop-blur-md border-b border-border-default mb-6">
           <div className="flex gap-2 overflow-x-auto pt-3 pb-1 [scrollbar-width:none]">
             {DATES.map((d, i) => (
               <button
@@ -196,17 +107,26 @@ export default function ShowtimesPage() {
           </div>
         </div>
 
-        {/* Legend */}
-        <div className="flex gap-4 flex-wrap mb-5 p-4 rounded-xl bg-bg-surface border border-border-default text-xs font-sans">
-          {(Object.entries(AVAIL_LABELS) as [Avail, string][]).map(([k, label]) => (
-            <span key={k} className="flex items-center gap-1.5 text-text-secondary">
-              <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: AVAIL_COLORS[k] }} />
-              {label}
-            </span>
-          ))}
-        </div>
+        {/* No city selected */}
+        {!cityId && (
+          <div className="rounded-xl bg-bg-surface border border-border-default p-8 text-center mb-6">
+            <p className="text-text-secondary font-sans mb-3">Select a city to see showtimes near you.</p>
+          </div>
+        )}
 
-        {/* Mobile sticky bottom CTA */}
+        {/* Legend */}
+        {cityId && (
+          <div className="flex gap-4 flex-wrap mb-5 p-4 rounded-xl bg-bg-surface border border-border-default text-xs font-sans">
+            {AVAIL_LEGEND.map(({ color, label }) => (
+              <span key={label} className="flex items-center gap-1.5 text-text-secondary">
+                <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: color }} />
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Mobile sticky CTA */}
         {selectedShowId && (
           <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-bg-surface/95 backdrop-blur-md border-t border-border-default lg:hidden">
             <Link to={ROUTES.SEAT_SELECTION(selectedShowId)}>
@@ -217,30 +137,44 @@ export default function ShowtimesPage() {
           </div>
         )}
 
-        {/* Venue list + sidebar */}
+        {/* Content + sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
-          <div className="space-y-3">
-            {showsLoading
-              ? Array.from({ length: 3 }, (_, i) => <Skeleton key={i} height={180} className="rounded-xl" />)
-              : venueGroups.length === 0
-              ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl bg-bg-surface border border-border-default">
-                  <span className="text-4xl mb-3">🎭</span>
-                  <p className="text-text-secondary font-sans">No shows on {DATES[dateIdx].label}.</p>
-                  <p className="text-text-muted text-sm mt-1 font-sans">Try another date.</p>
-                </div>
-              )
-              : venueGroups.map((vg) => (
-                <VenueCard key={vg.venueId} vg={vg} selectedShowId={selectedShowId} onSelect={setSelectedShowId} />
-              ))}
+          <div>
+            {showsLoading ? (
+              Array.from({ length: 3 }, (_, i) => <Skeleton key={i} height={180} className="rounded-xl mb-3" />)
+            ) : venues.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl bg-bg-surface border border-border-default">
+                <span className="text-4xl mb-3">🎭</span>
+                <p className="text-text-secondary font-sans">
+                  {cityId
+                    ? `No shows on ${DATES[dateIdx].label} in ${selectedCity?.name ?? 'this city'}.`
+                    : 'Select a city to see showtimes.'}
+                </p>
+                <p className="text-text-muted text-sm mt-1 font-sans">Try another date or change your city.</p>
+              </div>
+            ) : (
+              <>
+                <p className="text-xs text-text-muted font-sans mb-4">
+                  {venues.length} cinema{venues.length === 1 ? '' : 's'} showing this film
+                  {selectedCity?.name ? ` in ${selectedCity.name}` : ''}
+                </p>
+                {venues.map((vg) => (
+                  <ShowtimeVenueCard
+                    key={vg.venueId}
+                    venue={vg}
+                    onSelectShow={handleSelectShow}
+                  />
+                ))}
+              </>
+            )}
           </div>
 
-          {/* Sticky aside */}
+          {/* Sticky sidebar */}
           <aside className="hidden lg:block">
             <div className="sticky top-28 p-5 rounded-xl bg-bg-surface border border-border-default">
               <h4 className="font-semibold text-sm mb-4 font-sans">Your selection</h4>
               {!selectedShowId ? (
-                <p className="text-text-muted text-sm text-center py-6 font-sans">Tap a showtime to see details.</p>
+                <p className="text-text-muted text-sm text-center py-6 font-sans">Tap a showtime to continue.</p>
               ) : (
                 <div className="space-y-3">
                   <p className="text-sm text-text-secondary font-sans">Show selected ✓</p>
