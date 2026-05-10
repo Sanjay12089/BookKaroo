@@ -82,6 +82,21 @@ Issue 29: IN Admin panel -> select Reports  -> shows message "Reports   — Comi
 Issue 30: IN Admin panel -> select CMS  -> Shos message "CMS   — Coming in next sprint"
 
 Issue 31: IN Admin panel -> select settings -> Shos message "settings  — Coming in next sprint"
+=========================ABOVE DONE===============
+Test 32: UI issue in login form -> Email or Mobile watermark text is overlapped with Email or 10-digit mobile watermarked text,
+- But when we click on this field, it shows correctly
+- Same issue wiht all fields of Signup form
 
+Test 33: sign up -> fill the form -> submit the form -> mail received, but mail goes to spam folder in gmail
+Expected : Mail should goes in Inbox
+
+Test 6 - Forgot password:
+  Go to /forgot-password
+  Enter registered email
+  Expected: Mall should be received and should have reset password link, and should be able to reset password from link
+  Result: On clikcing Reset Password link, it redirect to home page
+
+  
+  
 
 

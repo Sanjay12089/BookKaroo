@@ -23,15 +23,17 @@ public record MovieListPagedResponse(
     IEnumerable<MovieListResponse> Items,
     int Total,
     int Page,
-    int PageSize
+    int PageSize,
+    int TotalPages
 );
 
 public record MovieFilterRequest(
-    string? Language = null,
-    string? Genre = null,
-    string? Format = null,
-    string? Category = null,
-    string? Sort = null,
-    int Page = 1,
-    int PageSize = 20
+    string[]? Languages = null,
+    string[]? Genres    = null,
+    string[]? Formats   = null,
+    string?   Category  = null,
+    Guid?     CityId    = null,
+    string?   Sort      = null,
+    int       Page      = 1,
+    int       PageSize  = 20
 );

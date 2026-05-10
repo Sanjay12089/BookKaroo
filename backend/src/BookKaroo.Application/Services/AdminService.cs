@@ -21,7 +21,7 @@ public class AdminService : IAdminService
     public async Task<int> SyncTmdbPostersAsync(CancellationToken ct = default)
     {
         // Get all published movies that have a TmdbId
-        var (allMovies, _) = await _movies.GetPublishedAsync(null, null, null, null, null, 1, 100, ct);
+        var (allMovies, _) = await _movies.GetPublishedAsync(null, null, null, null, null, null, 1, 100, ct);
         var moviesWithTmdb = allMovies.Where(m => m.TmdbId.HasValue).ToList();
 
         int updated = 0;
