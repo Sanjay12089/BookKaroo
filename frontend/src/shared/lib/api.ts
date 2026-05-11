@@ -15,7 +15,6 @@ export function configureApiInterceptors(opts: {
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5000',
-  withCredentials: true, // sends httpOnly refresh cookie
   headers: { 'Content-Type': 'application/json' },
 });
 

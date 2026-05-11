@@ -139,19 +139,14 @@ try
     builder.Services.AddInMemoryRateLimiting();
 
     // 7. CORS
-    // var allowedOrigins = (builder.Configuration["CORS_ALLOWED_ORIGINS"] ?? "http://localhost:5173")
-    //     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-    // builder.Services.AddCors(opt =>
-    //     opt.AddDefaultPolicy(policy =>
-    //         policy.WithOrigins(allowedOrigins)
-    //               .AllowAnyHeader()
-    //               .AllowAnyMethod()
-    //               .AllowCredentials()));
+    // For local dev: set CORS_ALLOWED_ORIGINS in launchSettings.json
+    // For Render:    add CORS_ALLOWED_ORIGINS env var with your Vercel URL
+    var allowedOrigins = (builder.Configuration["CORS_ALLOWED_ORIGINS"] ?? "http://localhost:5173")
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     builder.Services.AddCors(opt =>
         opt.AddDefaultPolicy(policy =>
-            policy.WithOrigins()
+            policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials()));
