@@ -268,7 +268,11 @@ function CastTab({ movie }: { movie: MovieDetail }) {
               <div key={i} className="flex-shrink-0 w-20 text-center">
                 <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-accent-indigo to-accent-purple mb-2 flex items-center justify-center">
                   {m.photo
-                    ? <img src={`${TMDB_IMAGE_BASE}/w185${m.photo}`} alt={m.name} className="w-full h-full object-cover" />
+                    ? <img
+                        src={m.photo.startsWith('http') ? m.photo : `${TMDB_IMAGE_BASE}/w185${m.photo}`}
+                        alt={m.name}
+                        className="w-full h-full object-cover"
+                      />
                     : <span className="text-white font-bold text-xl">{m.name.charAt(0)}</span>}
                 </div>
                 <p className="text-xs font-semibold text-text-primary font-sans line-clamp-1">{m.name}</p>

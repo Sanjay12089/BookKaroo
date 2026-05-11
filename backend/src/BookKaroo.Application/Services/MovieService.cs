@@ -131,10 +131,24 @@ public class MovieService : IMovieService
         try
         {
             return JsonSerializer.Deserialize<JsonElement[]>(json)?
-                .Select(e => new CastMember(
-                    e.TryGetProperty("name",         out var n) ? n.GetString() ?? "" : "",
-                    e.TryGetProperty("character",    out var c) ? c.GetString() ?? "" : "",
-                    e.TryGetProperty("profile_path", out var p) ? p.GetString()       : null))
+                .Select(e =>
+                {
+                    var name = e.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "";
+
+                    // Accept "role" (admin form) or "character" (TMDB API format)
+                    var role = (e.TryGetProperty("role",      out var r) ? r.GetString() : null)
+                            ?? (e.TryGetProperty("character", out var c) ? c.GetString() : null)
+                            ?? "";
+
+                    // Accept "photo" (admin form) or "profile_path" (TMDB API path)
+                    string? photo = null;
+                    if (e.TryGetProperty("photo",        out var ph) && ph.ValueKind != JsonValueKind.Null)
+                        photo = ph.GetString();
+                    else if (e.TryGetProperty("profile_path", out var pp) && pp.ValueKind != JsonValueKind.Null)
+                        photo = pp.GetString();
+
+                    return new CastMember(name, role, photo);
+                })
                 .Take(10)
                 .ToArray() ?? [];
         }
