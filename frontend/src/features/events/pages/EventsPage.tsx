@@ -46,7 +46,10 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  const { data, isLoading, isFetching } = useEvents(activeType, cityId, page);
+  // Only apply city filter for specific type tabs; "All" shows everything across all cities
+  const effectiveCityId = activeType ? cityId : null;
+
+  const { data, isLoading, isFetching } = useEvents(activeType, effectiveCityId, page);
   const events     = data?.items ?? [];
   const total      = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 0;
@@ -83,14 +86,15 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">
-            {headingTitle}{cityName ? ` · ${cityName}` : ''}
+            {headingTitle}{activeType && cityName ? ` · ${cityName}` : ''}
           </p>
           <h1 className="font-display font-semibold text-3xl md:text-4xl tracking-tight">
             {headingTitle === 'All' ? 'Events & Shows' : headingTitle}
           </h1>
           {!isLoading && (
             <p className="text-text-secondary text-sm mt-2 font-sans">
-              {total} event{total === 1 ? '' : 's'}{cityName ? ` in ${cityName}` : ''}
+              {total} event{total === 1 ? '' : 's'}
+              {activeType && cityName ? ` in ${cityName}` : ''}
             </p>
           )}
         </div>
@@ -109,10 +113,10 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <span className="text-5xl mb-4">🎪</span>
             <h3 className="font-display text-xl text-text-secondary mb-2">
-              No {headingTitle.toLowerCase()} right now
+              No {headingTitle === 'All' ? 'events' : headingTitle.toLowerCase()} right now
             </h3>
             <p className="text-text-muted text-sm font-sans">
-              {cityName ? `Try changing your city or ` : ''}Check back soon — events are added regularly.
+              {activeType && cityName ? `Try changing your city or c` : 'C'}heck back soon — events are added regularly.
             </p>
           </div>
         ) : (
