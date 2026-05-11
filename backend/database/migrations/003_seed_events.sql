@@ -12,8 +12,12 @@
 --   Draft=0  Published=1  Archived=2
 -- ============================================================
 
--- ── 1. Drop the stray lowercase table (safe if it doesn't exist) ────────────
-DROP TABLE IF EXISTS events;
+-- ── 0. Verify which tables exist (run this SELECT first to confirm) ─────────
+-- SELECT table_name FROM information_schema.tables
+-- WHERE table_schema = 'public' AND table_name ILIKE 'event%';
+
+-- ── 1. Drop the stray lowercase table if it exists ───────────────────────────
+DROP TABLE IF EXISTS events CASCADE;
 
 -- ── 2. Remove any previously inserted seed rows to avoid duplicates ─────────
 DELETE FROM "Events"
