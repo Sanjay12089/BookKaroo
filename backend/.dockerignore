@@ -1,0 +1,15 @@
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/out
+**/.git
+**/.gitignore
+**/node_modules
+**/*.user
+**/*.suo
+**/*.md
+**/tests
+**/database
+backend.env.example
+HashTool
