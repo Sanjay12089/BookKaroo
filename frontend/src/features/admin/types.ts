@@ -206,3 +206,148 @@ export interface AdminVenueItem {
   name:     string;
   cityName: string;
 }
+
+// ── Admin Venues CRUD ─────────────────────────────────────────────────────────
+
+export interface AdminVenue {
+  id:           string;
+  name:         string;
+  slug:         string;
+  chain:        string | null;
+  address:      string;
+  cityId:       string;
+  cityName:     string;
+  cityState:    string;
+  stateCode:    string | null;
+  latitude:     number;
+  longitude:    number;
+  amenities:    string[];
+  isActive:     boolean;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  screenCount:  number;
+  createdAt:    string;
+}
+
+export interface LayoutCategory {
+  name:  string;
+  rows:  string[];
+  price: number;
+  color: string;
+}
+
+export interface ScreenLayout {
+  rows:          number;
+  cols:          number;
+  categories:    LayoutCategory[];
+  blockedSeats:  string[];
+  aisleAfterCols: number[];
+}
+
+export interface ScreenDetail {
+  id:         string;
+  name:       string;
+  totalSeats: number;
+  isActive:   boolean;
+  layout:     ScreenLayout | null;
+}
+
+export interface AdminVenueDetail extends AdminVenue {
+  screens: ScreenDetail[];
+}
+
+export interface AdminVenuePage {
+  items:      AdminVenue[];
+  total:      number;
+  page:       number;
+  pageSize:   number;
+  totalPages: number;
+}
+
+export interface AdminVenueFilters {
+  search?: string;
+  cityId?: string;
+  chain?:  string;
+}
+
+export interface CreateVenuePayload {
+  name:         string;
+  chain?:       string;
+  address:      string;
+  cityId:       string;
+  latitude?:    number;
+  longitude?:   number;
+  contactPhone?: string;
+  contactEmail?: string;
+  amenities:    string[];
+  isActive:     boolean;
+}
+
+export type UpdateVenuePayload = Partial<CreateVenuePayload>;
+
+export interface CreateScreenPayload {
+  name:       string;
+  layoutJson: string;
+  isActive?:  boolean;
+}
+
+export type UpdateScreenPayload = Partial<CreateScreenPayload>;
+
+// ── Admin Shows CRUD ──────────────────────────────────────────────────────────
+
+export interface AdminShow {
+  showId:           string;
+  movieTitle:       string | null;
+  moviePosterUrl:   string | null;
+  eventTitle:       string | null;
+  venueId:          string;
+  venueName:        string;
+  screenName:       string;
+  cityName:         string;
+  showDate:         string;
+  showDateLabel:    string;
+  showTimeLabel:    string;
+  showDatetime:     string;
+  format:           string | null;
+  language:         string | null;
+  status:           'Scheduled' | 'Cancelled' | 'Completed';
+  totalSeats:       number;
+  bookedSeats:      number;
+  availableSeats:   number;
+  occupancyPercent: number;
+  revenueGenerated: number;
+}
+
+export interface AdminShowPage {
+  items:      AdminShow[];
+  total:      number;
+  page:       number;
+  pageSize:   number;
+  totalPages: number;
+}
+
+export interface AdminShowFilters {
+  movieId?:  string;
+  venueId?:  string;
+  screenId?: string;
+  fromDate?: string;
+  toDate?:   string;
+  status?:   string;
+}
+
+export interface CreateShowPayload {
+  screenId:       string;
+  movieId?:       string;
+  eventId?:       string;
+  showDate:       string;
+  showTime:       string;
+  format:         string;
+  language:       string;
+  priceOverrides?: string;
+}
+
+export interface CancelShowResponse {
+  showId:            string;
+  cancelledBookings: number;
+  message:           string;
+}
