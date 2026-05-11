@@ -12,7 +12,6 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@supabase/supabase-js": "^2.105.4",
-    "@tailwindcss/oxide-win32-x64-msvc": "^4.3.0",
     "@tanstack/react-query": "^5.40.0",
     "axios": "^1.16.0",
     "clsx": "^2.1.1",
