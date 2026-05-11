@@ -152,15 +152,15 @@ export default function AdminMoviesPage() {
         </div>
 
         {/* Filters */}
-        <div className="space-y-2 mb-5">
+        <div className="flex flex-wrap items-center gap-3 mb-5">
           {/* Search */}
-          <div className="relative max-w-xs">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <div className="relative">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             <input
               value={search}
               onChange={(e) => { setSearch(e.target.value); updateSearch(e.target.value); setPage(1); }}
               placeholder="Search movies…"
-              className="w-full pl-8 pr-8 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo"
+              className="pl-8 pr-8 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo w-52"
             />
             {search && (
               <button onClick={() => { setSearch(''); updateSearch(''); setPage(1); }}
@@ -169,27 +169,48 @@ export default function AdminMoviesPage() {
               </button>
             )}
           </div>
-          {/* Status + Category tabs */}
-          <div className="flex flex-wrap gap-2">
-            <div className="flex gap-1 flex-wrap">
+
+          {/* Status dropdown */}
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider whitespace-nowrap font-sans">
+              Status
+            </label>
+            <select
+              value={statusTab}
+              onChange={(e) => { setStatusTab(e.target.value); setPage(1); }}
+              className="px-3 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo cursor-pointer"
+            >
               {STATUS_TABS.map((t) => (
-                <button key={t} onClick={() => { setStatusTab(t); setPage(1); }}
-                  className={cn('px-3 py-1 rounded-full text-xs font-semibold font-sans border transition-colors',
-                    statusTab === t ? 'bg-accent-crimson text-white border-transparent' : 'border-border-default text-text-secondary hover:border-border-strong')}>
-                  {t}
-                </button>
+                <option key={t} value={t}>{t}</option>
               ))}
-            </div>
-            <div className="flex gap-1 flex-wrap">
-              {CATEGORY_TABS.map((t) => (
-                <button key={t} onClick={() => { setCategoryTab(t); setPage(1); }}
-                  className={cn('px-3 py-1 rounded-full text-xs font-semibold font-sans border transition-colors',
-                    categoryTab === t ? 'bg-accent-indigo text-white border-transparent' : 'border-border-default text-text-secondary hover:border-border-strong')}>
-                  {CATEGORY_LABEL[t] ?? t}
-                </button>
-              ))}
-            </div>
+            </select>
           </div>
+
+          {/* Category dropdown */}
+          <div className="flex items-center gap-2">
+            <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider whitespace-nowrap font-sans">
+              Category
+            </label>
+            <select
+              value={categoryTab}
+              onChange={(e) => { setCategoryTab(e.target.value); setPage(1); }}
+              className="px-3 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo cursor-pointer"
+            >
+              {CATEGORY_TABS.map((t) => (
+                <option key={t} value={t}>{CATEGORY_LABEL[t] ?? t}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Clear filters */}
+          {(statusTab !== 'All' || categoryTab !== 'All' || search) && (
+            <button
+              onClick={() => { setStatusTab('All'); setCategoryTab('All'); setSearch(''); updateSearch(''); setPage(1); }}
+              className="text-xs text-accent-indigo font-semibold font-sans hover:underline"
+            >
+              Clear filters
+            </button>
+          )}
         </div>
 
         {/* Table */}
