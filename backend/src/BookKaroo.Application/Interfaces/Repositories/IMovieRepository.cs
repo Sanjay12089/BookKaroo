@@ -20,4 +20,14 @@ public interface IMovieRepository : IRepository<Movie>
 
     Task<IEnumerable<Movie>> GetRelatedAsync(
         Guid movieId, string[] genres, int count, CancellationToken ct = default);
+
+    Task<(IEnumerable<Movie> Items, int Total)> GetAllAdminAsync(
+        string?           search,
+        MovieStatus?      status,
+        MovieCategory?    category,
+        int               page,
+        int               pageSize,
+        CancellationToken ct = default);
+
+    Task<Movie?> FindByTmdbIdAsync(int tmdbId, CancellationToken ct = default);
 }

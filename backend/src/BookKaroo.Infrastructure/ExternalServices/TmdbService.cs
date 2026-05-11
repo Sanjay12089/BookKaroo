@@ -1,11 +1,12 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
+using BookKaroo.Application.Interfaces.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace BookKaroo.Infrastructure.ExternalServices;
 
-public class TmdbService
+public class TmdbService : ITmdbService
 {
     private readonly IHttpClientFactory _http;
     private readonly IConfiguration _config;

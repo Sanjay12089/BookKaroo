@@ -77,4 +77,31 @@ public class MovieRepository : Repository<Movie>, IMovieRepository
             .OrderByDescending(m => m.ImdbRating)
             .Take(count)
             .ToListAsync(ct);
+
+    public async Task<(IEnumerable<Movie> Items, int Total)> GetAllAdminAsync(
+        string?           search,
+        MovieStatus?      status,
+        MovieCategory?    category,
+        int               page,
+        int               pageSize,
+        CancellationToken ct = default)
+    {
+        var query = _db.Movies.Where(m => m.DeletedAt == null);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(m => EF.Functions.ILike(m.Title, $"%{search}%"));
+        if (status.HasValue)
+            query = query.Where(m => m.Status == status.Value);
+        if (category.HasValue)
+            query = query.Where(m => m.Category == category.Value);
+
+        query = query.OrderByDescending(m => m.CreatedAt);
+
+        var total = await query.CountAsync(ct);
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return (items, total);
+    }
+
+    public async Task<Movie?> FindByTmdbIdAsync(int tmdbId, CancellationToken ct = default) =>
+        await _db.Movies.FirstOrDefaultAsync(m => m.TmdbId == tmdbId && m.DeletedAt == null, ct);
 }

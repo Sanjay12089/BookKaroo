@@ -80,4 +80,28 @@ public class EventRepository : Repository<Event>, IEventRepository
             .Take(count)
             .ToListAsync(ct);
     }
+
+    public async Task<(IEnumerable<Event> Items, int Total)> GetAllAdminAsync(
+        string?           search,
+        EventType?        type,
+        MovieStatus?      status,
+        int               page,
+        int               pageSize,
+        CancellationToken ct = default)
+    {
+        var query = _db.Events.Where(e => e.DeletedAt == null);
+
+        if (!string.IsNullOrWhiteSpace(search))
+            query = query.Where(e => EF.Functions.ILike(e.Title, $"%{search}%"));
+        if (type.HasValue)
+            query = query.Where(e => e.Type == type.Value);
+        if (status.HasValue)
+            query = query.Where(e => e.Status == status.Value);
+
+        query = query.OrderByDescending(e => e.CreatedAt);
+
+        var total = await query.CountAsync(ct);
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(ct);
+        return (items, total);
+    }
 }
