@@ -127,9 +127,150 @@ public class AdminController : ControllerBase
         catch (KeyNotFoundException) { return NotFound(); }
     }
 
-    // ── Venues (for event form) ───────────────────────────────────────────────
+    // ── Venues (for event form dropdown — simple list) ────────────────────────
+
+    [HttpGet("venues/list")]
+    public async Task<IActionResult> GetVenuesList(CancellationToken ct) =>
+        Ok(await _admin.GetVenuesAsync(ct));
+
+    // ── Venues CRUD ───────────────────────────────────────────────────────────
 
     [HttpGet("venues")]
-    public async Task<IActionResult> GetVenues(CancellationToken ct) =>
-        Ok(await _admin.GetVenuesAsync(ct));
+    public async Task<IActionResult> GetVenues(
+        [FromQuery] string? search,
+        [FromQuery] Guid?   cityId,
+        [FromQuery] string? chain,
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default) =>
+        Ok(await _admin.GetVenuesPaginatedAsync(search, cityId, chain, page, pageSize, ct));
+
+    [HttpGet("venues/{id:guid}")]
+    public async Task<IActionResult> GetVenue(Guid id, CancellationToken ct)
+    {
+        try { return Ok(await _admin.GetVenueWithScreensAsync(id, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpPost("venues")]
+    public async Task<IActionResult> CreateVenue([FromBody] CreateVenueRequest req, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _admin.CreateVenueAsync(req, ct);
+            return Created($"/api/admin/venues/{result.Id}", result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
+    }
+
+    [HttpPatch("venues/{id:guid}")]
+    public async Task<IActionResult> UpdateVenue(Guid id, [FromBody] UpdateVenueRequest req, CancellationToken ct)
+    {
+        try { return Ok(await _admin.UpdateVenueAsync(id, req, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpDelete("venues/{id:guid}")]
+    public async Task<IActionResult> DeleteVenue(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _admin.DeleteVenueAsync(id, ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    // ── Screens ───────────────────────────────────────────────────────────────
+
+    [HttpGet("venues/{venueId:guid}/screens")]
+    public async Task<IActionResult> GetScreens(Guid venueId, CancellationToken ct)
+    {
+        try
+        {
+            var detail = await _admin.GetVenueWithScreensAsync(venueId, ct);
+            return Ok(detail.Screens);
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpPost("venues/{venueId:guid}/screens")]
+    public async Task<IActionResult> CreateScreen(Guid venueId, [FromBody] CreateScreenRequest req, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _admin.CreateScreenAsync(venueId, req, ct);
+            return Created($"/api/admin/screens/{result.Id}", result);
+        }
+        catch (KeyNotFoundException ex) { return NotFound(new { error = ex.Message }); }
+        catch (ArgumentException ex)   { return BadRequest(new { error = ex.Message }); }
+    }
+
+    [HttpPatch("screens/{screenId:guid}")]
+    public async Task<IActionResult> UpdateScreen(Guid screenId, [FromBody] UpdateScreenRequest req, CancellationToken ct)
+    {
+        try { return Ok(await _admin.UpdateScreenAsync(screenId, req, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    [HttpDelete("screens/{screenId:guid}")]
+    public async Task<IActionResult> DeleteScreen(Guid screenId, CancellationToken ct)
+    {
+        try
+        {
+            await _admin.DeleteScreenAsync(screenId, ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    // ── Shows ─────────────────────────────────────────────────────────────────
+
+    [HttpGet("shows")]
+    public async Task<IActionResult> GetShows(
+        [FromQuery] Guid?    movieId,
+        [FromQuery] Guid?    venueId,
+        [FromQuery] Guid?    screenId,
+        [FromQuery] DateOnly? fromDate,
+        [FromQuery] DateOnly? toDate,
+        [FromQuery] string?  status,
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default) =>
+        Ok(await _admin.GetShowsAsync(movieId, venueId, screenId, fromDate, toDate, status, page, pageSize, ct));
+
+    [HttpPost("shows")]
+    public async Task<IActionResult> CreateShow([FromBody] CreateShowRequest req, CancellationToken ct)
+    {
+        try
+        {
+            var result = await _admin.CreateShowAsync(req, ct);
+            return Created($"/api/admin/shows/{result.ShowId}", result);
+        }
+        catch (KeyNotFoundException ex)    { return NotFound(new { error = ex.Message }); }
+        catch (ArgumentException ex)       { return BadRequest(new { error = ex.Message }); }
+        catch (InvalidOperationException ex) { return Conflict(new { error = ex.Message }); }
+    }
+
+    [HttpPost("shows/{id:guid}/cancel")]
+    public async Task<IActionResult> CancelShow(Guid id, CancellationToken ct)
+    {
+        try { return Ok(await _admin.CancelShowAsync(id, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    [HttpDelete("shows/{id:guid}")]
+    public async Task<IActionResult> DeleteShow(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _admin.DeleteShowAsync(id, ct);
+            return NoContent();
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
 }
