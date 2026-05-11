@@ -65,3 +65,175 @@ public record AuditLogPagedResponse(
     int Page,
     int PageSize,
     int TotalPages);
+
+// ── Movies ────────────────────────────────────────────────────────────────────
+
+public record AdminMovieResponse(
+    Guid     Id,
+    int?     TmdbId,
+    string   Title,
+    string   Slug,
+    string?  Certificate,
+    int      DurationMin,
+    string[] Languages,
+    string[] Formats,
+    string[] Genres,
+    string?  ReleaseDate,
+    string?  PosterUrl,
+    string?  BackdropUrl,
+    string?  TrailerUrl,
+    decimal? ImdbRating,
+    string   Status,
+    string   Category,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+public record AdminMovieDetailResponse(
+    Guid     Id,
+    int?     TmdbId,
+    string   Title,
+    string   Slug,
+    string?  Description,
+    string?  Certificate,
+    int      DurationMin,
+    string[] Languages,
+    string[] Formats,
+    string[] Genres,
+    string?  Cast,
+    string?  Crew,
+    string?  ReleaseDate,
+    string?  PosterUrl,
+    string?  BackdropUrl,
+    string?  TrailerUrl,
+    decimal? ImdbRating,
+    string   Status,
+    string   Category,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+public record CreateMovieRequest(
+    string   Title,
+    string?  Description,
+    int      DurationMin,
+    string?  Certificate,
+    string[]? Languages,
+    string[]? Formats,
+    string[]? Genres,
+    string?  ReleaseDate,
+    string?  PosterUrl,
+    string?  BackdropUrl,
+    string?  TrailerUrl,
+    decimal? ImdbRating,
+    string?  Status,
+    string?  Category,
+    string?  Cast,
+    string?  Crew,
+    int?     TmdbId);
+
+public record UpdateMovieRequest(
+    string?   Title,
+    string?   Description,
+    int?      DurationMin,
+    string?   Certificate,
+    string[]? Languages,
+    string[]? Formats,
+    string[]? Genres,
+    string?   ReleaseDate,
+    string?   PosterUrl,
+    string?   BackdropUrl,
+    string?   TrailerUrl,
+    decimal?  ImdbRating,
+    string?   Status,
+    string?   Category,
+    string?   Cast,
+    string?   Crew);
+
+public record AdminMoviePagedResponse(
+    IReadOnlyList<AdminMovieResponse> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalPages);
+
+public record SyncTmdbRequest(int TmdbId);
+public record ImportPopularResult(int Imported, int Skipped);
+
+// ── Events ────────────────────────────────────────────────────────────────────
+
+public record AdminEventResponse(
+    Guid     Id,
+    string   Title,
+    string   Slug,
+    string   Type,
+    string?  EventDate,
+    string   EventDateLabel,
+    string?  Language,
+    int      AgeRestriction,
+    string   VenueName,
+    string   Status,
+    decimal  LowestPrice,
+    DateTime CreatedAt);
+
+public record AdminEventDetailResponse(
+    Guid     Id,
+    string   Title,
+    string   Slug,
+    string   Type,
+    string?  Description,
+    Guid?    VenueId,
+    string   VenueName,
+    string?  EventDate,
+    int      DurationMin,
+    string?  Language,
+    int      AgeRestriction,
+    string?  Organizer,
+    string?  Artists,
+    string?  PriceTiers,
+    string?  PosterUrl,
+    string?  BackdropUrl,
+    string   Status,
+    DateTime CreatedAt,
+    DateTime UpdatedAt);
+
+public record CreateEventRequest(
+    string   Title,
+    string   Type,
+    string?  Description,
+    Guid?    VenueId,
+    string?  EventDate,
+    int      DurationMin,
+    string?  Language,
+    int      AgeRestriction,
+    string?  Organizer,
+    string?  Artists,
+    string?  PosterUrl,
+    string?  BackdropUrl,
+    string?  PriceTiers,
+    string?  Status);
+
+public record UpdateEventRequest(
+    string?  Title,
+    string?  Type,
+    string?  Description,
+    Guid?    VenueId,
+    string?  EventDate,
+    int?     DurationMin,
+    string?  Language,
+    int?     AgeRestriction,
+    string?  Organizer,
+    string?  Artists,
+    string?  PosterUrl,
+    string?  BackdropUrl,
+    string?  PriceTiers,
+    string?  Status);
+
+public record AdminEventPagedResponse(
+    IReadOnlyList<AdminEventResponse> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalPages);
+
+// ── Venues (for event form dropdown) ─────────────────────────────────────────
+
+public record AdminVenueItem(Guid Id, string Name, string CityName);

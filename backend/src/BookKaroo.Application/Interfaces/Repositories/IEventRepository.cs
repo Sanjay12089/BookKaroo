@@ -19,4 +19,12 @@ public interface IEventRepository : IRepository<Event>
         Guid?             cityId,
         int               count,
         CancellationToken ct = default);
+
+    Task<(IEnumerable<Event> Items, int Total)> GetAllAdminAsync(
+        string?           search,
+        EventType?        type,
+        MovieStatus?      status,
+        int               page,
+        int               pageSize,
+        CancellationToken ct = default);
 }
