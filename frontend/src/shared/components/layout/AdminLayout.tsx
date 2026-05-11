@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Film, CalendarDays, MapPin, Clock,
-  Ticket, Users, BarChart2, Image, Settings, LogOut, Menu, X,
+  Ticket, Users, BarChart2, Image, Settings, LogOut, Menu, X, Home,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { ROUTES } from '@/shared/constants';
@@ -81,17 +81,35 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* Footer */}
-        {!collapsed && (
-          <div className="p-4 border-t border-border-default">
-            <p className="text-xs text-text-muted truncate mb-3">{user?.email}</p>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-sm text-text-muted hover:text-semantic-error transition-colors w-full"
-            >
-              <LogOut size={14} /> Sign out
-            </button>
-          </div>
-        )}
+        <div className={cn('border-t border-border-default p-3 space-y-1', collapsed && 'flex flex-col items-center')}>
+          <Link
+            to={ROUTES.HOME}
+            title="View Site"
+            className={cn(
+              'flex items-center gap-2.5 px-2 py-2 rounded-md text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors w-full',
+              collapsed && 'justify-center w-auto'
+            )}
+          >
+            <Home size={15} className="flex-shrink-0" />
+            {!collapsed && <span className="font-sans">View Site</span>}
+          </Link>
+
+          {!collapsed && (
+            <p className="text-[11px] text-text-muted truncate px-2 pt-1">{user?.email}</p>
+          )}
+
+          <button
+            onClick={handleLogout}
+            title="Sign out"
+            className={cn(
+              'flex items-center gap-2.5 px-2 py-2 rounded-md text-sm text-text-muted hover:text-semantic-error hover:bg-semantic-error/08 transition-colors w-full',
+              collapsed && 'justify-center w-auto'
+            )}
+          >
+            <LogOut size={15} className="flex-shrink-0" />
+            {!collapsed && <span className="font-sans">Sign out</span>}
+          </button>
+        </div>
       </aside>
 
       {/* Main */}

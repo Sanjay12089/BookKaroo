@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { Check } from 'lucide-react';
 import { Modal } from '@/shared/components/ui/Modal';
 import { cn } from '@/shared/lib/utils';
 import { useSyncFromTmdb, useImportPopular, useCreateMovie, useUpdateMovie } from '../api/useAdmin';
@@ -26,20 +27,29 @@ function ChipSelect({ options, value, onChange, labelMap }: ChipSelectProps) {
   const toggle = (opt: string) =>
     onChange(value.includes(opt) ? value.filter((v) => v !== opt) : [...value, opt]);
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {options.map((opt) => (
-        <button
-          key={opt} type="button" onClick={() => toggle(opt)}
-          className={cn(
-            'px-2.5 py-1 rounded-full text-xs font-semibold font-sans border transition-colors',
-            value.includes(opt)
-              ? 'bg-accent-crimson text-white border-transparent'
-              : 'border-border-default text-text-secondary hover:border-border-strong',
-          )}
-        >
-          {labelMap?.[opt] ?? opt}
-        </button>
-      ))}
+    <div className="flex flex-wrap gap-2">
+      {options.map((opt) => {
+        const selected = value.includes(opt);
+        return (
+          <button
+            key={opt} type="button" onClick={() => toggle(opt)}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold font-sans border-2 transition-all duration-150',
+              selected
+                ? 'border-accent-indigo text-accent-indigo bg-accent-indigo/10'
+                : 'border-border-default text-text-muted hover:border-border-strong hover:text-text-secondary',
+            )}
+          >
+            <span className={cn(
+              'w-3.5 h-3.5 rounded-sm border flex items-center justify-center flex-shrink-0 transition-colors',
+              selected ? 'bg-accent-indigo border-accent-indigo' : 'border-border-strong',
+            )}>
+              {selected && <Check size={9} strokeWidth={3} className="text-white" />}
+            </span>
+            {labelMap?.[opt] ?? opt}
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -53,20 +63,29 @@ interface RadioChipsProps {
 
 function RadioChips({ options, value, onChange, labelMap }: RadioChipsProps) {
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {options.map((opt) => (
-        <button
-          key={opt} type="button" onClick={() => onChange(opt)}
-          className={cn(
-            'px-3 py-1.5 rounded-full text-xs font-semibold font-sans border transition-colors',
-            value === opt
-              ? 'bg-accent-crimson text-white border-transparent'
-              : 'border-border-default text-text-secondary hover:border-border-strong',
-          )}
-        >
-          {labelMap?.[opt] ?? opt}
-        </button>
-      ))}
+    <div className="flex flex-wrap gap-2">
+      {options.map((opt) => {
+        const selected = value === opt;
+        return (
+          <button
+            key={opt} type="button" onClick={() => onChange(opt)}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold font-sans border-2 transition-all duration-150',
+              selected
+                ? 'border-accent-crimson text-accent-crimson bg-accent-crimson/10'
+                : 'border-border-default text-text-muted hover:border-border-strong hover:text-text-secondary',
+            )}
+          >
+            <span className={cn(
+              'w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors',
+              selected ? 'border-accent-crimson' : 'border-border-strong',
+            )}>
+              {selected && <span className="w-1.5 h-1.5 rounded-full bg-accent-crimson" />}
+            </span>
+            {labelMap?.[opt] ?? opt}
+          </button>
+        );
+      })}
     </div>
   );
 }
