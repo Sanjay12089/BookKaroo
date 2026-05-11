@@ -161,11 +161,18 @@ public class MovieService : IMovieService
         try
         {
             return JsonSerializer.Deserialize<JsonElement[]>(json)?
-                .Where(e => e.TryGetProperty("department", out var d)
-                         && d.GetString() is "Directing" or "Writing" or "Production")
+                .Where(e =>
+                    // Admin form format: has "role" field directly — include all
+                    e.TryGetProperty("role", out _) ||
+                    // TMDB API format: filter by department
+                    (e.TryGetProperty("department", out var d) &&
+                     d.GetString() is "Directing" or "Writing" or "Production"))
                 .Select(e => new CrewMember(
                     e.TryGetProperty("name", out var n) ? n.GetString() ?? "" : "",
-                    e.TryGetProperty("job",  out var j) ? j.GetString() ?? "" : ""))
+                    // Accept "role" (admin form) or "job" (TMDB API format)
+                    (e.TryGetProperty("role", out var r) ? r.GetString() : null)
+                    ?? (e.TryGetProperty("job",  out var j) ? j.GetString() : null)
+                    ?? ""))
                 .Take(10)
                 .ToArray() ?? [];
         }
