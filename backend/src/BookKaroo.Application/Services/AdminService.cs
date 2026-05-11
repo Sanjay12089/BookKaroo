@@ -18,10 +18,13 @@ public class AdminService : IAdminService
     private readonly ITmdbService        _tmdb;
     private readonly IHttpClientFactory  _http;
     private readonly ILogger<AdminService> _logger;
-
-    // Injected via IRepository<Venue> — registered in DI as IRepository<Venue>
-    private readonly IRepository<Venue>  _venues;
+    private readonly IVenueRepository    _venueRepo;
+    private readonly IScreenRepository   _screenRepo;
+    private readonly IShowRepository     _showRepo;
     private readonly ICityRepository     _cities;
+
+    // Keep legacy reference for event form dropdown (uses IRepository<Venue>)
+    private readonly IRepository<Venue>  _venues;
 
     public AdminService(
         IMovieRepository     movies,
@@ -31,18 +34,23 @@ public class AdminService : IAdminService
         ITmdbService         tmdb,
         IHttpClientFactory   http,
         ILogger<AdminService> logger,
-        IRepository<Venue>   venues,
+        IVenueRepository     venueRepo,
+        IScreenRepository    screenRepo,
+        IShowRepository      showRepo,
         ICityRepository      cities)
     {
-        _movies    = movies;
-        _events    = events;
-        _adminRepo = adminRepo;
-        _audit     = audit;
-        _tmdb      = tmdb;
-        _http      = http;
-        _logger    = logger;
-        _venues    = venues;
-        _cities    = cities;
+        _movies     = movies;
+        _events     = events;
+        _adminRepo  = adminRepo;
+        _audit      = audit;
+        _tmdb       = tmdb;
+        _http       = http;
+        _logger     = logger;
+        _venueRepo  = venueRepo;
+        _screenRepo = screenRepo;
+        _showRepo   = showRepo;
+        _cities     = cities;
+        _venues     = venueRepo; // IVenueRepository extends IRepository<Venue>
     }
 
     // ── Legacy TMDB poster sync ───────────────────────────────────────────────
@@ -430,6 +438,273 @@ public class AdminService : IAdminService
             .ToList();
     }
 
+    // ── Venues CRUD ───────────────────────────────────────────────────────────
+
+    public async Task<AdminVenuePagedResponse> GetVenuesPaginatedAsync(
+        string? search, Guid? cityId, string? chain,
+        int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _venueRepo.GetAllAdminAsync(search, cityId, chain, page, pageSize, ct);
+        return new AdminVenuePagedResponse(items, total, page, pageSize,
+            (int)Math.Ceiling((double)total / pageSize));
+    }
+
+    public async Task<VenueWithScreensDto> GetVenueWithScreensAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _venueRepo.GetWithScreensAsync(id, ct)
+            ?? throw new KeyNotFoundException($"Venue {id} not found.");
+    }
+
+    public async Task<VenueAdminDto> CreateVenueAsync(CreateVenueRequest req, CancellationToken ct = default)
+    {
+        var city = await _cities.GetByIdAsync(req.CityId, ct)
+            ?? throw new KeyNotFoundException($"City {req.CityId} not found.");
+
+        var baseSlug = GenerateSlug(req.Name);
+        var slug     = await EnsureUniqueVenueSlug(baseSlug, null, ct);
+
+        var amenitiesJson = JsonSerializer.Serialize(req.Amenities ?? []);
+
+        var venue = new Venue
+        {
+            Id           = Guid.NewGuid(),
+            Name         = req.Name,
+            Slug         = slug,
+            Chain        = req.Chain,
+            Address      = req.Address,
+            CityId       = req.CityId,
+            StateCode    = city.StateCode,
+            Latitude     = req.Latitude ?? 0,
+            Longitude    = req.Longitude ?? 0,
+            Amenities    = amenitiesJson,
+            IsActive     = req.IsActive,
+            ContactPhone = req.ContactPhone,
+            ContactEmail = req.ContactEmail,
+        };
+
+        await _venueRepo.AddAsync(venue, ct);
+        await _audit.LogAsync(null, "create", "venue", venue.Id, null, new { venue.Name }, null, ct);
+
+        var (items, _) = await _venueRepo.GetAllAdminAsync(null, null, null, 1, 1, ct);
+        return items.FirstOrDefault() ??
+               new VenueAdminDto(venue.Id, venue.Name, venue.Slug, venue.Chain,
+                   venue.Address, venue.CityId, city.Name, city.State, city.StateCode,
+                   venue.Latitude, venue.Longitude, req.Amenities ?? [],
+                   venue.IsActive, venue.ContactPhone, venue.ContactEmail, 0, venue.CreatedAt);
+    }
+
+    public async Task<VenueAdminDto> UpdateVenueAsync(Guid id, UpdateVenueRequest req, CancellationToken ct = default)
+    {
+        var venue = await _venueRepo.GetByIdAsync(id, ct)
+            ?? throw new KeyNotFoundException($"Venue {id} not found.");
+
+        var before = new { venue.Name, venue.IsActive };
+
+        if (req.Name != null && req.Name != venue.Name)
+        {
+            venue.Name = req.Name;
+            venue.Slug = await EnsureUniqueVenueSlug(GenerateSlug(req.Name), id, ct);
+        }
+        if (req.Chain        != null)    venue.Chain        = req.Chain;
+        if (req.Address      != null)    venue.Address      = req.Address;
+        if (req.ContactPhone != null)    venue.ContactPhone = req.ContactPhone;
+        if (req.ContactEmail != null)    venue.ContactEmail = req.ContactEmail;
+        if (req.Latitude.HasValue)       venue.Latitude     = req.Latitude.Value;
+        if (req.Longitude.HasValue)      venue.Longitude    = req.Longitude.Value;
+        if (req.Amenities    != null)    venue.Amenities    = JsonSerializer.Serialize(req.Amenities);
+        if (req.IsActive.HasValue)       venue.IsActive     = req.IsActive.Value;
+
+        if (req.CityId.HasValue && req.CityId.Value != venue.CityId)
+        {
+            var city = await _cities.GetByIdAsync(req.CityId.Value, ct);
+            if (city != null) { venue.CityId = city.Id; venue.StateCode = city.StateCode; }
+        }
+
+        await _venueRepo.UpdateAsync(venue, ct);
+        await _audit.LogAsync(null, "update", "venue", venue.Id, before, new { venue.Name, venue.IsActive }, null, ct);
+
+        var detail = await _venueRepo.GetWithScreensAsync(id, ct);
+        return detail == null
+            ? throw new KeyNotFoundException($"Venue {id} not found after update.")
+            : new VenueAdminDto(detail.Id, detail.Name, detail.Slug, detail.Chain,
+                detail.Address, detail.CityId, detail.CityName, detail.CityState, detail.StateCode,
+                detail.Latitude, detail.Longitude, detail.Amenities,
+                detail.IsActive, detail.ContactPhone, detail.ContactEmail,
+                detail.ScreenCount, detail.CreatedAt);
+    }
+
+    public async Task DeleteVenueAsync(Guid id, CancellationToken ct = default)
+    {
+        var venue = await _venueRepo.GetByIdAsync(id, ct)
+            ?? throw new KeyNotFoundException($"Venue {id} not found.");
+        await _venueRepo.VenueDeleteAsync(id, ct);
+        await _audit.LogAsync(null, "delete", "venue", id, new { venue.Name }, null, null, ct);
+    }
+
+    // ── Screens CRUD ──────────────────────────────────────────────────────────
+
+    public async Task<ScreenDetailDto> CreateScreenAsync(Guid venueId, CreateScreenRequest req, CancellationToken ct = default)
+    {
+        _ = await _venueRepo.GetByIdAsync(venueId, ct)
+            ?? throw new KeyNotFoundException($"Venue {venueId} not found.");
+
+        var (isValid, validationError) = ValidateLayoutJson(req.LayoutJson);
+        if (!isValid)
+            throw new ArgumentException(validationError ?? "Invalid layout JSON.");
+
+        var totalSeats = CalculateTotalSeats(req.LayoutJson);
+
+        var screen = new Screen
+        {
+            Id         = Guid.NewGuid(),
+            VenueId    = venueId,
+            Name       = req.Name,
+            Layout     = req.LayoutJson,
+            TotalSeats = totalSeats,
+            IsActive   = req.IsActive,
+        };
+
+        await _screenRepo.AddAsync(screen, ct);
+        await _audit.LogAsync(null, "create", "screen", screen.Id, null, new { screen.Name, venueId }, null, ct);
+
+        return new ScreenDetailDto(screen.Id, screen.Name, screen.TotalSeats, screen.IsActive,
+            ParseLayoutObject(screen.Layout));
+    }
+
+    public async Task<ScreenDetailDto> UpdateScreenAsync(Guid screenId, UpdateScreenRequest req, CancellationToken ct = default)
+    {
+        var screen = await _screenRepo.GetByIdAsync(screenId, ct)
+            ?? throw new KeyNotFoundException($"Screen {screenId} not found.");
+
+        var before = new { screen.Name, screen.TotalSeats };
+
+        if (req.Name != null) screen.Name = req.Name;
+        if (req.IsActive.HasValue) screen.IsActive = req.IsActive.Value;
+
+        if (req.LayoutJson != null)
+        {
+            var (isValid, err) = ValidateLayoutJson(req.LayoutJson);
+            if (!isValid) throw new ArgumentException(err ?? "Invalid layout JSON.");
+            screen.Layout     = req.LayoutJson;
+            screen.TotalSeats = CalculateTotalSeats(req.LayoutJson);
+        }
+
+        await _screenRepo.UpdateAsync(screen, ct);
+        await _audit.LogAsync(null, "update", "screen", screenId, before,
+            new { screen.Name, screen.TotalSeats }, null, ct);
+
+        return new ScreenDetailDto(screen.Id, screen.Name, screen.TotalSeats, screen.IsActive,
+            ParseLayoutObject(screen.Layout));
+    }
+
+    public async Task DeleteScreenAsync(Guid screenId, CancellationToken ct = default)
+    {
+        var screen = await _screenRepo.GetByIdAsync(screenId, ct)
+            ?? throw new KeyNotFoundException($"Screen {screenId} not found.");
+        await _screenRepo.ScreenDeleteAsync(screenId, ct);
+        await _audit.LogAsync(null, "delete", "screen", screenId, new { screen.Name }, null, null, ct);
+    }
+
+    // ── Shows CRUD ────────────────────────────────────────────────────────────
+
+    public async Task<AdminShowPagedResponse> GetShowsAsync(
+        Guid? movieId, Guid? venueId, Guid? screenId,
+        DateOnly? fromDate, DateOnly? toDate, string? status,
+        int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _showRepo.GetAllAdminAsync(
+            movieId, venueId, screenId, fromDate, toDate, status, page, pageSize, ct);
+        return new AdminShowPagedResponse(items, total, page, pageSize,
+            (int)Math.Ceiling((double)total / pageSize));
+    }
+
+    public async Task<ShowAdminDto> CreateShowAsync(CreateShowRequest req, CancellationToken ct = default)
+    {
+        var screen = await _screenRepo.GetByIdAsync(req.ScreenId, ct)
+            ?? throw new KeyNotFoundException($"Screen {req.ScreenId} not found.");
+
+        if (req.MovieId.HasValue == req.EventId.HasValue)
+            throw new ArgumentException("Exactly one of MovieId or EventId must be provided.");
+
+        if (req.MovieId.HasValue)
+        {
+            var movie = await _movies.GetByIdAsync(req.MovieId.Value, ct)
+                ?? throw new KeyNotFoundException($"Movie {req.MovieId} not found.");
+            if (movie.Status != MovieStatus.Published)
+                throw new ArgumentException("Movie must be published to create a show.");
+        }
+
+        if (req.EventId.HasValue)
+        {
+            var ev = await _events.GetByIdAsync(req.EventId.Value, ct)
+                ?? throw new KeyNotFoundException($"Event {req.EventId} not found.");
+            if (ev.Status != MovieStatus.Published)
+                throw new ArgumentException("Event must be published to create a show.");
+        }
+
+        var showDatetime = req.ShowDate.ToDateTime(req.ShowTime, DateTimeKind.Utc);
+
+        if (showDatetime <= DateTime.UtcNow)
+            throw new ArgumentException("Show date and time must be in the future.");
+
+        if (await _showRepo.HasConflictAsync(req.ScreenId, showDatetime, null, ct))
+            throw new InvalidOperationException(
+                $"Screen already has a show at {req.ShowTime} on {req.ShowDate:dd MMM yyyy}.");
+
+        var show = new Show
+        {
+            Id             = Guid.NewGuid(),
+            ScreenId       = req.ScreenId,
+            VenueId        = screen.VenueId,
+            MovieId        = req.MovieId,
+            EventId        = req.EventId,
+            ShowDate       = req.ShowDate,
+            ShowTime       = req.ShowTime,
+            ShowDatetime   = showDatetime,
+            Format         = req.Format,
+            Language       = req.Language,
+            PriceOverrides = req.PriceOverrides,
+            Status         = ShowStatus.Scheduled,
+        };
+
+        await _showRepo.AddAsync(show, ct);
+        await _audit.LogAsync(null, "create", "show", show.Id, null,
+            new { show.ShowDate, show.Format, show.Language }, null, ct);
+
+        var (items, _) = await _showRepo.GetAllAdminAsync(null, null, req.ScreenId, req.ShowDate, req.ShowDate, null, 1, 1, ct);
+        return items.FirstOrDefault()
+            ?? throw new InvalidOperationException("Failed to retrieve created show.");
+    }
+
+    public async Task<CancelShowResponse> CancelShowAsync(Guid showId, CancellationToken ct = default)
+    {
+        var show = await _showRepo.GetByIdAsync(showId, ct)
+            ?? throw new KeyNotFoundException($"Show {showId} not found.");
+
+        if (show.Status == ShowStatus.Cancelled)
+            throw new ArgumentException("Show is already cancelled.");
+        if (show.Status == ShowStatus.Completed)
+            throw new ArgumentException("Cannot cancel a completed show.");
+
+        var cancelledCount = await _showRepo.CancelAsync(showId, ct);
+
+        await _audit.LogAsync(null, "cancel", "show", showId, null,
+            new { cancelledBookings = cancelledCount }, null, ct);
+
+        return new CancelShowResponse(showId, cancelledCount,
+            $"Show cancelled. {cancelledCount} booking(s) have been cancelled.");
+    }
+
+    public async Task DeleteShowAsync(Guid showId, CancellationToken ct = default)
+    {
+        var show = await _showRepo.GetByIdAsync(showId, ct)
+            ?? throw new KeyNotFoundException($"Show {showId} not found.");
+
+        show.DeletedAt = DateTime.UtcNow;
+        await _showRepo.UpdateAsync(show, ct);
+        await _audit.LogAsync(null, "delete", "show", showId, null, null, null, ct);
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private static string GenerateSlug(string title)
@@ -447,6 +722,18 @@ public class AdminService : IAdminService
         while (true)
         {
             var existing = await _movies.FindBySlugAsync(slug, ct);
+            if (existing is null || existing.Id == excludeId) return slug;
+            slug = $"{baseSlug}-{suffix++}";
+        }
+    }
+
+    private async Task<string> EnsureUniqueVenueSlug(string baseSlug, Guid? excludeId, CancellationToken ct)
+    {
+        var slug = baseSlug;
+        int suffix = 2;
+        while (true)
+        {
+            var existing = await _venueRepo.FindBySlugAsync(slug, ct);
             if (existing is null || existing.Id == excludeId) return slug;
             slug = $"{baseSlug}-{suffix++}";
         }
@@ -527,6 +814,78 @@ public class AdminService : IAdminService
                 movie.Crew = JsonSerializer.Serialize(crewList);
             }
         }
+    }
+
+    private static (bool IsValid, string? Error) ValidateLayoutJson(string json)
+    {
+        try
+        {
+            var doc = JsonDocument.Parse(json);
+            var root = doc.RootElement;
+
+            if (!root.TryGetProperty("cols", out var colsEl) || colsEl.GetInt32() <= 0 || colsEl.GetInt32() > 30)
+                return (false, "cols must be between 1 and 30.");
+
+            if (!root.TryGetProperty("categories", out var cats) || cats.GetArrayLength() == 0)
+                return (false, "At least one category is required.");
+
+            var usedRows = new HashSet<string>();
+            foreach (var cat in cats.EnumerateArray())
+            {
+                if (!cat.TryGetProperty("name", out var nameEl) || string.IsNullOrWhiteSpace(nameEl.GetString()))
+                    return (false, "Each category must have a name.");
+                if (!cat.TryGetProperty("rows", out var rowsEl) || rowsEl.GetArrayLength() == 0)
+                    return (false, "Each category must have at least one row.");
+                if (!cat.TryGetProperty("price", out var priceEl) || priceEl.GetDecimal() <= 0)
+                    return (false, "Each category must have a price > 0.");
+
+                foreach (var row in rowsEl.EnumerateArray())
+                {
+                    var r = row.GetString() ?? "";
+                    if (r.Length != 1 || r[0] < 'A' || r[0] > 'Z')
+                        return (false, $"Row letter '{r}' is invalid. Use single A-Z letters.");
+                    if (!usedRows.Add(r))
+                        return (false, $"Duplicate row letter '{r}'.");
+                }
+            }
+
+            return (true, null);
+        }
+        catch (JsonException ex)
+        {
+            return (false, $"Invalid JSON: {ex.Message}");
+        }
+    }
+
+    private static int CalculateTotalSeats(string layoutJson)
+    {
+        try
+        {
+            var doc = JsonDocument.Parse(layoutJson);
+            var root = doc.RootElement;
+            if (!root.TryGetProperty("cols", out var colsEl)) return 0;
+            var cols = colsEl.GetInt32();
+
+            var total = 0;
+            if (root.TryGetProperty("categories", out var cats))
+                foreach (var cat in cats.EnumerateArray())
+                    if (cat.TryGetProperty("rows", out var rows))
+                        total += rows.GetArrayLength() * cols;
+
+            var blocked = 0;
+            if (root.TryGetProperty("blockedSeats", out var bs))
+                blocked = bs.GetArrayLength();
+
+            return Math.Max(0, total - blocked);
+        }
+        catch { return 0; }
+    }
+
+    private static object? ParseLayoutObject(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw)) return null;
+        try { return JsonSerializer.Deserialize<object>(raw); }
+        catch { return null; }
     }
 
     private static T? ParseEnum<T>(string? value) where T : struct, Enum =>

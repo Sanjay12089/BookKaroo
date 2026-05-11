@@ -31,4 +31,30 @@ public interface IAdminService
 
     // Venues list (for event form)
     Task<IReadOnlyList<AdminVenueItem>> GetVenuesAsync(CancellationToken ct = default);
+
+    // Venues CRUD
+    Task<AdminVenuePagedResponse> GetVenuesPaginatedAsync(
+        string? search, Guid? cityId, string? chain,
+        int page, int pageSize, CancellationToken ct = default);
+
+    Task<VenueWithScreensDto> GetVenueWithScreensAsync(Guid id, CancellationToken ct = default);
+
+    Task<VenueAdminDto> CreateVenueAsync(CreateVenueRequest req, CancellationToken ct = default);
+    Task<VenueAdminDto> UpdateVenueAsync(Guid id, UpdateVenueRequest req, CancellationToken ct = default);
+    Task DeleteVenueAsync(Guid id, CancellationToken ct = default);
+
+    // Screens CRUD
+    Task<ScreenDetailDto> CreateScreenAsync(Guid venueId, CreateScreenRequest req, CancellationToken ct = default);
+    Task<ScreenDetailDto> UpdateScreenAsync(Guid screenId, UpdateScreenRequest req, CancellationToken ct = default);
+    Task DeleteScreenAsync(Guid screenId, CancellationToken ct = default);
+
+    // Shows CRUD
+    Task<AdminShowPagedResponse> GetShowsAsync(
+        Guid? movieId, Guid? venueId, Guid? screenId,
+        DateOnly? fromDate, DateOnly? toDate, string? status,
+        int page, int pageSize, CancellationToken ct = default);
+
+    Task<ShowAdminDto> CreateShowAsync(CreateShowRequest req, CancellationToken ct = default);
+    Task<CancelShowResponse> CancelShowAsync(Guid showId, CancellationToken ct = default);
+    Task DeleteShowAsync(Guid showId, CancellationToken ct = default);
 }
