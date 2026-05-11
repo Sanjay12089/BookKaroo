@@ -11,6 +11,7 @@ using BookKaroo.Infrastructure.Email;
 using BookKaroo.Infrastructure.Payment;
 using BookKaroo.Infrastructure.Services;
 using BookKaroo.Infrastructure.Repositories;
+using BookKaroo.Infrastructure.Services;
 using BookKaroo.Infrastructure.Pdf;
 using BookKaroo.Infrastructure.Storage;
 using FluentValidation;
@@ -214,6 +215,7 @@ try
     builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
     builder.Services.AddScoped<IEventRepository, EventRepository>();
     builder.Services.AddScoped<ICmsBannerRepository, CmsBannerRepository>();
+    builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
     // 14. Services (Scoped)
     builder.Services.AddScoped<IAuthService, AuthService>();
@@ -231,6 +233,7 @@ try
     builder.Services.AddScoped<ISearchService, SearchService>();
     builder.Services.AddScoped<IEventService, EventService>();
     builder.Services.AddScoped<ICmsBannerService, CmsBannerService>();
+    builder.Services.AddScoped<IAuditLogService, AuditLogService>();
     builder.Services.AddHostedService<SeatLockSweepService>();
     builder.Services.AddScoped<IEmailService, ResendEmailService>();
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();

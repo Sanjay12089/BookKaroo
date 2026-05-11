@@ -1,4 +1,5 @@
 using System.Text.Json;
+using BookKaroo.Application.DTOs.Admin;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
 using Microsoft.Extensions.Logging;
@@ -10,12 +11,18 @@ public class AdminService : IAdminService
     private readonly IMovieRepository _movies;
     private readonly IHttpClientFactory _http;
     private readonly ILogger<AdminService> _logger;
+    private readonly IAdminRepository _adminRepo;
 
-    public AdminService(IMovieRepository movies, IHttpClientFactory http, ILogger<AdminService> logger)
+    public AdminService(
+        IMovieRepository movies,
+        IHttpClientFactory http,
+        ILogger<AdminService> logger,
+        IAdminRepository adminRepo)
     {
-        _movies = movies;
-        _http = http;
-        _logger = logger;
+        _movies    = movies;
+        _http      = http;
+        _logger    = logger;
+        _adminRepo = adminRepo;
     }
 
     public async Task<int> SyncTmdbPostersAsync(CancellationToken ct = default)
@@ -98,5 +105,41 @@ public class AdminService : IAdminService
         }
 
         return updated;
+    }
+
+    public async Task<DashboardResponse> GetDashboardAsync(CancellationToken ct = default)
+    {
+        var now          = DateTime.UtcNow;
+        var todayStart   = now.Date;
+        var todayEnd     = todayStart.AddDays(1);
+        var weekStart    = todayStart.AddDays(-(int)now.DayOfWeek);
+        var monthStart   = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var sevenDaysAgo = todayStart.AddDays(-6);
+
+        var todayBookings  = await _adminRepo.CountTodayBookingsAsync(todayStart, todayEnd, ct);
+        var todayRevenue   = await _adminRepo.SumTodayRevenueAsync(todayStart, todayEnd, ct);
+        var weekRevenue    = await _adminRepo.SumWeekRevenueAsync(weekStart, ct);
+        var monthRevenue   = await _adminRepo.SumMonthRevenueAsync(monthStart, ct);
+        var totalUsers     = await _adminRepo.CountTotalUsersAsync(ct);
+        var newUsersToday  = await _adminRepo.CountNewUsersTodayAsync(todayStart, todayEnd, ct);
+        var topMovie       = await _adminRepo.GetTopMovieThisWeekAsync(weekStart, ct);
+        var bookingsPerDay = await _adminRepo.GetBookingsPerDayAsync(sevenDaysAgo, ct);
+        var revenuePerCity = await _adminRepo.GetRevenuePerCityAsync(5, ct);
+        var recentBookings = await _adminRepo.GetRecentBookingsAsync(10, ct);
+        var recentActivity = await _adminRepo.GetRecentActivityAsync(10, ct);
+
+        return new DashboardResponse(
+            todayBookings, todayRevenue, weekRevenue, monthRevenue,
+            totalUsers, newUsersToday, topMovie,
+            bookingsPerDay, revenuePerCity, recentBookings, recentActivity);
+    }
+
+    public async Task<AuditLogPagedResponse> GetAuditLogsAsync(
+        string? entityType, int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _adminRepo.GetAuditLogsAsync(entityType, page, pageSize, ct);
+        return new AuditLogPagedResponse(
+            items, total, page, pageSize,
+            (int)Math.Ceiling((double)total / pageSize));
     }
 }
