@@ -1,179 +1,241 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import { Pencil, Trash2, Search, X } from 'lucide-react';
 import { AdminLayout } from '@/shared/components/layout/AdminLayout';
-import { api } from '@/shared/lib/api';
 import { TMDB_POSTER } from '@/shared/constants';
-import type { Movie, PaginatedResponse, MovieStatus, MovieCategory } from '@/shared/types';
+import { cn } from '@/shared/lib/utils';
+import { AdminTable, type Column } from '../components/AdminTable';
+import { MovieFormModal } from '../components/MovieFormModal';
+import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
+import {
+  useAdminMovies, useAdminMovie, useDeleteMovie, useImportPopular,
+} from '../api/useAdmin';
+import type { AdminMovieResponse, AdminMovieFilters, AdminMovieDetailResponse } from '../types';
 
-const PAGE_SIZE = 10;
-
-const STATUS_BADGE: Record<MovieStatus, string> = {
+const STATUS_STYLE: Record<string, string> = {
+  Draft:     'bg-bg-surface3 text-text-muted',
   Published: 'bg-semantic-success/15 text-semantic-success',
-  Draft: 'bg-accent-indigo/12 text-[#A5B4FC]',
-  Archived: 'bg-bg-surface3 text-text-muted',
+  Archived:  'bg-bg-surface3 text-text-muted border border-border-default',
+};
+const CATEGORY_LABEL: Record<string, string> = {
+  NowShowing: 'Now Showing', ComingSoon: 'Coming Soon',
+  Exclusive: 'Exclusive', Premiere: 'Premiere',
 };
 
-const CATEGORY_BADGE: Record<MovieCategory, string> = {
-  NowShowing: 'bg-accent-crimson/12 text-accent-crimson',
-  ComingSoon: 'bg-accent-indigo/12 text-[#A5B4FC]',
-  Exclusive: 'bg-accent-purple/12 text-accent-purple',
-  Premiere: 'bg-bg-surface3 text-text-muted',
-};
+const STATUS_TABS  = ['All', 'Draft', 'Published', 'Archived'];
+const CATEGORY_TABS = ['All', 'NowShowing', 'ComingSoon', 'Exclusive', 'Premiere'];
 
-const CATEGORY_LABEL: Record<MovieCategory, string> = {
-  NowShowing: 'Now Showing',
-  ComingSoon: 'Coming Soon',
-  Exclusive: 'Exclusive',
-  Premiere: 'Premiere',
-};
+function useDebouncedValue(value: string, delay: number) {
+  const [debounced, setDebounced] = useState(value);
+  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const update = useCallback((v: string) => {
+    if (timer) clearTimeout(timer);
+    setTimer(setTimeout(() => setDebounced(v), delay));
+  }, [delay, timer]);
+  return [debounced, update] as const;
+}
 
 export default function AdminMoviesPage() {
-  const [page, setPage] = useState(1);
+  const [search, setSearch]     = useState('');
+  const [debouncedSearch, updateSearch] = useDebouncedValue('', 400);
+  const [statusTab, setStatusTab]       = useState('All');
+  const [categoryTab, setCategoryTab]   = useState('All');
+  const [page, setPage]                 = useState(1);
+  const [showCreate, setShowCreate]     = useState(false);
+  const [editId, setEditId]             = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminMovieResponse | null>(null);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['admin', 'movies', page],
-    queryFn: () =>
-      api.get<PaginatedResponse<Movie>>(`/api/movies?page=${page}&pageSize=${PAGE_SIZE}`).then((r) => r.data),
-    retry: false,
-  });
+  const filters: AdminMovieFilters = {
+    search:   debouncedSearch || undefined,
+    status:   statusTab   !== 'All' ? statusTab   : undefined,
+    category: categoryTab !== 'All' ? categoryTab : undefined,
+  };
 
-  const movies = data?.items ?? [];
-  const total = data?.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const { data, isLoading }           = useAdminMovies(filters, page);
+  const { data: editMovie, isLoading: editLoading } = useAdminMovie(editId);
+  const deleteMutation                = useDeleteMovie();
+  const importMutation                = useImportPopular();
+
+  const movies     = data?.items     ?? [];
+  const total      = data?.total     ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+
+  const columns: Column<AdminMovieResponse>[] = [
+    {
+      key: 'movie', header: 'Movie',
+      render: (m) => (
+        <div className="flex items-center gap-3">
+          {m.posterUrl ? (
+            <img src={m.posterUrl.startsWith('/') ? TMDB_POSTER(m.posterUrl, 'w92') : m.posterUrl}
+              alt="" className="w-9 h-14 object-cover rounded flex-shrink-0" />
+          ) : (
+            <div className="w-9 h-14 bg-bg-surface3 rounded flex-shrink-0 flex items-center justify-center text-text-muted text-xs">?</div>
+          )}
+          <div>
+            <p className="font-medium text-text-primary leading-tight">{m.title}</p>
+            {m.certificate && (
+              <span className="text-[10px] text-text-muted border border-border-default rounded px-1">{m.certificate}</span>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      key: 'status', header: 'Status', width: '110px',
+      render: (m) => (
+        <span className={cn('inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold', STATUS_STYLE[m.status] ?? 'bg-bg-surface3 text-text-muted')}>
+          {m.status}
+        </span>
+      ),
+    },
+    {
+      key: 'category', header: 'Category', width: '130px',
+      render: (m) => <span className="text-text-secondary">{CATEGORY_LABEL[m.category] ?? m.category}</span>,
+    },
+    {
+      key: 'languages', header: 'Languages', width: '140px',
+      render: (m) => {
+        const langs = m.languages ?? [];
+        return <span className="text-text-secondary text-xs">{langs.slice(0, 2).join(', ')}{langs.length > 2 ? ` +${langs.length - 2}` : ''}</span>;
+      },
+    },
+    {
+      key: 'rating', header: 'Rating', width: '80px',
+      render: (m) => m.imdbRating
+        ? <span className="text-amber-400 font-semibold">★ {m.imdbRating}</span>
+        : <span className="text-text-muted">—</span>,
+    },
+    {
+      key: 'actions', header: 'Actions', width: '90px',
+      render: (m) => (
+        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+          <button onClick={() => setEditId(m.id)} title="Edit"
+            className="text-accent-indigo hover:opacity-70 transition-opacity">
+            <Pencil size={14} />
+          </button>
+          <button onClick={() => setDeleteTarget(m)} title="Delete"
+            className="text-semantic-error hover:opacity-70 transition-opacity">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  function handleRefresh() {
+    setPage(1);
+  }
 
   return (
     <AdminLayout>
-      <div className="p-8">
+      <div className="p-6 md:p-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h1 className="font-display font-bold text-2xl mb-1 tracking-tight">Movies</h1>
+            <h1 className="font-display font-bold text-2xl tracking-tight text-text-primary">Movies</h1>
             <p className="text-text-muted text-sm font-sans">
-              {total > 0 ? `${total} movies in the catalogue` : 'Manage your movie catalogue'}
+              {total > 0 ? `${total} movies in catalogue` : 'Manage your movie catalogue'}
             </p>
           </div>
-          <button
-            disabled
-            className="px-4 py-2 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold opacity-50 cursor-not-allowed"
-          >
-            + Add Movie
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => importMutation.mutate()}
+              disabled={importMutation.isPending}
+              className="px-4 py-2 rounded-full border border-accent-indigo text-accent-indigo text-sm font-semibold font-sans hover:bg-accent-indigo/08 disabled:opacity-60 transition-colors"
+            >
+              {importMutation.isPending ? 'Importing…' : 'Import Popular'}
+            </button>
+            <button onClick={() => setShowCreate(true)}
+              className="px-4 py-2 rounded-full bg-accent-crimson text-white text-sm font-semibold font-sans hover:opacity-90 transition-opacity">
+              + Add Movie
+            </button>
+          </div>
         </div>
 
-        {/* Loading */}
-        {isLoading && (
-          <div className="flex items-center justify-center h-64 text-text-muted text-sm font-sans">
-            Loading movies…
+        {/* Filters */}
+        <div className="space-y-2 mb-5">
+          {/* Search */}
+          <div className="relative max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); updateSearch(e.target.value); setPage(1); }}
+              placeholder="Search movies…"
+              className="w-full pl-8 pr-8 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo"
+            />
+            {search && (
+              <button onClick={() => { setSearch(''); updateSearch(''); setPage(1); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">
+                <X size={14} />
+              </button>
+            )}
           </div>
-        )}
-
-        {/* Error */}
-        {error && !isLoading && (
-          <div className="flex items-center justify-center h-64 text-semantic-error text-sm font-sans">
-            Failed to load movies. Please try again.
+          {/* Status + Category tabs */}
+          <div className="flex flex-wrap gap-2">
+            <div className="flex gap-1 flex-wrap">
+              {STATUS_TABS.map((t) => (
+                <button key={t} onClick={() => { setStatusTab(t); setPage(1); }}
+                  className={cn('px-3 py-1 rounded-full text-xs font-semibold font-sans border transition-colors',
+                    statusTab === t ? 'bg-accent-crimson text-white border-transparent' : 'border-border-default text-text-secondary hover:border-border-strong')}>
+                  {t}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {CATEGORY_TABS.map((t) => (
+                <button key={t} onClick={() => { setCategoryTab(t); setPage(1); }}
+                  className={cn('px-3 py-1 rounded-full text-xs font-semibold font-sans border transition-colors',
+                    categoryTab === t ? 'bg-accent-indigo text-white border-transparent' : 'border-border-default text-text-secondary hover:border-border-strong')}>
+                  {CATEGORY_LABEL[t] ?? t}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
+        </div>
 
         {/* Table */}
-        {!isLoading && !error && (
-          <>
-            <div className="overflow-x-auto rounded-xl border border-border-default">
-              <table className="w-full text-sm font-sans">
-                <thead className="bg-bg-surface2 border-b border-border-default">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Poster</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Title</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Category</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Languages</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Duration</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Rating</th>
-                    <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {movies.length === 0 && (
-                    <tr>
-                      <td colSpan={8} className="px-4 py-16 text-center text-text-muted font-sans">
-                        No movies found.
-                      </td>
-                    </tr>
-                  )}
-                  {movies.map((movie) => (
-                    <tr key={movie.id} className="border-b border-border-default hover:bg-bg-surface2/50 transition-colors">
-                      <td className="px-4 py-3">
-                        {movie.posterUrl ? (
-                          <img
-                            src={movie.posterUrl.startsWith('/') ? TMDB_POSTER(movie.posterUrl, 'w92') : movie.posterUrl}
-                            alt={movie.title}
-                            className="w-10 h-14 object-cover rounded"
-                          />
-                        ) : (
-                          <div className="w-10 h-14 bg-bg-surface3 rounded flex items-center justify-center text-text-muted text-xs">
-                            ?
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-medium text-text-primary">{movie.title}</span>
-                        {movie.certificate && (
-                          <span className="ml-2 text-[10px] text-text-muted border border-border-default rounded px-1">
-                            {movie.certificate}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_BADGE[movie.status]}`}>
-                          {movie.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${CATEGORY_BADGE[movie.category]}`}>
-                          {CATEGORY_LABEL[movie.category]}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-text-secondary">{movie.languages.join(', ') || '—'}</td>
-                      <td className="px-4 py-3 text-text-secondary">{movie.durationMin} min</td>
-                      <td className="px-4 py-3 text-text-secondary">{movie.imdbRating ?? '—'}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <button disabled className="text-xs text-accent-indigo opacity-40 cursor-not-allowed font-semibold">Edit</button>
-                          <button disabled className="text-xs text-semantic-error opacity-40 cursor-not-allowed font-semibold">Delete</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        <AdminTable columns={columns} data={movies} isLoading={isLoading} emptyMessage="No movies found." />
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 text-sm font-sans">
-                <span className="text-text-muted">
-                  Page {page} of {totalPages} &bull; {total} total
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page <= 1}
-                    className="px-3 py-1.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Prev
-                  </button>
-                  <button
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                    disabled={page >= totalPages}
-                    className="px-3 py-1.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 text-sm font-sans">
+            <span className="text-text-muted">Page {page} of {totalPages} · {total} total</span>
+            <div className="flex gap-2">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}
+                className="px-3 py-1.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 disabled:opacity-40 transition-colors">
+                Prev
+              </button>
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                className="px-3 py-1.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 disabled:opacity-40 transition-colors">
+                Next
+              </button>
+            </div>
+          </div>
         )}
       </div>
+
+      {/* Create modal */}
+      {showCreate && (
+        <MovieFormModal mode="create" onClose={() => setShowCreate(false)} onSuccess={handleRefresh} />
+      )}
+
+      {/* Edit modal */}
+      {editId && !editLoading && editMovie && (
+        <MovieFormModal mode="edit" movie={editMovie as AdminMovieDetailResponse}
+          onClose={() => setEditId(null)} onSuccess={handleRefresh} />
+      )}
+
+      {/* Delete modal */}
+      {deleteTarget && (
+        <DeleteConfirmModal
+          itemName={deleteTarget.title}
+          isLoading={deleteMutation.isPending}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={async () => {
+            await deleteMutation.mutateAsync(deleteTarget.id);
+            setDeleteTarget(null);
+          }}
+        />
+      )}
     </AdminLayout>
   );
 }

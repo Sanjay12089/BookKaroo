@@ -1,127 +1,219 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState, useCallback } from 'react';
+import { Pencil, Trash2, Search, X } from 'lucide-react';
 import { AdminLayout } from '@/shared/components/layout/AdminLayout';
-import { api } from '@/shared/lib/api';
-import type { Event, PaginatedResponse, MovieStatus, EventType } from '@/shared/types';
+import { cn } from '@/shared/lib/utils';
+import { AdminTable, type Column } from '../components/AdminTable';
+import { EventFormModal } from '../components/EventFormModal';
+import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
+import { useAdminEvents, useAdminEvent, useDeleteEvent } from '../api/useAdmin';
+import type { AdminEventResponse, AdminEventFilters, AdminEventDetailResponse } from '../types';
 
-const STATUS_BADGE: Record<MovieStatus, string> = {
+const STATUS_STYLE: Record<string, string> = {
+  Draft:     'bg-bg-surface3 text-text-muted',
   Published: 'bg-semantic-success/15 text-semantic-success',
-  Draft: 'bg-accent-indigo/12 text-[#A5B4FC]',
-  Archived: 'bg-bg-surface3 text-text-muted',
+  Archived:  'bg-bg-surface3 text-text-muted border border-border-default',
 };
-
-const TYPE_LABEL: Record<EventType, string> = {
-  LiveEvent: 'Live Event',
-  Play: 'Play',
-  Sport: 'Sport',
-  Activity: 'Activity',
-  Comedy: 'Comedy',
-  Ipl: 'IPL',
+const TYPE_STYLE: Record<string, string> = {
+  LiveEvent: 'bg-accent-crimson/12 text-accent-crimson',
+  Play:      'bg-accent-purple/12 text-accent-purple',
+  Sport:     'bg-blue-500/12 text-blue-400',
+  Activity:  'bg-accent-indigo/12 text-[#A5B4FC]',
+  Comedy:    'bg-amber-400/12 text-amber-400',
+  Ipl:       'bg-cyan-500/12 text-cyan-400',
 };
+const TYPE_LABEL: Record<string, string> = {
+  LiveEvent: 'Live Event', Play: 'Play', Sport: 'Sport',
+  Activity: 'Activity', Comedy: 'Comedy', Ipl: 'IPL',
+};
+const TYPE_TABS   = ['All', 'LiveEvent', 'Play', 'Sport', 'Activity', 'Comedy', 'Ipl'];
+const STATUS_TABS = ['All', 'Draft', 'Published', 'Archived'];
 
-type ApiError = { response?: { status?: number }; statusCode?: number };
+function useDebouncedUpdate(delay: number) {
+  const [debounced, setDebounced] = useState('');
+  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const update = useCallback((v: string) => {
+    if (timer) clearTimeout(timer);
+    setTimer(setTimeout(() => setDebounced(v), delay));
+  }, [delay, timer]);
+  return [debounced, update] as const;
+}
 
 export default function AdminEventsPage() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['admin', 'events'],
-    queryFn: () =>
-      api.get<PaginatedResponse<Event>>('/api/events').then((r) => r.data),
-    retry: false,
-  });
+  const [search, setSearch]   = useState('');
+  const [debouncedSearch, updateSearch] = useDebouncedUpdate(400);
+  const [typeTab, setTypeTab]           = useState('All');
+  const [statusTab, setStatusTab]       = useState('All');
+  const [page, setPage]                 = useState(1);
+  const [showCreate, setShowCreate]     = useState(false);
+  const [editId, setEditId]             = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AdminEventResponse | null>(null);
 
-  const is501 =
-    (error as ApiError | null)?.response?.status === 501 ||
-    (error as ApiError | null)?.statusCode === 501;
+  const filters: AdminEventFilters = {
+    search: debouncedSearch || undefined,
+    type:   typeTab   !== 'All' ? typeTab   : undefined,
+    status: statusTab !== 'All' ? statusTab : undefined,
+  };
 
-  const events: Event[] = Array.isArray(data)
-    ? (data as Event[])
-    : ((data as PaginatedResponse<Event> | undefined)?.items ?? []);
+  const { data, isLoading }           = useAdminEvents(filters, page);
+  const { data: editEvent, isLoading: editLoading } = useAdminEvent(editId);
+  const deleteMutation                = useDeleteEvent();
 
-  const showEmpty = is501 || (!isLoading && !error && events.length === 0);
-  const showError = !isLoading && !!error && !is501;
+  const events     = data?.items     ?? [];
+  const total      = data?.total     ?? 0;
+  const totalPages = data?.totalPages ?? 1;
+
+  const columns: Column<AdminEventResponse>[] = [
+    {
+      key: 'event', header: 'Event',
+      render: (e) => (
+        <div>
+          <p className="font-medium text-text-primary leading-tight">{e.title}</p>
+          <span className={cn('inline-flex mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-semibold',
+            TYPE_STYLE[e.type] ?? 'bg-bg-surface3 text-text-muted')}>
+            {TYPE_LABEL[e.type] ?? e.type}
+          </span>
+        </div>
+      ),
+    },
+    {
+      key: 'date', header: 'Date', width: '160px',
+      render: (e) => <span className="text-text-secondary text-xs">{e.eventDateLabel}</span>,
+    },
+    {
+      key: 'venue', header: 'Venue', width: '160px',
+      render: (e) => <span className="text-text-secondary text-xs line-clamp-1">{e.venueName}</span>,
+    },
+    {
+      key: 'price', header: 'From', width: '90px',
+      render: (e) => (
+        <span className="text-text-primary font-semibold text-xs">
+          {e.lowestPrice > 0 ? `₹${e.lowestPrice.toLocaleString('en-IN')}` : '—'}
+        </span>
+      ),
+    },
+    {
+      key: 'status', header: 'Status', width: '100px',
+      render: (e) => (
+        <span className={cn('inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold',
+          STATUS_STYLE[e.status] ?? 'bg-bg-surface3 text-text-muted')}>
+          {e.status}
+        </span>
+      ),
+    },
+    {
+      key: 'actions', header: 'Actions', width: '90px',
+      render: (e) => (
+        <div className="flex items-center gap-2" onClick={(ev) => ev.stopPropagation()}>
+          <button onClick={() => setEditId(e.id)} title="Edit"
+            className="text-accent-indigo hover:opacity-70 transition-opacity">
+            <Pencil size={14} />
+          </button>
+          <button onClick={() => setDeleteTarget(e)} title="Delete"
+            className="text-semantic-error hover:opacity-70 transition-opacity">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <AdminLayout>
-      <div className="p-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-6 md:p-8">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h1 className="font-display font-bold text-2xl mb-1 tracking-tight">Events</h1>
-            <p className="text-text-muted text-sm font-sans">Manage live events, plays, sports, and activities.</p>
+            <h1 className="font-display font-bold text-2xl tracking-tight text-text-primary">Events</h1>
+            <p className="text-text-muted text-sm font-sans">
+              {total > 0 ? `${total} events in catalogue` : 'Manage live events, plays, sports and activities'}
+            </p>
           </div>
-          <button
-            disabled
-            className="px-4 py-2 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold opacity-50 cursor-not-allowed"
-          >
+          <button onClick={() => setShowCreate(true)}
+            className="px-4 py-2 rounded-full bg-accent-crimson text-white text-sm font-semibold font-sans hover:opacity-90 transition-opacity">
             + Add Event
           </button>
         </div>
 
-        {isLoading && (
-          <div className="flex items-center justify-center h-64 text-text-muted text-sm font-sans">
-            Loading events…
+        {/* Filters */}
+        <div className="space-y-2 mb-5">
+          <div className="relative max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); updateSearch(e.target.value); setPage(1); }}
+              placeholder="Search events…"
+              className="w-full pl-8 pr-8 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo"
+            />
+            {search && (
+              <button onClick={() => { setSearch(''); updateSearch(''); setPage(1); }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">
+                <X size={14} />
+              </button>
+            )}
           </div>
-        )}
-
-        {showEmpty && (
-          <div className="flex flex-col items-center justify-center h-64 gap-4">
-            <p className="text-4xl">🎭</p>
-            <p className="text-text-secondary font-sans text-base">No events yet. Add your first event.</p>
-            <button
-              disabled
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold opacity-50 cursor-not-allowed"
-            >
-              + Add Event
-            </button>
+          <div className="flex flex-wrap gap-2">
+            <div className="flex gap-1 flex-wrap">
+              {TYPE_TABS.map((t) => (
+                <button key={t} onClick={() => { setTypeTab(t); setPage(1); }}
+                  className={cn('px-3 py-1 rounded-full text-xs font-semibold font-sans border transition-colors',
+                    typeTab === t ? 'bg-accent-crimson text-white border-transparent' : 'border-border-default text-text-secondary hover:border-border-strong')}>
+                  {TYPE_LABEL[t] ?? t}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-1 flex-wrap">
+              {STATUS_TABS.map((t) => (
+                <button key={t} onClick={() => { setStatusTab(t); setPage(1); }}
+                  className={cn('px-3 py-1 rounded-full text-xs font-semibold font-sans border transition-colors',
+                    statusTab === t ? 'bg-accent-indigo text-white border-transparent' : 'border-border-default text-text-secondary hover:border-border-strong')}>
+                  {t}
+                </button>
+              ))}
+            </div>
           </div>
-        )}
+        </div>
 
-        {showError && (
-          <div className="flex items-center justify-center h-64 text-semantic-error text-sm font-sans">
-            Failed to load events. Please try again.
-          </div>
-        )}
+        {/* Table */}
+        <AdminTable columns={columns} data={events} isLoading={isLoading} emptyMessage="No events found." />
 
-        {!isLoading && !showEmpty && !showError && events.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border border-border-default">
-            <table className="w-full text-sm font-sans">
-              <thead className="bg-bg-surface2 border-b border-border-default">
-                <tr>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Title</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Type</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Date</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Duration</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Language</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {events.map((ev) => (
-                  <tr key={ev.id} className="border-b border-border-default hover:bg-bg-surface2/50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-text-primary">{ev.title}</td>
-                    <td className="px-4 py-3 text-text-secondary">{TYPE_LABEL[ev.type]}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_BADGE[ev.status]}`}>
-                        {ev.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary">
-                      {ev.eventDate ? new Date(ev.eventDate).toLocaleDateString('en-IN') : '—'}
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary">{ev.durationMin} min</td>
-                    <td className="px-4 py-3 text-text-secondary">{ev.language ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button disabled className="text-xs text-accent-indigo opacity-40 cursor-not-allowed font-semibold">Edit</button>
-                        <button disabled className="text-xs text-semantic-error opacity-40 cursor-not-allowed font-semibold">Delete</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4 text-sm font-sans">
+            <span className="text-text-muted">Page {page} of {totalPages} · {total} total</span>
+            <div className="flex gap-2">
+              <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}
+                className="px-3 py-1.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 disabled:opacity-40 transition-colors">
+                Prev
+              </button>
+              <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page >= totalPages}
+                className="px-3 py-1.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 disabled:opacity-40 transition-colors">
+                Next
+              </button>
+            </div>
           </div>
         )}
       </div>
+
+      {showCreate && (
+        <EventFormModal mode="create" onClose={() => setShowCreate(false)} onSuccess={() => setPage(1)} />
+      )}
+
+      {editId && !editLoading && editEvent && (
+        <EventFormModal mode="edit" event={editEvent as AdminEventDetailResponse}
+          onClose={() => setEditId(null)} onSuccess={() => setPage(1)} />
+      )}
+
+      {deleteTarget && (
+        <DeleteConfirmModal
+          itemName={deleteTarget.title}
+          isLoading={deleteMutation.isPending}
+          onClose={() => setDeleteTarget(null)}
+          onConfirm={async () => {
+            await deleteMutation.mutateAsync(deleteTarget.id);
+            setDeleteTarget(null);
+          }}
+        />
+      )}
     </AdminLayout>
   );
 }
