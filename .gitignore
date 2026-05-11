@@ -65,3 +65,5 @@ coverage/
 # Claude / temp
 handoff-tmp/
 .claude/local/
+CLAUDE.local.md
+.claude/settings.local.json

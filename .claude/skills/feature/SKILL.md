@@ -10,7 +10,7 @@ Follow this checklist strictly:
 
 ## 0. Read Context
 - Read `/CLAUDE.md`
-- Read `.claude/rules/coding-standards.md` (auto-loaded — same content as `/SKILLS.md`)
+- Read `.claude/rules/coding-standards.md` (auto-loaded — review if needed)
 - Read relevant section of `/docs/PRD.md`
 - Read `/docs/API.md` for endpoint contracts
 - Read `/docs/DATABASE.md` for schema

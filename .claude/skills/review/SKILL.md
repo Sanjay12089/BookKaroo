@@ -1,12 +1,12 @@
 ---
-description: Review code in current branch against SKILLS.md standards
+description: Review code in current branch against coding standards
 ---
 
 # Code Review
 
 Review uncommitted changes + commits in the current branch (`git diff develop...HEAD`).
 
-Check against `.claude/rules/coding-standards.md` (auto-loaded — same content as `/SKILLS.md`):
+Check against `.claude/rules/coding-standards.md` (auto-loaded):
 
 ## Frontend
 - [ ] No `any` in TypeScript
