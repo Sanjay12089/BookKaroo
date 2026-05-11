@@ -11,7 +11,6 @@ using BookKaroo.Infrastructure.Email;
 using BookKaroo.Infrastructure.Payment;
 using BookKaroo.Infrastructure.Services;
 using BookKaroo.Infrastructure.Repositories;
-using BookKaroo.Infrastructure.Services;
 using BookKaroo.Infrastructure.ExternalServices;
 using BookKaroo.Infrastructure.Pdf;
 using BookKaroo.Infrastructure.Storage;
@@ -140,12 +139,19 @@ try
     builder.Services.AddInMemoryRateLimiting();
 
     // 7. CORS
-    var allowedOrigins = (builder.Configuration["CORS_ALLOWED_ORIGINS"] ?? "http://localhost:5173")
-        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+    // var allowedOrigins = (builder.Configuration["CORS_ALLOWED_ORIGINS"] ?? "http://localhost:5173")
+    //     .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+    // builder.Services.AddCors(opt =>
+    //     opt.AddDefaultPolicy(policy =>
+    //         policy.WithOrigins(allowedOrigins)
+    //               .AllowAnyHeader()
+    //               .AllowAnyMethod()
+    //               .AllowCredentials()));
 
     builder.Services.AddCors(opt =>
         opt.AddDefaultPolicy(policy =>
-            policy.WithOrigins(allowedOrigins)
+            policy.WithOrigins()
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials()));
