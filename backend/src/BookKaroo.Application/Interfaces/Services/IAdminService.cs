@@ -82,4 +82,34 @@ public interface IAdminService
     Task<ShowAdminDto> CreateShowAsync(CreateShowRequest req, CancellationToken ct = default);
     Task<CancelShowResponse> CancelShowAsync(Guid showId, CancellationToken ct = default);
     Task DeleteShowAsync(Guid showId, CancellationToken ct = default);
+
+    // Reports
+    Task<BookingReportResponse> GetBookingReportAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy,
+        Guid? cityId, Guid? movieId, Guid? venueId, CancellationToken ct = default);
+
+    Task<UserReportResponse> GetUserAcquisitionReportAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy, CancellationToken ct = default);
+
+    Task<byte[]> ExportBookingReportCsvAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy,
+        Guid? cityId, Guid? movieId, Guid? venueId, CancellationToken ct = default);
+
+    Task<byte[]> ExportUserReportCsvAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy, CancellationToken ct = default);
+
+    // CMS Banners
+    Task<List<AdminBannerResponse>> GetBannersAdminAsync(CancellationToken ct = default);
+    Task<AdminBannerResponse> GetBannerByIdAsync(Guid id, CancellationToken ct = default);
+    Task<AdminBannerResponse> CreateBannerAsync(CreateBannerRequest req, CancellationToken ct = default);
+    Task<AdminBannerResponse> UpdateBannerAsync(Guid id, UpdateBannerRequest req, CancellationToken ct = default);
+    Task DeleteBannerAsync(Guid id, CancellationToken ct = default);
+    Task ReorderBannersAsync(List<Guid> orderedIds, CancellationToken ct = default);
+    Task ToggleBannerAsync(Guid id, bool isActive, CancellationToken ct = default);
+
+    // Settings
+    Task<List<SettingResponse>> GetAllSettingsAsync(CancellationToken ct = default);
+    Task<SettingResponse?> GetSettingAsync(string key, CancellationToken ct = default);
+    Task<SettingResponse> UpdateSettingAsync(string key, string value, CancellationToken ct = default);
+    Task UpdateMultipleSettingsAsync(Dictionary<string, string> settings, CancellationToken ct = default);
 }

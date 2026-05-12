@@ -24,6 +24,11 @@ public interface IBookingRepository : IRepository<Booking>
 
     Task<AdminBookingDto?> GetBookingDetailAdminAsync(string bookingRef, CancellationToken ct = default);
 
+    Task<List<AdminBookingDto>> GetAllForReportAsync(
+        DateOnly fromDate, DateOnly toDate,
+        Guid? cityId, Guid? movieId, Guid? venueId,
+        CancellationToken ct = default);
+
     Task<(Booking booking, decimal refundAmount, string? refundId)> AdminCancelBookingAsync(Guid bookingId, CancellationToken ct = default);
 
     Task<(string refundId, decimal refundAmount)> AdminProcessRefundAsync(Guid bookingId, decimal refundAmount, CancellationToken ct = default);

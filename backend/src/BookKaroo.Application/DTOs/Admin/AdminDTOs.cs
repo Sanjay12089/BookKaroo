@@ -494,3 +494,90 @@ public record CancelShowResponse(
     Guid   ShowId,
     int    CancelledBookings,
     string Message);
+
+// ── Admin Reports ─────────────────────────────────────────────────────────────
+
+public record ReportRow(
+    string   Period,
+    Guid?    EntityId,
+    string?  PosterUrl,
+    int      TotalBookings,
+    int      ConfirmedBookings,
+    int      CancelledBookings,
+    decimal  Revenue,
+    decimal  ConvenienceFeeRevenue,
+    decimal  GstCollected,
+    decimal  Discount);
+
+public record ReportSummary(
+    int     TotalBookings,
+    int     ConfirmedBookings,
+    int     CancelledBookings,
+    decimal TotalRevenue,
+    decimal ConvenienceFeeRevenue,
+    decimal GstCollected,
+    decimal TotalDiscount,
+    decimal NetRevenue);
+
+public record BookingReportResponse(
+    string         FromDate,
+    string         ToDate,
+    string         GroupBy,
+    ReportSummary  Summary,
+    List<ReportRow> Rows);
+
+public record UserReportRow(
+    string Period,
+    int    NewUsers,
+    int    VerifiedUsers);
+
+public record UserReportResponse(
+    string             FromDate,
+    string             ToDate,
+    int                TotalNewUsers,
+    int                VerifiedUsers,
+    List<UserReportRow> Rows);
+
+// ── Admin Banners ─────────────────────────────────────────────────────────────
+
+public record AdminBannerResponse(
+    Guid      Id,
+    string    Title,
+    string?   ImageUrl,
+    string?   LinkUrl,
+    int       Position,
+    bool      IsActive,
+    DateTime? StartsAt,
+    DateTime? EndsAt,
+    DateTime  CreatedAt,
+    DateTime  UpdatedAt);
+
+public record CreateBannerRequest(
+    string    Title,
+    string    ImageUrl,
+    string?   LinkUrl,
+    int       Position,
+    bool      IsActive,
+    DateTime? StartsAt,
+    DateTime? EndsAt);
+
+public record UpdateBannerRequest(
+    string?   Title,
+    string?   ImageUrl,
+    string?   LinkUrl,
+    int?      Position,
+    bool?     IsActive,
+    DateTime? StartsAt,
+    DateTime? EndsAt);
+
+public record ReorderBannersRequest(List<Guid> OrderedIds);
+
+public record ToggleBannerRequest(bool IsActive);
+
+// ── Admin Settings ────────────────────────────────────────────────────────────
+
+public record SettingResponse(string Key, string Value, DateTime UpdatedAt);
+
+public record UpdateSettingValueRequest(string Value);
+
+public record BatchUpdateSettingsRequest(Dictionary<string, string> Settings);
