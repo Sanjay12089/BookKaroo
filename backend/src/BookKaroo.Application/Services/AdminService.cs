@@ -934,6 +934,11 @@ public class AdminService : IAdminService
     private static DateOnly? ParseDateOnly(string? value) =>
         DateOnly.TryParse(value, out var d) ? d : null;
 
+    // Npgsql requires DateTimeKind.Utc for 'timestamp with time zone' columns.
+    // JSON-deserialized DateTime arrives as Unspecified — treat it as UTC.
+    private static DateTime? ToUtc(DateTime? dt) =>
+        dt.HasValue ? DateTime.SpecifyKind(dt.Value, DateTimeKind.Utc) : null;
+
     private static AdminMovieResponse MapMovieResponse(Movie m) => new(
         m.Id, m.TmdbId, m.Title, m.Slug, m.Certificate, m.DurationMin,
         m.Languages, m.Formats, m.Genres,
@@ -1269,8 +1274,8 @@ public class AdminService : IAdminService
             LinkUrl   = req.LinkUrl,
             Position  = req.Position,
             IsActive  = req.IsActive,
-            StartsAt  = req.StartsAt,
-            EndsAt    = req.EndsAt,
+            StartsAt  = ToUtc(req.StartsAt),
+            EndsAt    = ToUtc(req.EndsAt),
         };
         await _bannerRepo.AddAsync(banner, ct);
         await _audit.LogAsync(null, "create", "banner", banner.Id, null, new { banner.Title }, null, ct);
@@ -1287,8 +1292,8 @@ public class AdminService : IAdminService
         if (req.LinkUrl  != null) banner.LinkUrl  = req.LinkUrl;
         if (req.Position.HasValue) banner.Position = req.Position.Value;
         if (req.IsActive.HasValue) banner.IsActive = req.IsActive.Value;
-        if (req.StartsAt.HasValue) banner.StartsAt = req.StartsAt;
-        if (req.EndsAt.HasValue)   banner.EndsAt   = req.EndsAt;
+        if (req.StartsAt.HasValue) banner.StartsAt = ToUtc(req.StartsAt);
+        if (req.EndsAt.HasValue)   banner.EndsAt   = ToUtc(req.EndsAt);
         banner.UpdatedAt = DateTime.UtcNow;
         await _bannerRepo.UpdateAsync(banner, ct);
         await _audit.LogAsync(null, "update", "banner", id, before, new { banner.Title, banner.IsActive }, null, ct);
