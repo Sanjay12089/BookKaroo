@@ -207,8 +207,10 @@ try
     builder.Services.AddScoped<IMovieRepository, MovieRepository>();
     builder.Services.AddScoped<IShowRepository, ShowRepository>();
     builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Venue>, VenueRepository>();
-    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Screen>, Repository<BookKaroo.Domain.Entities.Screen>>();
+    builder.Services.AddScoped<IVenueRepository, VenueRepository>();
+    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Venue>>(sp => sp.GetRequiredService<IVenueRepository>());
+    builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
+    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Screen>>(sp => sp.GetRequiredService<IScreenRepository>());
     builder.Services.AddScoped<ISeatLockRepository, SeatLockRepository>();
     builder.Services.AddScoped<ICouponRepository, CouponRepository>();
     builder.Services.AddScoped<ISettingRepository, SettingRepository>();

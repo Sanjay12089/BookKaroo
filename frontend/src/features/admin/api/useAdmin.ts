@@ -10,9 +10,14 @@ import type {
   AdminVenueItem,
   AdminBooking, AdminBookingPage, AdminBookingFilters,
   AdminUserPage, AdminUserDetail, AdminUserFilters,
+  AdminVenuePage, AdminVenueFilters, AdminVenueDetail,
+  CreateVenuePayload, UpdateVenuePayload,
+  CreateScreenPayload, UpdateScreenPayload,
+  AdminShowPage, AdminShowFilters, CancelShowResponse,
+  CreateShowPayload,
 } from '../types';
 
-type ApiError = { response?: { data?: { error?: string } } };
+type ApiError = { response?: { data?: { error?: string }; statusText?: string } };
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
@@ -187,14 +192,181 @@ export function useDeleteEvent() {
   });
 }
 
-// ── Venues ────────────────────────────────────────────────────────────────────
+// ── Venues (simple list for dropdowns) ───────────────────────────────────────
 
-export function useAdminVenues() {
+export function useAdminVenuesList() {
   return useQuery<AdminVenueItem[]>({
-    queryKey: ['admin-venues'],
-    queryFn: () => api.get<AdminVenueItem[]>('/api/admin/venues').then((r) => r.data),
+    queryKey: ['admin-venues-list'],
+    queryFn: () => api.get<AdminVenueItem[]>('/api/admin/venues/list').then((r) => r.data),
     staleTime: 5 * 60 * 1000,
     retry: false,
+  });
+}
+
+// ── Venues CRUD ───────────────────────────────────────────────────────────────
+
+export function useAdminVenuesPaged(filters: AdminVenueFilters, page: number) {
+  return useQuery<AdminVenuePage>({
+    queryKey: ['admin-venues', filters, page],
+    queryFn: () =>
+      api.get<AdminVenuePage>('/api/admin/venues', {
+        params: { ...filters, page, pageSize: 20 },
+      }).then((r) => r.data),
+    staleTime: 60_000,
+    retry: false,
+  });
+}
+
+export function useAdminVenueDetail(id: string | null) {
+  return useQuery<AdminVenueDetail>({
+    queryKey: ['admin-venue', id],
+    queryFn: () => api.get<AdminVenueDetail>(`/api/admin/venues/${id}`).then((r) => r.data),
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useCreateVenue() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateVenuePayload) =>
+      api.post('/api/admin/venues', data).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-venues'] });
+      qc.invalidateQueries({ queryKey: ['admin-venues-list'] });
+      toast('Venue created successfully', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to create venue', 'error'),
+  });
+}
+
+export function useUpdateVenue() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateVenuePayload }) =>
+      api.patch(`/api/admin/venues/${id}`, data).then((r) => r.data),
+    onSuccess: (_result, { id }) => {
+      qc.invalidateQueries({ queryKey: ['admin-venues'] });
+      qc.invalidateQueries({ queryKey: ['admin-venue', id] });
+      qc.invalidateQueries({ queryKey: ['admin-venues-list'] });
+      toast('Venue updated', 'success');
+    },
+    onError: () => toast('Failed to update venue', 'error'),
+  });
+}
+
+export function useDeleteVenue() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/admin/venues/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-venues'] });
+      qc.invalidateQueries({ queryKey: ['admin-venues-list'] });
+      toast('Venue deleted', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to delete venue', 'error'),
+  });
+}
+
+// ── Screens ───────────────────────────────────────────────────────────────────
+
+export function useCreateScreen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ venueId, data }: { venueId: string; data: CreateScreenPayload }) =>
+      api.post(`/api/admin/venues/${venueId}/screens`, data).then((r) => r.data),
+    onSuccess: (_result, { venueId }) => {
+      qc.invalidateQueries({ queryKey: ['admin-venue', venueId] });
+      qc.invalidateQueries({ queryKey: ['admin-venues'] });
+      toast('Screen created successfully', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to create screen', 'error'),
+  });
+}
+
+export function useUpdateScreen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ screenId, data }: { screenId: string; venueId: string; data: UpdateScreenPayload }) =>
+      api.patch(`/api/admin/screens/${screenId}`, data).then((r) => r.data),
+    onSuccess: (_result, { venueId }) => {
+      qc.invalidateQueries({ queryKey: ['admin-venue', venueId] });
+      toast('Screen updated', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to update screen', 'error'),
+  });
+}
+
+export function useDeleteScreen() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ screenId }: { screenId: string; venueId: string }) =>
+      api.delete(`/api/admin/screens/${screenId}`),
+    onSuccess: (_result, { venueId }) => {
+      qc.invalidateQueries({ queryKey: ['admin-venue', venueId] });
+      qc.invalidateQueries({ queryKey: ['admin-venues'] });
+      toast('Screen deleted', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to delete screen', 'error'),
+  });
+}
+
+// ── Shows CRUD ────────────────────────────────────────────────────────────────
+
+export function useAdminShows(filters: AdminShowFilters, page: number) {
+  return useQuery<AdminShowPage>({
+    queryKey: ['admin-shows', filters, page],
+    queryFn: () =>
+      api.get<AdminShowPage>('/api/admin/shows', {
+        params: { ...filters, page, pageSize: 20 },
+      }).then((r) => r.data),
+    staleTime: 30_000,
+    retry: false,
+  });
+}
+
+export function useCreateShow() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateShowPayload) =>
+      api.post('/api/admin/shows', data).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-shows'] });
+      toast('Show created successfully', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to create show', 'error'),
+  });
+}
+
+export function useCancelShow() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (showId: string) =>
+      api.post<CancelShowResponse>(`/api/admin/shows/${showId}/cancel`).then((r) => r.data),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ['admin-shows'] });
+      toast(data.message, 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to cancel show', 'error'),
+  });
+}
+
+export function useDeleteShow() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (showId: string) => api.delete(`/api/admin/shows/${showId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-shows'] });
+      toast('Show deleted', 'success');
+    },
+    onError: () => toast('Failed to delete show', 'error'),
   });
 }
 
@@ -317,5 +489,7 @@ export function useAdminResetPassword() {
   return useMutation({
     mutationFn: (id: string) =>
       api.post<{ tempPassword: string }>(`/api/admin/users/${id}/reset-password`).then((r) => r.data),
+    onSuccess: () => toast('Password reset successfully', 'success'),
+    onError: () => toast('Failed to reset password', 'error'),
   });
 }

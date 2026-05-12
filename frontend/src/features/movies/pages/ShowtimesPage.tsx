@@ -162,6 +162,7 @@ export default function ShowtimesPage() {
                   <ShowtimeVenueCard
                     key={vg.venueId}
                     venue={vg}
+                    selectedShowId={selectedShowId}
                     onSelectShow={handleSelectShow}
                   />
                 ))}

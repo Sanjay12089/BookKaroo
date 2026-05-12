@@ -2,7 +2,7 @@ import { useForm, useFieldArray } from 'react-hook-form';
 import { Plus, Trash2 } from 'lucide-react';
 import { Modal } from '@/shared/components/ui/Modal';
 import { cn } from '@/shared/lib/utils';
-import { useCreateEvent, useUpdateEvent, useAdminVenues } from '../api/useAdmin';
+import { useCreateEvent, useUpdateEvent, useAdminVenuesList } from '../api/useAdmin';
 import type { AdminEventDetailResponse, CreateEventPayload } from '../types';
 
 const EVENT_TYPES = [
@@ -39,7 +39,7 @@ interface Props {
 }
 
 export function EventFormModal({ mode, event, onClose, onSuccess }: Props) {
-  const { data: venues } = useAdminVenues();
+  const { data: venues } = useAdminVenuesList();
   const createMutation = useCreateEvent();
   const updateMutation = useUpdateEvent();
 

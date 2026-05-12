@@ -2,8 +2,9 @@ import { cn } from '@/shared/lib/utils';
 import type { ShowtimeVenueGroup, ShowtimeItem } from '../types';
 
 interface Props {
-  venue:        ShowtimeVenueGroup;
-  onSelectShow: (showId: string) => void;
+  venue:          ShowtimeVenueGroup;
+  selectedShowId: string | null;
+  onSelectShow:   (showId: string) => void;
 }
 
 const AMENITY_ICONS: Record<string, string> = {
@@ -26,7 +27,7 @@ const AVAIL_CLASSES: Record<ShowtimeItem['availability'], string> = {
   sold_out: 'bg-bg-surface3  border-border-default text-text-muted cursor-not-allowed opacity-50',
 };
 
-export function ShowtimeVenueCard({ venue, onSelectShow }: Props) {
+export function ShowtimeVenueCard({ venue, selectedShowId, onSelectShow }: Props) {
   const lowestPrice = venue.shows.length
     ? Math.min(...venue.shows.map((s) => s.lowestPrice))
     : 0;
@@ -68,24 +69,31 @@ export function ShowtimeVenueCard({ venue, onSelectShow }: Props) {
       {/* Time chips */}
       <div className="flex flex-wrap gap-2">
         {venue.shows.map((show) => {
-          const isSold = show.availability === 'sold_out';
+          const isSold     = show.availability === 'sold_out';
+          const isSelected = show.showId === selectedShowId;
           return (
             <button
               key={show.showId}
               disabled={isSold}
               onClick={() => !isSold && onSelectShow(show.showId)}
               className={cn(
-                'flex flex-col gap-0.5 text-left px-3.5 py-2 rounded-lg border transition-all duration-150',
-                AVAIL_CLASSES[show.availability],
-                !isSold && 'hover:scale-105'
+                'flex flex-col gap-0.5 text-left px-3.5 py-2 rounded-lg border-2 transition-all duration-150',
+                isSelected
+                  ? 'border-accent-crimson bg-accent-crimson/10 text-accent-crimson shadow-[0_0_0_2px_rgba(229,9,20,0.25)] scale-105'
+                  : [AVAIL_CLASSES[show.availability], !isSold && 'hover:scale-105'],
               )}
             >
               <span className={cn('font-bold text-sm font-mono', isSold && 'line-through')}>
                 {show.time}
               </span>
-              <span className="text-[10px] opacity-70">
+              <span className={cn('text-[10px]', isSelected ? 'opacity-90 font-semibold' : 'opacity-70')}>
                 {show.format} · {show.language}
               </span>
+              {isSelected && (
+                <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5 text-accent-crimson">
+                  Selected ✓
+                </span>
+              )}
             </button>
           );
         })}

@@ -12,4 +12,6 @@ public class Venue : BaseEntity
     public double Longitude { get; set; }
     public string? Amenities { get; set; }
     public bool IsActive { get; set; } = true;
+    public string? ContactPhone { get; set; }
+    public string? ContactEmail { get; set; }
 }
