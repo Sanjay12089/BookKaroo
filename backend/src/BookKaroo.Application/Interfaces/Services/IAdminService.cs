@@ -31,4 +31,29 @@ public interface IAdminService
 
     // Venues list (for event form)
     Task<IReadOnlyList<AdminVenueItem>> GetVenuesAsync(CancellationToken ct = default);
+
+    // Admin Bookings
+    Task<AdminBookingPagedResponse> GetAdminBookingsAsync(
+        string? search, string? status, Guid? movieId, Guid? cityId,
+        DateOnly? fromDate, DateOnly? toDate,
+        int page, int pageSize, CancellationToken ct = default);
+
+    Task<AdminBookingDto> GetAdminBookingDetailAsync(string bookingRef, CancellationToken ct = default);
+
+    Task<AdminCancelBookingResponse> AdminCancelBookingAsync(string bookingRef, CancellationToken ct = default);
+
+    Task<AdminRefundResponse> AdminProcessRefundAsync(string bookingRef, decimal refundAmount, CancellationToken ct = default);
+
+    Task ResendBookingEmailAsync(string bookingRef, CancellationToken ct = default);
+
+    // Admin Users
+    Task<AdminUserPagedResponse> GetAdminUsersAsync(
+        string? search, string? role, bool? isBlocked, Guid? cityId,
+        int page, int pageSize, CancellationToken ct = default);
+
+    Task<AdminUserDetailDto> GetAdminUserDetailAsync(Guid userId, CancellationToken ct = default);
+
+    Task BlockUserAsync(Guid userId, CancellationToken ct = default);
+    Task UnblockUserAsync(Guid userId, CancellationToken ct = default);
+    Task<string> AdminResetPasswordAsync(Guid userId, CancellationToken ct = default);
 }

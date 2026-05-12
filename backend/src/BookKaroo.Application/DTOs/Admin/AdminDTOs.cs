@@ -237,3 +237,125 @@ public record AdminEventPagedResponse(
 // ── Venues (for event form dropdown) ─────────────────────────────────────────
 
 public record AdminVenueItem(Guid Id, string Name, string CityName);
+
+// ── Admin Bookings ────────────────────────────────────────────────────────────
+
+public record AdminBookingDto(
+    Guid      Id,
+    string    BookingRef,
+    string    Status,
+    decimal   AmountPaid,
+    decimal   Discount,
+    int       TicketQty,
+    decimal   ConvenienceFee,
+    decimal   Cgst,
+    decimal   Sgst,
+    decimal   Igst,
+    decimal   OfferProcessingFee,
+    DateTime  CreatedAt,
+    DateTime? CancelledAt,
+    string?   InvoiceUrl,
+    string?   QrUrl,
+    string?   InvoiceNumber,
+    Guid      UserId,
+    string    UserName,
+    string    UserEmail,
+    string    UserMobile,
+    string?   MovieTitle,
+    string?   PosterUrl,
+    string?   EventTitle,
+    DateOnly  ShowDate,
+    string    ShowDateLabel,
+    string    ShowTimeLabel,
+    string?   Format,
+    string?   Language,
+    string    VenueName,
+    string    ScreenName,
+    string    CityName,
+    string?   PaymentMethod,
+    string?   ProviderPaymentId,
+    string    PaymentStatus,
+    decimal?  RefundAmount,
+    string?   RefundId,
+    string    SeatsSummary);
+
+public record AdminBookingPagedResponse(
+    IReadOnlyList<AdminBookingDto> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalPages);
+
+public record AdminCancelBookingResponse(
+    string  BookingRef,
+    string  Status,
+    string  Message,
+    decimal RefundAmount);
+
+public record AdminRefundRequest(decimal RefundAmount);
+
+public record AdminRefundResponse(
+    string  BookingRef,
+    string  RefundId,
+    decimal RefundAmount,
+    string  Message);
+
+// ── Admin Users ───────────────────────────────────────────────────────────────
+
+public record AdminUserDto(
+    Guid      Id,
+    string    Name,
+    string    Email,
+    string    Mobile,
+    string?   Gender,
+    DateOnly? Dob,
+    string?   CityName,
+    string?   StateCode,
+    string    Role,
+    bool      IsBlocked,
+    bool      EmailVerified,
+    int       TotalBookings,
+    decimal   TotalSpent,
+    DateTime  CreatedAt,
+    string?   ProfilePicUrl,
+    string?   Preferences);
+
+public record AdminUserBookingSummaryDto(
+    string    BookingRef,
+    string    Status,
+    decimal   AmountPaid,
+    DateTime  CreatedAt,
+    int       TicketQty,
+    string?   MovieTitle,
+    string?   EventTitle,
+    DateOnly  ShowDate,
+    TimeOnly  ShowTime,
+    string    VenueName);
+
+public record AdminUserDetailDto(
+    Guid      Id,
+    string    Name,
+    string    Email,
+    string    Mobile,
+    string?   Gender,
+    DateOnly? Dob,
+    string?   CityName,
+    string?   StateCode,
+    string    Role,
+    bool      IsBlocked,
+    bool      EmailVerified,
+    int       TotalBookings,
+    decimal   TotalSpent,
+    DateTime  CreatedAt,
+    string?   ProfilePicUrl,
+    string?   Preferences,
+    List<AdminUserBookingSummaryDto> RecentBookings);
+
+public record AdminUserPagedResponse(
+    IReadOnlyList<AdminUserDto> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalPages);
+
+public record AdminResetPasswordResponse(string TempPassword);
