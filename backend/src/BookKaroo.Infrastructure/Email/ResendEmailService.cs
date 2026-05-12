@@ -154,6 +154,66 @@ public class ResendEmailService : IEmailService
             ct: ct);
     }
 
+    public async Task SendContactSupportAsync(
+        string name, string email, string subject, string message,
+        string? bookingRef, string supportEmail, CancellationToken ct = default)
+    {
+        var refLine = string.IsNullOrWhiteSpace(bookingRef)
+            ? string.Empty
+            : $"\nBooking Reference: {bookingRef}";
+
+        var text = $"""
+            New support request from BookKaroo Help page
+
+            Name: {name}
+            Email: {email}
+            Subject: {subject}{refLine}
+
+            Message:
+            {message}
+            """;
+
+        var html = $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <body style="margin:0;padding:0;background:#F4F4F5;font-family:sans-serif">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F4F5">
+                <tr><td align="center" style="padding:24px 16px">
+                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden">
+                    <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
+                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                      <div style="color:#A1A1AA;font-size:13px;margin-top:6px">Support Request</div>
+                    </td></tr>
+                    <tr><td style="padding:32px">
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4E4E7;border-radius:12px;margin-bottom:20px">
+                        <tr><td style="padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:13px;color:#71717A">Name</td><td style="padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:14px;font-weight:600;color:#18181B">{name}</td></tr>
+                        <tr><td style="padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:13px;color:#71717A">Email</td><td style="padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:14px;color:#18181B">{email}</td></tr>
+                        <tr><td style="padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:13px;color:#71717A">Subject</td><td style="padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:14px;color:#18181B">{subject}</td></tr>
+                        {(string.IsNullOrWhiteSpace(bookingRef) ? "" : $"<tr><td style=\"padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:13px;color:#71717A\">Booking Ref</td><td style=\"padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:14px;font-family:monospace;color:#18181B\">{bookingRef}</td></tr>")}
+                      </table>
+                      <div style="background:#F9FAFB;border-radius:8px;padding:16px;border-left:3px solid #E50914">
+                        <div style="font-size:12px;font-weight:700;color:#71717A;letter-spacing:1px;margin-bottom:8px">MESSAGE</div>
+                        <p style="color:#18181B;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap">{message}</p>
+                      </div>
+                    </td></tr>
+                    <tr><td align="center" style="background:#FAFAFA;padding:20px;color:#71717A;font-size:12px">
+                      © 2026 BookKaroo Pvt Ltd. All rights reserved.
+                    </td></tr>
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
+            """;
+
+        await SendAsync(
+            to: supportEmail,
+            subject: $"[BookKaroo Support] {subject}",
+            html: html,
+            text: text,
+            ct: ct);
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private async Task SendAsync(
