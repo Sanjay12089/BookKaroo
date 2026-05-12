@@ -10,25 +10,30 @@ namespace BookKaroo.Application.Services;
 
 public class SeatLockService : ISeatLockService
 {
-    private static readonly TimeSpan LockDuration = TimeSpan.FromMinutes(8);
-
-    private readonly ISeatLockRepository _lockRepo;
-    private readonly IBookingRepository  _bookingRepo;
+    private readonly ISeatLockRepository  _lockRepo;
+    private readonly IBookingRepository   _bookingRepo;
+    private readonly ISettingRepository   _settings;
     private readonly ILogger<SeatLockService> _logger;
 
     public SeatLockService(
         ISeatLockRepository      lockRepo,
         IBookingRepository       bookingRepo,
+        ISettingRepository       settings,
         ILogger<SeatLockService> logger)
     {
         _lockRepo    = lockRepo;
         _bookingRepo = bookingRepo;
+        _settings    = settings;
         _logger      = logger;
     }
 
     public async Task<SeatLockResponse> LockSeatsAsync(
         Guid userId, Guid showId, string[] seats, CancellationToken ct = default)
     {
+        var minutesStr   = await _settings.GetAsync("seat_lock_minutes", ct);
+        var lockMinutes  = double.TryParse(minutesStr, out var min) ? min : 8;
+        var lockDuration = TimeSpan.FromMinutes(lockMinutes);
+
         var newLocks = new List<SeatLock>();
 
         foreach (var seat in seats)
@@ -50,7 +55,7 @@ public class SeatLockService : ISeatLockService
                 continue;
             }
 
-            var expiresAt = DateTime.UtcNow.Add(LockDuration);
+            var expiresAt = DateTime.UtcNow.Add(lockDuration);
             var seatLock  = new SeatLock
             {
                 Id        = Guid.NewGuid(),
