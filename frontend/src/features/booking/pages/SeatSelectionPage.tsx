@@ -77,13 +77,14 @@ export default function SeatSelectionPage() {
   useShowRealtime(showId, onSeatLocked, onSeatUnlocked);
 
   // ── Lock expiry ────────────────────────────────────────────────────────────
-  const [remaining, setRemaining] = useState<number>(8 * 60);
+  const lockTotalSeconds = parseNum(publicSettings?.seat_lock_minutes, 8) * 60;
+  const [remaining, setRemaining] = useState<number>(lockTotalSeconds);
   const expiredRef = useRef(false);
 
   useEffect(() => {
     expiredRef.current = false;
     if (!lockExpiresAt) {
-      setRemaining(8 * 60);
+      setRemaining(lockTotalSeconds);
       return;
     }
     const tick = () => {
@@ -221,7 +222,7 @@ export default function SeatSelectionPage() {
 
         {lockExpiresAt && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface border border-border-strong">
-            <CountdownRing totalSeconds={8 * 60} remainingSeconds={remaining} size={44} strokeWidth={4} />
+            <CountdownRing totalSeconds={lockTotalSeconds} remainingSeconds={remaining} size={44} strokeWidth={4} />
             <div className="text-[10px] text-text-muted uppercase tracking-wider hidden sm:block">Hold expires</div>
           </div>
         )}
@@ -329,7 +330,7 @@ export default function SeatSelectionPage() {
             {/* Countdown on desktop */}
             {lockExpiresAt && (
               <div className="mt-4 p-4 rounded-xl bg-bg-surface border border-border-default flex items-center gap-3">
-                <CountdownRing totalSeconds={8 * 60} remainingSeconds={remaining} size={56} strokeWidth={5} />
+                <CountdownRing totalSeconds={lockTotalSeconds} remainingSeconds={remaining} size={56} strokeWidth={5} />
                 <div>
                   <p className="text-xs font-semibold text-text-primary">Seats held for</p>
                   <p className="text-[11px] text-text-muted">Hold expires in {Math.floor(remaining / 60)}m {remaining % 60}s</p>

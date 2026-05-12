@@ -108,6 +108,7 @@ export default function CheckoutPage() {
     convFeePerTicket: parseNum(publicSettings?.convenience_fee_per_ticket, 59),
     offerFeeBase:     parseNum(publicSettings?.offer_processing_fee, 15),
     companyStateCode: publicSettings?.company_state_code ?? '24',
+    gstRate:          parseNum(publicSettings?.gst_rate, 0.18),
   };
 
   const breakdown = calculatePricing(
