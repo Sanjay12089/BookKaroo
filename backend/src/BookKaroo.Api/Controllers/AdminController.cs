@@ -132,4 +132,115 @@ public class AdminController : ControllerBase
     [HttpGet("venues")]
     public async Task<IActionResult> GetVenues(CancellationToken ct) =>
         Ok(await _admin.GetVenuesAsync(ct));
+
+    // ── Admin Bookings ────────────────────────────────────────────────────────
+
+    [HttpGet("bookings")]
+    public async Task<IActionResult> GetBookings(
+        [FromQuery] string?  search,
+        [FromQuery] string?  status,
+        [FromQuery] Guid?    movieId,
+        [FromQuery] Guid?    cityId,
+        [FromQuery] string?  fromDate,
+        [FromQuery] string?  toDate,
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        DateOnly? from = DateOnly.TryParse(fromDate, out var fd) ? fd : null;
+        DateOnly? to   = DateOnly.TryParse(toDate,   out var td) ? td : null;
+        return Ok(await _admin.GetAdminBookingsAsync(search, status, movieId, cityId, from, to, page, pageSize, ct));
+    }
+
+    [HttpGet("bookings/{bookingRef}")]
+    public async Task<IActionResult> GetBookingDetail(string bookingRef, CancellationToken ct)
+    {
+        try { return Ok(await _admin.GetAdminBookingDetailAsync(bookingRef, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpPost("bookings/{bookingRef}/cancel")]
+    public async Task<IActionResult> CancelBooking(string bookingRef, CancellationToken ct)
+    {
+        try { return Ok(await _admin.AdminCancelBookingAsync(bookingRef, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (InvalidOperationException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    [HttpPost("bookings/{bookingRef}/refund")]
+    public async Task<IActionResult> ProcessRefund(
+        string bookingRef,
+        [FromBody] AdminRefundRequest req,
+        CancellationToken ct)
+    {
+        if (req.RefundAmount <= 0)
+            return BadRequest(new { error = "RefundAmount must be greater than zero." });
+        try { return Ok(await _admin.AdminProcessRefundAsync(bookingRef, req.RefundAmount, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+        catch (ArgumentException ex) { return BadRequest(new { error = ex.Message }); }
+    }
+
+    [HttpPost("bookings/{bookingRef}/resend-email")]
+    public async Task<IActionResult> ResendBookingEmail(string bookingRef, CancellationToken ct)
+    {
+        try
+        {
+            await _admin.ResendBookingEmailAsync(bookingRef, ct);
+            return Ok(new { message = "Confirmation email resent" });
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    // ── Admin Users ───────────────────────────────────────────────────────────
+
+    [HttpGet("users")]
+    public async Task<IActionResult> GetUsers(
+        [FromQuery] string? search,
+        [FromQuery] string? role,
+        [FromQuery] bool?   isBlocked,
+        [FromQuery] Guid?   cityId,
+        [FromQuery] int page     = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default) =>
+        Ok(await _admin.GetAdminUsersAsync(search, role, isBlocked, cityId, page, pageSize, ct));
+
+    [HttpGet("users/{id:guid}")]
+    public async Task<IActionResult> GetUserDetail(Guid id, CancellationToken ct)
+    {
+        try { return Ok(await _admin.GetAdminUserDetailAsync(id, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpPost("users/{id:guid}/block")]
+    public async Task<IActionResult> BlockUser(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _admin.BlockUserAsync(id, ct);
+            return Ok(new { message = "User has been blocked" });
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpPost("users/{id:guid}/unblock")]
+    public async Task<IActionResult> UnblockUser(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            await _admin.UnblockUserAsync(id, ct);
+            return Ok(new { message = "User has been unblocked" });
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpPost("users/{id:guid}/reset-password")]
+    public async Task<IActionResult> ResetPassword(Guid id, CancellationToken ct)
+    {
+        try
+        {
+            var tempPassword = await _admin.AdminResetPasswordAsync(id, ct);
+            return Ok(new { tempPassword });
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
 }

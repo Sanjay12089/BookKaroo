@@ -18,10 +18,11 @@ public class AdminService : IAdminService
     private readonly ITmdbService        _tmdb;
     private readonly IHttpClientFactory  _http;
     private readonly ILogger<AdminService> _logger;
-
-    // Injected via IRepository<Venue> — registered in DI as IRepository<Venue>
     private readonly IRepository<Venue>  _venues;
     private readonly ICityRepository     _cities;
+    private readonly IBookingRepository  _bookings;
+    private readonly IUserRepository     _users;
+    private readonly IEmailService       _email;
 
     public AdminService(
         IMovieRepository     movies,
@@ -32,7 +33,10 @@ public class AdminService : IAdminService
         IHttpClientFactory   http,
         ILogger<AdminService> logger,
         IRepository<Venue>   venues,
-        ICityRepository      cities)
+        ICityRepository      cities,
+        IBookingRepository   bookings,
+        IUserRepository      users,
+        IEmailService        email)
     {
         _movies    = movies;
         _events    = events;
@@ -43,6 +47,9 @@ public class AdminService : IAdminService
         _logger    = logger;
         _venues    = venues;
         _cities    = cities;
+        _bookings  = bookings;
+        _users     = users;
+        _email     = email;
     }
 
     // ── Legacy TMDB poster sync ───────────────────────────────────────────────
@@ -584,5 +591,131 @@ public class AdminService : IAdminService
             e.Organizer, e.Artists, e.PriceTiers,
             e.PosterUrl, e.BackdropUrl,
             e.Status.ToString(), e.CreatedAt, e.UpdatedAt);
+    }
+
+    // ── Admin Bookings ────────────────────────────────────────────────────────
+
+    public async Task<AdminBookingPagedResponse> GetAdminBookingsAsync(
+        string? search, string? status, Guid? movieId, Guid? cityId,
+        DateOnly? fromDate, DateOnly? toDate,
+        int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _bookings.GetAllAdminAsync(
+            search, status, movieId, cityId, fromDate, toDate, page, pageSize, ct);
+        return new AdminBookingPagedResponse(items, total, page, pageSize,
+            (int)Math.Ceiling((double)total / pageSize));
+    }
+
+    public async Task<AdminBookingDto> GetAdminBookingDetailAsync(string bookingRef, CancellationToken ct = default)
+    {
+        var detail = await _bookings.GetBookingDetailAdminAsync(bookingRef, ct)
+            ?? throw new KeyNotFoundException($"Booking {bookingRef} not found.");
+        return detail;
+    }
+
+    public async Task<AdminCancelBookingResponse> AdminCancelBookingAsync(
+        string bookingRef, CancellationToken ct = default)
+    {
+        var booking = await _bookings.GetByRefAsync(bookingRef, ct)
+            ?? throw new KeyNotFoundException($"Booking {bookingRef} not found.");
+
+        // Snapshot user BEFORE cancellation for email
+        var user = await _users.GetByIdAsync(booking.UserId, ct);
+
+        var (cancelledBooking, refundAmount, _) = await _bookings.AdminCancelBookingAsync(booking.Id, ct);
+
+        if (user != null)
+        {
+            _ = Task.Run(async () =>
+            {
+                try { await _email.SendBookingCancelledAsync(cancelledBooking, user, refundAmount); }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to send cancel email for {Ref}", bookingRef); }
+            });
+        }
+
+        await _audit.LogAsync(null, "admin_cancel", "booking", booking.Id, null,
+            new { bookingRef, refundAmount }, null, ct);
+
+        return new AdminCancelBookingResponse(
+            bookingRef, "Cancelled",
+            refundAmount > 0
+                ? $"Booking cancelled. Refund of ₹{refundAmount:F2} will be processed."
+                : "Booking cancelled. No refund applicable.",
+            refundAmount);
+    }
+
+    public async Task<AdminRefundResponse> AdminProcessRefundAsync(
+        string bookingRef, decimal refundAmount, CancellationToken ct = default)
+    {
+        var booking = await _bookings.GetByRefAsync(bookingRef, ct)
+            ?? throw new KeyNotFoundException($"Booking {bookingRef} not found.");
+
+        var (refId, _) = await _bookings.AdminProcessRefundAsync(booking.Id, refundAmount, ct);
+
+        await _audit.LogAsync(null, "refund", "booking", booking.Id, null,
+            new { bookingRef, refundAmount }, null, ct);
+
+        return new AdminRefundResponse(
+            bookingRef, refId, refundAmount,
+            $"Refund of ₹{refundAmount:F2} processed successfully.");
+    }
+
+    public async Task ResendBookingEmailAsync(string bookingRef, CancellationToken ct = default)
+    {
+        var booking = await _bookings.GetByRefAsync(bookingRef, ct)
+            ?? throw new KeyNotFoundException($"Booking {bookingRef} not found.");
+
+        var user = await _users.GetByIdAsync(booking.UserId, ct)
+            ?? throw new KeyNotFoundException("User not found.");
+
+        // Fire-and-forget resend (confirmation email is the stored one)
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await _email.SendBookingCancelledAsync(booking, user, 0);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to resend email for {Ref}", bookingRef);
+            }
+        });
+    }
+
+    // ── Admin Users ───────────────────────────────────────────────────────────
+
+    public async Task<AdminUserPagedResponse> GetAdminUsersAsync(
+        string? search, string? role, bool? isBlocked, Guid? cityId,
+        int page, int pageSize, CancellationToken ct = default)
+    {
+        var (items, total) = await _users.GetAllAdminAsync(
+            search, role, isBlocked, cityId, page, pageSize, ct);
+        return new AdminUserPagedResponse(items, total, page, pageSize,
+            (int)Math.Ceiling((double)total / pageSize));
+    }
+
+    public async Task<AdminUserDetailDto> GetAdminUserDetailAsync(Guid userId, CancellationToken ct = default)
+    {
+        return await _users.GetUserWithBookingsAsync(userId, ct)
+            ?? throw new KeyNotFoundException($"User {userId} not found.");
+    }
+
+    public async Task BlockUserAsync(Guid userId, CancellationToken ct = default)
+    {
+        await _users.BlockUserAsync(userId, ct);
+        await _audit.LogAsync(null, "block", "user", userId, null, null, null, ct);
+    }
+
+    public async Task UnblockUserAsync(Guid userId, CancellationToken ct = default)
+    {
+        await _users.UnblockUserAsync(userId, ct);
+        await _audit.LogAsync(null, "unblock", "user", userId, null, null, null, ct);
+    }
+
+    public async Task<string> AdminResetPasswordAsync(Guid userId, CancellationToken ct = default)
+    {
+        var tempPassword = await _users.AdminResetPasswordAsync(userId, ct);
+        await _audit.LogAsync(null, "reset_password", "user", userId, null, null, null, ct);
+        return tempPassword;
     }
 }
