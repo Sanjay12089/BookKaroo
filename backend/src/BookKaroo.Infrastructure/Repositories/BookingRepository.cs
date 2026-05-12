@@ -70,13 +70,22 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
         var userIds    = allBookings.Select(b => b.UserId).Distinct().ToList();
 
         // 2. Load related data sequentially (no Task.WhenAll — shared DbContext)
-        var shows   = await _db.Shows  .Where(s => showIds.Contains(s.Id)).ToListAsync(ct);
-        var users   = await _db.Users  .Where(u => userIds.Contains(u.Id)).ToListAsync(ct);
-        var movies  = await _db.Movies .Where(m => shows.Where(s => s.MovieId.HasValue).Select(s => s.MovieId!.Value).Contains(m.Id)).ToListAsync(ct);
-        var events  = await _db.Events .Where(e => shows.Where(s => s.EventId.HasValue).Select(s => s.EventId!.Value).Contains(e.Id)).ToListAsync(ct);
-        var venues  = await _db.Venues .Where(v => shows.Select(s => s.VenueId).Contains(v.Id)).ToListAsync(ct);
-        var screens = await _db.Screens.Where(s => shows.Select(sh => sh.ScreenId).Contains(s.Id)).ToListAsync(ct);
-        var cities  = await _db.Cities .Where(c => venues.Select(v => v.CityId).Contains(c.Id)).ToListAsync(ct);
+        //    Materialize local ID lists before passing to EF Core Contains to avoid translation errors
+        var shows   = await _db.Shows.Where(s => showIds.Contains(s.Id)).ToListAsync(ct);
+        var users   = await _db.Users.Where(u => userIds.Contains(u.Id)).ToListAsync(ct);
+
+        var movieIds  = shows.Where(s => s.MovieId.HasValue).Select(s => s.MovieId!.Value).Distinct().ToList();
+        var eventIds  = shows.Where(s => s.EventId.HasValue).Select(s => s.EventId!.Value).Distinct().ToList();
+        var venueIds  = shows.Select(s => s.VenueId).Distinct().ToList();
+        var screenIds = shows.Select(s => s.ScreenId).Distinct().ToList();
+
+        var movies  = movieIds.Count  > 0 ? await _db.Movies .Where(m => movieIds .Contains(m.Id)).ToListAsync(ct) : new List<Movie>();
+        var events  = eventIds.Count  > 0 ? await _db.Events .Where(e => eventIds .Contains(e.Id)).ToListAsync(ct) : new List<Event>();
+        var venues  = venueIds.Count  > 0 ? await _db.Venues .Where(v => venueIds .Contains(v.Id)).ToListAsync(ct) : new List<Venue>();
+        var screens = screenIds.Count > 0 ? await _db.Screens.Where(s => screenIds.Contains(s.Id)).ToListAsync(ct) : new List<Screen>();
+
+        var cityIds = venues.Select(v => v.CityId).Distinct().ToList();
+        var cities  = cityIds.Count > 0 ? await _db.Cities.Where(c => cityIds.Contains(c.Id)).ToListAsync(ct) : new List<City>();
         var payments = await _db.Payments.Where(p => bookingIds.Contains(p.BookingId)).ToListAsync(ct);
         var bookingSeats = await _db.BookingSeats.Where(bs => bookingIds.Contains(bs.BookingId)).ToListAsync(ct);
 
