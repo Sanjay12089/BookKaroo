@@ -47,6 +47,7 @@ const SignupPage          = lazy(() => import('@/features/auth/pages/SignupPage'
 const ForgotPasswordPage  = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
 const ResetPasswordPage   = lazy(() => import('@/features/auth/pages/ResetPasswordPage'));
 const HelpPage           = lazy(() => import('@/features/help/pages/HelpPage'));
+const FaqPage            = lazy(() => import('@/features/help/pages/FaqPage'));
 // Protected
 const SeatSelectionPage  = lazy(() => import('@/features/booking/pages/SeatSelectionPage'));
 const CheckoutPage       = lazy(() => import('@/features/booking/pages/CheckoutPage'));
@@ -101,6 +102,7 @@ export const router = createBrowserRouter([
   { path: '/forgot-password',     element: S(ForgotPasswordPage) },
   { path: '/reset-password',      element: S(ResetPasswordPage) },
   { path: '/help',                element: S(HelpPage) },
+  { path: '/help/faq',           element: S(FaqPage) },
 
   // Protected
   {
