@@ -22,6 +22,9 @@ public class AdminService : IAdminService
     private readonly IScreenRepository   _screenRepo;
     private readonly IShowRepository     _showRepo;
     private readonly ICityRepository     _cities;
+    private readonly IBookingRepository  _bookings;
+    private readonly IUserRepository     _users;
+    private readonly IEmailService       _email;
 
     // Keep legacy reference for event form dropdown (uses IRepository<Venue>)
     private readonly IRepository<Venue>  _venues;
@@ -37,7 +40,10 @@ public class AdminService : IAdminService
         IVenueRepository     venueRepo,
         IScreenRepository    screenRepo,
         IShowRepository      showRepo,
-        ICityRepository      cities)
+        ICityRepository      cities,
+        IBookingRepository   bookings,
+        IUserRepository      users,
+        IEmailService        email)
     {
         _movies     = movies;
         _events     = events;
@@ -48,6 +54,9 @@ public class AdminService : IAdminService
         _logger     = logger;
         _venueRepo  = venueRepo;
         _screenRepo = screenRepo;
+        _bookings   = bookings;
+        _users      = users;
+        _email      = email;
         _showRepo   = showRepo;
         _cities     = cities;
         _venues     = venueRepo; // IVenueRepository extends IRepository<Venue>
@@ -686,10 +695,33 @@ public class AdminService : IAdminService
         if (show.Status == ShowStatus.Completed)
             throw new ArgumentException("Cannot cancel a completed show.");
 
+        // Snapshot confirmed bookings BEFORE cancellation so we can notify users
+        var confirmedBookings = (await _bookings.GetByShowAsync(showId, ct))
+            .Where(b => b.Status == BookingStatus.Confirmed || b.Status == BookingStatus.Pending)
+            .ToList();
+
         var cancelledCount = await _showRepo.CancelAsync(showId, ct);
 
         await _audit.LogAsync(null, "cancel", "show", showId, null,
             new { cancelledBookings = cancelledCount }, null, ct);
+
+        // Send cancellation emails in the background — don't block the response
+        _ = Task.Run(async () =>
+        {
+            foreach (var booking in confirmedBookings)
+            {
+                try
+                {
+                    var user = await _users.GetByIdAsync(booking.UserId);
+                    if (user != null)
+                        await _email.SendBookingCancelledAsync(booking, user, 0, ct);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to send cancellation email for booking {Ref}", booking.BookingRef);
+                }
+            }
+        }, ct);
 
         return new CancelShowResponse(showId, cancelledCount,
             $"Show cancelled. {cancelledCount} booking(s) have been cancelled.");
