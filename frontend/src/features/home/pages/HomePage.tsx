@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { HeroCarousel } from '../components/HeroCarousel';
 import { MovieRail } from '../components/MovieRail';
@@ -54,6 +55,7 @@ export default function HomePage() {
 
   return (
     <PublicLayout>
+      <Helmet><title>BookKaroo — Book the moment. Karo it now.</title></Helmet>
       {/* Hero */}
       <HeroCarousel movies={heroMovies} isLoading={isLoading} />
 

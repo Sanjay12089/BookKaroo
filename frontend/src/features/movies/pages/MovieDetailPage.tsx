@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Bell, X, Star, ThumbsUp, ThumbsDown, BadgeCheck } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
@@ -45,6 +46,7 @@ export default function MovieDetailPage() {
 
   return (
     <PublicLayout>
+      <Helmet><title>{movie.title} | BookKaroo</title></Helmet>
       {/* ── HERO BACKDROP ──────────────────────────────────────────────── */}
       <div className="relative h-[400px] md:h-[500px] overflow-hidden">
         {backdropUrl && (
