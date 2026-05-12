@@ -384,4 +384,134 @@ public class AdminController : ControllerBase
         }
         catch (KeyNotFoundException) { return NotFound(); }
     }
+
+    // ── Reports ───────────────────────────────────────────────────────────────
+
+    [HttpGet("reports/bookings")]
+    public async Task<IActionResult> GetBookingReport(
+        [FromQuery] string   fromDate,
+        [FromQuery] string   toDate,
+        [FromQuery] string   groupBy  = "day",
+        [FromQuery] Guid?    cityId   = null,
+        [FromQuery] Guid?    movieId  = null,
+        [FromQuery] Guid?    venueId  = null,
+        CancellationToken ct = default)
+    {
+        if (!DateOnly.TryParse(fromDate, out var from) || !DateOnly.TryParse(toDate, out var to))
+            return BadRequest(new { error = "Invalid fromDate or toDate. Use yyyy-MM-dd." });
+        return Ok(await _admin.GetBookingReportAsync(from, to, groupBy, cityId, movieId, venueId, ct));
+    }
+
+    [HttpGet("reports/bookings/export")]
+    public async Task<IActionResult> ExportBookingReport(
+        [FromQuery] string fromDate,
+        [FromQuery] string toDate,
+        [FromQuery] string groupBy = "day",
+        [FromQuery] Guid?  cityId  = null,
+        [FromQuery] Guid?  movieId = null,
+        [FromQuery] Guid?  venueId = null,
+        CancellationToken ct = default)
+    {
+        if (!DateOnly.TryParse(fromDate, out var from) || !DateOnly.TryParse(toDate, out var to))
+            return BadRequest(new { error = "Invalid fromDate or toDate." });
+        var bytes = await _admin.ExportBookingReportCsvAsync(from, to, groupBy, cityId, movieId, venueId, ct);
+        return File(bytes, "text/csv", $"bookings-report-{from:yyyyMMdd}-{to:yyyyMMdd}.csv");
+    }
+
+    [HttpGet("reports/users")]
+    public async Task<IActionResult> GetUserReport(
+        [FromQuery] string fromDate,
+        [FromQuery] string toDate,
+        [FromQuery] string groupBy = "day",
+        CancellationToken ct = default)
+    {
+        if (!DateOnly.TryParse(fromDate, out var from) || !DateOnly.TryParse(toDate, out var to))
+            return BadRequest(new { error = "Invalid fromDate or toDate. Use yyyy-MM-dd." });
+        return Ok(await _admin.GetUserAcquisitionReportAsync(from, to, groupBy, ct));
+    }
+
+    [HttpGet("reports/users/export")]
+    public async Task<IActionResult> ExportUserReport(
+        [FromQuery] string fromDate,
+        [FromQuery] string toDate,
+        [FromQuery] string groupBy = "day",
+        CancellationToken ct = default)
+    {
+        if (!DateOnly.TryParse(fromDate, out var from) || !DateOnly.TryParse(toDate, out var to))
+            return BadRequest(new { error = "Invalid fromDate or toDate." });
+        var bytes = await _admin.ExportUserReportCsvAsync(from, to, groupBy, ct);
+        return File(bytes, "text/csv", $"users-report-{from:yyyyMMdd}-{to:yyyyMMdd}.csv");
+    }
+
+    // ── CMS Banners ───────────────────────────────────────────────────────────
+
+    [HttpGet("banners")]
+    public async Task<IActionResult> GetBanners(CancellationToken ct) =>
+        Ok(await _admin.GetBannersAdminAsync(ct));
+
+    [HttpGet("banners/{id:guid}")]
+    public async Task<IActionResult> GetBanner(Guid id, CancellationToken ct)
+    {
+        try { return Ok(await _admin.GetBannerByIdAsync(id, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpPost("banners")]
+    public async Task<IActionResult> CreateBanner([FromBody] CreateBannerRequest req, CancellationToken ct)
+    {
+        var result = await _admin.CreateBannerAsync(req, ct);
+        return Created($"/api/admin/banners/{result.Id}", result);
+    }
+
+    [HttpPatch("banners/{id:guid}")]
+    public async Task<IActionResult> UpdateBanner(Guid id, [FromBody] UpdateBannerRequest req, CancellationToken ct)
+    {
+        try { return Ok(await _admin.UpdateBannerAsync(id, req, ct)); }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpDelete("banners/{id:guid}")]
+    public async Task<IActionResult> DeleteBanner(Guid id, CancellationToken ct)
+    {
+        try { await _admin.DeleteBannerAsync(id, ct); return NoContent(); }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    [HttpPost("banners/reorder")]
+    public async Task<IActionResult> ReorderBanners([FromBody] ReorderBannersRequest req, CancellationToken ct)
+    {
+        await _admin.ReorderBannersAsync(req.OrderedIds, ct);
+        return Ok(new { message = "Banners reordered" });
+    }
+
+    [HttpPatch("banners/{id:guid}/toggle")]
+    public async Task<IActionResult> ToggleBanner(Guid id, [FromBody] ToggleBannerRequest req, CancellationToken ct)
+    {
+        await _admin.ToggleBannerAsync(id, req.IsActive, ct);
+        return Ok();
+    }
+
+    // ── Settings ──────────────────────────────────────────────────────────────
+
+    [HttpGet("settings")]
+    public async Task<IActionResult> GetSettings(CancellationToken ct) =>
+        Ok(await _admin.GetAllSettingsAsync(ct));
+
+    [HttpGet("settings/{key}")]
+    public async Task<IActionResult> GetSetting(string key, CancellationToken ct)
+    {
+        var result = await _admin.GetSettingAsync(key, ct);
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    [HttpPatch("settings/{key}")]
+    public async Task<IActionResult> UpdateSetting(string key, [FromBody] UpdateSettingValueRequest req, CancellationToken ct) =>
+        Ok(await _admin.UpdateSettingAsync(key, req.Value, ct));
+
+    [HttpPost("settings/batch")]
+    public async Task<IActionResult> UpdateSettingsBatch([FromBody] BatchUpdateSettingsRequest req, CancellationToken ct)
+    {
+        await _admin.UpdateMultipleSettingsAsync(req.Settings, ct);
+        return Ok(new { message = "Settings updated", count = req.Settings.Count });
+    }
 }
