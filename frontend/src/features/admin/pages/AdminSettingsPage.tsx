@@ -6,8 +6,17 @@ import type { SettingItem } from '../types';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+// Settings values are stored either as JSON strings ('"BookKaroo Pvt Ltd"')
+// or as raw numbers ('59.00', '2'). JSON.parse returns the correct type;
+// only keep the parsed result when it's already a string (i.e. strip quotes).
+// For numbers / booleans, return the original raw string so formValues stays string-typed.
 function getNestedValue(val: string): string {
-  try { return JSON.parse(val) as string; } catch { return val; }
+  try {
+    const parsed = JSON.parse(val);
+    return typeof parsed === 'string' ? parsed : val;
+  } catch {
+    return val;
+  }
 }
 
 // ── Input Classes ─────────────────────────────────────────────────────────────
@@ -104,7 +113,12 @@ export default function AdminSettingsPage() {
   const get = (key: string) => formValues[key] ?? '';
 
   const handleSaveAll = async () => {
-    await batchUpdate.mutateAsync(formValues);
+    // Ensure every value is a plain string — numeric inputs (type="number")
+    // can leave JS numbers in formValues if initialisation didn't coerce them.
+    const payload: Record<string, string> = Object.fromEntries(
+      Object.entries(formValues).map(([k, v]) => [k, String(v)])
+    );
+    await batchUpdate.mutateAsync(payload);
     setDbValues(formValues);
     setIsDirty(false);
   };
