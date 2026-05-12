@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, X, Search } from 'lucide-react';
 import { AdminLayout } from '@/shared/components/layout/AdminLayout';
 import { AdminTable, type Column } from '../components/AdminTable';
 import { Modal } from '@/shared/components/ui/Modal';
-import { useAdminShows, useCancelShow, useDeleteShow } from '../api/useAdmin';
+import { useAdminShows, useCancelShow, useDeleteShow, useAdminVenuesList } from '../api/useAdmin';
 import { ShowFormModal } from '../components/ShowFormModal';
 import type { AdminShow, AdminShowFilters } from '../types';
 
@@ -34,13 +34,26 @@ export default function AdminShowsPage() {
     venueId:  venueId  || undefined,
   };
 
+  const [search, setSearch] = useState('');
+
   const { data, isLoading } = useAdminShows(filters, page);
   const cancelShow  = useCancelShow();
   const deleteShow  = useDeleteShow();
+  const { data: venuesList } = useAdminVenuesList();
 
-  const shows = data?.items ?? [];
+  const allShows = data?.items ?? [];
+  const shows = search.trim()
+    ? allShows.filter((s) => {
+        const q = search.toLowerCase();
+        return (s.movieTitle ?? '').toLowerCase().includes(q)
+          || (s.eventTitle ?? '').toLowerCase().includes(q)
+          || s.venueName.toLowerCase().includes(q)
+          || (s.format ?? '').toLowerCase().includes(q)
+          || (s.language ?? '').toLowerCase().includes(q);
+      })
+    : allShows;
 
-  const isDefaultFilter = statusTab === 'Scheduled' && fromDate === todayStr && toDate === in30Str && !venueId;
+  const isDefaultFilter = statusTab === 'Scheduled' && fromDate === todayStr && toDate === in30Str && !venueId && !search;
 
   const columns: Column<AdminShow>[] = [
     {
@@ -179,30 +192,62 @@ export default function AdminShowsPage() {
 
         {/* Filter bar */}
         <div className="space-y-3 mb-4">
-          {/* Status tabs */}
-          <div className="flex gap-1">
+          {/* Status tabs — underline style */}
+          <div className="flex border-b border-border-default">
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab}
                 onClick={() => { setStatusTab(tab); setPage(1); }}
-                className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${statusTab === tab ? 'bg-accent-indigo text-white' : 'bg-bg-surface2 text-text-secondary hover:bg-bg-surface3'}`}
+                className={`relative px-4 py-2.5 text-sm font-semibold transition-colors whitespace-nowrap ${
+                  statusTab === tab
+                    ? 'text-accent-indigo'
+                    : 'text-text-muted hover:text-text-secondary'
+                }`}
               >
                 {tab}
+                {statusTab === tab && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent-indigo rounded-t-full" />
+                )}
               </button>
             ))}
           </div>
-          {/* Date range + venue */}
+
+          {/* Search + Date range + Venue */}
           <div className="flex flex-wrap gap-3">
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-text-muted">From</label>
-              <input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPage(1); }} className="px-2 py-1.5 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
+            {/* General search */}
+            <div className="relative flex-1 min-w-48">
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search movie, event, venue, format…"
+                className="w-full pl-8 pr-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+              />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-text-muted">To</label>
-              <input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPage(1); }} className="px-2 py-1.5 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
+              <label className="text-sm text-text-muted whitespace-nowrap">From</label>
+              <input type="date" value={fromDate} onChange={(e) => { setFromDate(e.target.value); setPage(1); }} className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
             </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-text-muted whitespace-nowrap">To</label>
+              <input type="date" value={toDate} onChange={(e) => { setToDate(e.target.value); setPage(1); }} className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
+            </div>
+            {/* Venue filter */}
+            <select
+              value={venueId}
+              onChange={(e) => { setVenueId(e.target.value); setPage(1); }}
+              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+            >
+              <option value="">All Venues</option>
+              {venuesList?.map((v) => (
+                <option key={v.id} value={v.id}>{v.name} ({v.cityName})</option>
+              ))}
+            </select>
             {!isDefaultFilter && (
-              <button onClick={() => { setStatusTab('Scheduled'); setFromDate(todayStr); setToDate(in30Str); setVenueId(''); setPage(1); }} className="text-sm text-accent-indigo hover:underline flex items-center gap-1">
+              <button
+                onClick={() => { setStatusTab('Scheduled'); setFromDate(todayStr); setToDate(in30Str); setVenueId(''); setSearch(''); setPage(1); }}
+                className="text-sm text-accent-indigo hover:underline flex items-center gap-1 whitespace-nowrap"
+              >
                 <X size={12} /> Clear filters
               </button>
             )}

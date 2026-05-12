@@ -221,12 +221,22 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
                   type="button"
                   onClick={() => toggleAmenity(a.value)}
                   className={cn(
-                    'px-3 py-2 rounded-lg text-sm border-2 text-left transition-all',
+                    'flex items-center gap-2 px-3 py-2 rounded-lg text-sm border-2 text-left transition-all',
                     active
-                      ? 'border-accent-crimson bg-accent-crimson text-white'
+                      ? 'border-accent-crimson bg-accent-crimson/15 text-accent-crimson font-semibold'
                       : 'border-border-default bg-bg-surface2 text-text-secondary hover:border-accent-indigo'
                   )}
-                >{a.label}</button>
+                >
+                  <span className={cn(
+                    'flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] font-bold transition-all',
+                    active
+                      ? 'border-accent-crimson bg-accent-crimson text-white'
+                      : 'border-border-default'
+                  )}>
+                    {active ? '✓' : ''}
+                  </span>
+                  {a.label}
+                </button>
               );
             })}
           </div>
@@ -239,32 +249,44 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
             control={control}
             name="isActive"
             render={({ field }) => (
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => field.onChange(!field.value)}
-                  className={cn(
-                    'relative w-12 h-6 rounded-full transition-colors',
-                    field.value ? 'bg-semantic-success' : 'bg-bg-surface3'
-                  )}
-                >
-                  <span className={cn(
-                    'absolute top-1 w-4 h-4 rounded-full bg-white transition-transform',
-                    field.value ? 'translate-x-7' : 'translate-x-1'
+              <div
+                className="flex items-center gap-3 cursor-pointer select-none w-fit"
+                onClick={() => field.onChange(!field.value)}
+              >
+                <div className={cn(
+                  'relative w-14 h-7 rounded-full transition-colors duration-200 flex-shrink-0',
+                  field.value ? 'bg-semantic-success' : 'bg-bg-surface3 border border-border-default'
+                )}>
+                  <div className={cn(
+                    'absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-sm transition-transform duration-200',
+                    field.value ? 'translate-x-[28px]' : 'translate-x-[3px]'
                   )} />
-                </button>
-                <span className="text-sm text-text-primary">{field.value ? 'Active' : 'Inactive'}</span>
+                </div>
+                <span className={cn(
+                  'text-sm font-medium',
+                  field.value ? 'text-semantic-success' : 'text-text-muted'
+                )}>
+                  {field.value ? 'Active' : 'Inactive'}
+                </span>
               </div>
             )}
           />
         </section>
 
         {/* Footer */}
-        <div className="flex gap-3 pt-2 sticky bottom-0 bg-bg-surface pb-1">
-          <button type="button" onClick={onClose} className="flex-1 sm:flex-none px-4 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm font-sans">
+        <div className="flex gap-3 pt-3 border-t border-border-default sticky bottom-0 bg-bg-surface pb-1">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 hover:text-text-primary transition-colors text-sm font-semibold font-sans"
+          >
             Cancel
           </button>
-          <button type="submit" disabled={isLoading} className="flex-1 px-4 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity">
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="flex-1 px-5 py-2.5 rounded-lg bg-accent-crimson text-white text-sm font-bold font-sans disabled:opacity-60 hover:opacity-90 transition-opacity shadow-sm"
+          >
             {isLoading ? 'Saving…' : mode === 'create' ? 'Create Venue' : 'Save Changes'}
           </button>
         </div>

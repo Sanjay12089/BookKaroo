@@ -3,7 +3,6 @@ import { X } from 'lucide-react';
 import { Modal } from '@/shared/components/ui/Modal';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
-import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useCreateShow, useAdminVenueDetail } from '../api/useAdmin';
 import type { AdminVenue } from '../types';
 
@@ -34,15 +33,20 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
   const [language, setLanguage]   = useState('Hindi');
   const [conflict, setConflict]   = useState<'checking' | 'clear' | 'conflict' | null>(null);
 
-  const debouncedSearch = useDebounce(movieSearch, 400);
   const today = new Date().toISOString().split('T')[0];
 
-  const { data: movies } = useQuery<{ items: Movie[] }>({
-    queryKey: ['admin-movie-search', debouncedSearch],
+  // Load ALL published movies once; filter client-side by search
+  const { data: allMovies } = useQuery<{ items: Movie[] }>({
+    queryKey: ['admin-movies-published'],
     queryFn: () =>
-      api.get('/api/movies', { params: { status: 'Published', pageSize: 30, q: debouncedSearch } }).then((r) => r.data),
+      api.get('/api/admin/movies', { params: { status: 'Published', pageSize: 200 } }).then((r) => r.data),
+    staleTime: 5 * 60_000,
     enabled: type === 'movie',
   });
+
+  const filteredMovies = (allMovies?.items ?? []).filter((m) =>
+    !movieSearch.trim() || m.title.toLowerCase().includes(movieSearch.toLowerCase())
+  );
 
   const { data: events } = useQuery<{ items: Event[] }>({
     queryKey: ['admin-events-published'],
@@ -61,27 +65,37 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
   const { data: venueDetail } = useAdminVenueDetail(venueId || null);
   const screens = venueDetail?.screens ?? [];
 
-  // Conflict check
-  const { data: existingShows } = useQuery<{ items: Array<{ showTimeLabel: string; screenName: string }> }>({
+  // Convert 12h showTimeLabel (e.g. "10:30 AM") to 24h "HH:mm"
+  function showTimeLabelTo24h(label: string): string {
+    const parts = label.trim().split(' ');
+    if (parts.length < 2) return label.substring(0, 5);
+    const [time, ampm] = parts;
+    const [h, m] = time.split(':').map(Number);
+    let hour = h;
+    if (ampm.toUpperCase() === 'PM' && h !== 12) hour += 12;
+    if (ampm.toUpperCase() === 'AM' && h === 12) hour = 0;
+    return `${hour.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+  }
+
+  // Conflict check — fetch all shows for the screen+date, compare input time
+  const { data: existingShows } = useQuery<{ items: Array<{ showTimeLabel: string }> }>({
     queryKey: ['admin-shows-conflict', screenId, showDate],
     queryFn: () =>
       api.get('/api/admin/shows', { params: { screenId, fromDate: showDate, toDate: showDate, pageSize: 50 } }).then((r) => r.data),
     enabled: !!(screenId && showDate),
+    staleTime: 0,
   });
 
   useEffect(() => {
     if (!screenId || !showDate || !showTime) { setConflict(null); return; }
-    setConflict('checking');
-    const timer = setTimeout(() => {
-      const norm = showTime.length === 5 ? showTime + ':00' : showTime;
-      const d = new Date(`${showDate}T${norm}`);
-      const timeLabel = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-      const hasConflict = existingShows?.items?.some((s) =>
-        s.showTimeLabel?.replace(' ', '').toLowerCase() === timeLabel.replace(' ', '').toLowerCase()
-      );
-      setConflict(hasConflict ? 'conflict' : 'clear');
-    }, 300);
-    return () => clearTimeout(timer);
+    if (!existingShows) { setConflict('checking'); return; }
+
+    const inputHHmm = showTime.substring(0, 5); // e.g. "10:30"
+    const hasConflict = (existingShows.items ?? []).some((s) => {
+      const show24h = showTimeLabelTo24h(s.showTimeLabel ?? '');
+      return show24h === inputHHmm;
+    });
+    setConflict(hasConflict ? 'conflict' : 'clear');
   }, [screenId, showDate, showTime, existingShows]);
 
   const canSubmit = (): boolean => {
@@ -137,13 +151,21 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
         {type === 'movie' ? (
           <div>
             <label className="block text-sm font-medium text-text-primary mb-1">Movie *</label>
-            <input value={movieSearch} onChange={(e) => setMovieSearch(e.target.value)} placeholder="Search movie…" className={inputCls + ' mb-2'} />
+            <input
+              value={movieSearch}
+              onChange={(e) => setMovieSearch(e.target.value)}
+              placeholder="Type to filter movies…"
+              className={inputCls + ' mb-2'}
+            />
             <select value={selectedMovieId} onChange={(e) => setSelectedMovieId(e.target.value)} className={selectCls}>
               <option value="">— Select Movie —</option>
-              {movies?.items?.map((m) => (
+              {filteredMovies.map((m) => (
                 <option key={m.id} value={m.id}>{m.title}{m.certificate ? ` [${m.certificate}]` : ''}</option>
               ))}
             </select>
+            {filteredMovies.length === 0 && movieSearch && (
+              <p className="text-xs text-text-muted mt-1">No published movies match "{movieSearch}"</p>
+            )}
           </div>
         ) : (
           <div>
