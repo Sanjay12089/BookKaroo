@@ -43,13 +43,24 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
         int      pageSize,
         CancellationToken ct = default)
     {
-        // 1. Build base booking query with filters on booking fields
+        // 1. Build base booking query — all DB-side filters applied here
         var bookingQuery = _db.Bookings.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<BookingStatus>(status, ignoreCase: true, out var statusEnum))
             bookingQuery = bookingQuery.Where(b => b.Status == statusEnum);
 
-        // Count total (we'll refine after joining if needed)
+        // Date filter on booking.CreatedAt (not show date) so future-show bookings are not excluded
+        if (fromDate.HasValue)
+        {
+            var fromDt = fromDate.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+            bookingQuery = bookingQuery.Where(b => b.CreatedAt >= fromDt);
+        }
+        if (toDate.HasValue)
+        {
+            var toDt = toDate.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+            bookingQuery = bookingQuery.Where(b => b.CreatedAt <= toDt);
+        }
+
         var allBookings = await bookingQuery
             .OrderByDescending(b => b.CreatedAt)
             .ToListAsync(ct);
@@ -104,10 +115,6 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
 
             // Apply cityId filter
             if (cityId.HasValue && city.Id != cityId) continue;
-
-            // Apply date filters
-            if (fromDate.HasValue && show.ShowDate < fromDate) continue;
-            if (toDate.HasValue   && show.ShowDate > toDate)   continue;
 
             var movie  = show.MovieId.HasValue  && movieDict .TryGetValue(show.MovieId.Value,  out var m) ? m : null;
             var ev     = show.EventId.HasValue  && eventDict .TryGetValue(show.EventId.Value,  out var e) ? e : null;
