@@ -206,3 +206,115 @@ export interface AdminVenueItem {
   name:     string;
   cityName: string;
 }
+
+// ── Admin Bookings ─────────────────────────────────────────────────────────────
+
+export interface AdminBooking {
+  id:                 string;
+  bookingRef:         string;
+  status:             'Pending' | 'Confirmed' | 'Cancelled' | 'Refunded';
+  amountPaid:         number;
+  discount:           number;
+  ticketQty:          number;
+  convenienceFee:     number;
+  cgst:               number;
+  sgst:               number;
+  igst:               number;
+  offerProcessingFee: number;
+  createdAt:          string;
+  cancelledAt:        string | null;
+  invoiceUrl:         string | null;
+  qrUrl:              string | null;
+  invoiceNumber:      string | null;
+  userId:             string;
+  userName:           string;
+  userEmail:          string;
+  userMobile:         string;
+  movieTitle:         string | null;
+  eventTitle:         string | null;
+  posterUrl:          string | null;
+  showDate:           string;
+  showDateLabel:      string;
+  showTimeLabel:      string;
+  format:             string | null;
+  language:           string | null;
+  venueName:          string;
+  screenName:         string;
+  cityName:           string;
+  seatsSummary:       string;
+  paymentMethod:      string | null;
+  providerPaymentId:  string | null;
+  paymentStatus:      string;
+  refundAmount:       number | null;
+  refundId:           string | null;
+}
+
+export interface AdminBookingPage {
+  items:      AdminBooking[];
+  total:      number;
+  page:       number;
+  pageSize:   number;
+  totalPages: number;
+}
+
+export interface AdminBookingFilters {
+  search?:   string;
+  status?:   string;
+  movieId?:  string;
+  cityId?:   string;
+  fromDate?: string;
+  toDate?:   string;
+}
+
+// ── Admin Users ────────────────────────────────────────────────────────────────
+
+export interface AdminUser {
+  id:            string;
+  name:          string;
+  email:         string;
+  mobile:        string;
+  gender:        string | null;
+  dob:           string | null;
+  cityName:      string | null;
+  stateCode:     string | null;
+  role:          'User' | 'Admin';
+  isBlocked:     boolean;
+  emailVerified: boolean;
+  totalBookings: number;
+  totalSpent:    number;
+  createdAt:     string;
+  profilePicUrl: string | null;
+  preferences:   string | null;
+}
+
+export interface AdminUserBookingSummary {
+  bookingRef: string;
+  status:     string;
+  amountPaid: number;
+  createdAt:  string;
+  ticketQty:  number;
+  movieTitle: string | null;
+  eventTitle: string | null;
+  showDate:   string;
+  showTime:   string;
+  venueName:  string;
+}
+
+export interface AdminUserDetail extends AdminUser {
+  recentBookings: AdminUserBookingSummary[];
+}
+
+export interface AdminUserPage {
+  items:      AdminUser[];
+  total:      number;
+  page:       number;
+  pageSize:   number;
+  totalPages: number;
+}
+
+export interface AdminUserFilters {
+  search?:    string;
+  role?:      string;
+  isBlocked?: boolean;
+  cityId?:    string;
+}

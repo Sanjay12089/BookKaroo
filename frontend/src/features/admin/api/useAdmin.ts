@@ -8,7 +8,11 @@ import type {
   AdminEventPage, AdminEventDetailResponse, AdminEventFilters,
   CreateEventPayload, UpdateEventPayload,
   AdminVenueItem,
+  AdminBooking, AdminBookingPage, AdminBookingFilters,
+  AdminUserPage, AdminUserDetail, AdminUserFilters,
 } from '../types';
+
+type ApiError = { response?: { data?: { error?: string } } };
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
 
@@ -191,5 +195,127 @@ export function useAdminVenues() {
     queryFn: () => api.get<AdminVenueItem[]>('/api/admin/venues').then((r) => r.data),
     staleTime: 5 * 60 * 1000,
     retry: false,
+  });
+}
+
+// ── Admin Bookings ────────────────────────────────────────────────────────────
+
+export function useAdminBookings(filters: AdminBookingFilters, page: number) {
+  return useQuery<AdminBookingPage>({
+    queryKey: ['admin-bookings', filters, page],
+    queryFn: () =>
+      api.get<AdminBookingPage>('/api/admin/bookings', {
+        params: { ...filters, page, pageSize: 20 },
+      }).then((r) => r.data),
+    staleTime: 30_000,
+    retry: false,
+  });
+}
+
+export function useAdminBookingDetail(ref: string | null) {
+  return useQuery<AdminBooking>({
+    queryKey: ['admin-booking', ref],
+    queryFn: () => api.get<AdminBooking>(`/api/admin/bookings/${ref}`).then((r) => r.data),
+    enabled: !!ref,
+    staleTime: 60_000,
+  });
+}
+
+export function useAdminCancelBooking() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (ref: string) =>
+      api.post(`/api/admin/bookings/${ref}/cancel`).then((r) => r.data),
+    onSuccess: (_data, ref) => {
+      qc.invalidateQueries({ queryKey: ['admin-bookings'] });
+      qc.invalidateQueries({ queryKey: ['admin-booking', ref] });
+      toast('Booking cancelled and refund processed', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to cancel booking', 'error'),
+  });
+}
+
+export function useAdminRefund() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ref, amount }: { ref: string; amount: number }) =>
+      api.post(`/api/admin/bookings/${ref}/refund`, { refundAmount: amount }).then((r) => r.data),
+    onSuccess: (_data, { ref }) => {
+      qc.invalidateQueries({ queryKey: ['admin-bookings'] });
+      qc.invalidateQueries({ queryKey: ['admin-booking', ref] });
+      toast('Refund processed successfully', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to process refund', 'error'),
+  });
+}
+
+export function useResendBookingEmail() {
+  return useMutation({
+    mutationFn: (ref: string) =>
+      api.post(`/api/admin/bookings/${ref}/resend-email`).then((r) => r.data),
+    onSuccess: () => toast('Confirmation email resent', 'success'),
+    onError: () => toast('Failed to resend email', 'error'),
+  });
+}
+
+// ── Admin Users ───────────────────────────────────────────────────────────────
+
+export function useAdminUsers(filters: AdminUserFilters, page: number) {
+  return useQuery<AdminUserPage>({
+    queryKey: ['admin-users', filters, page],
+    queryFn: () =>
+      api.get<AdminUserPage>('/api/admin/users', {
+        params: { ...filters, page, pageSize: 20 },
+      }).then((r) => r.data),
+    staleTime: 60_000,
+    retry: false,
+  });
+}
+
+export function useAdminUserDetail(id: string | null) {
+  return useQuery<AdminUserDetail>({
+    queryKey: ['admin-user', id],
+    queryFn: () => api.get<AdminUserDetail>(`/api/admin/users/${id}`).then((r) => r.data),
+    enabled: !!id,
+    staleTime: 2 * 60_000,
+  });
+}
+
+export function useBlockUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.post(`/api/admin/users/${id}/block`).then((r) => r.data),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      qc.invalidateQueries({ queryKey: ['admin-user', id] });
+      toast('User blocked successfully', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to block user', 'error'),
+  });
+}
+
+export function useUnblockUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.post(`/api/admin/users/${id}/unblock`).then((r) => r.data),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['admin-users'] });
+      qc.invalidateQueries({ queryKey: ['admin-user', id] });
+      toast('User unblocked successfully', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to unblock user', 'error'),
+  });
+}
+
+export function useAdminResetPassword() {
+  return useMutation({
+    mutationFn: (id: string) =>
+      api.post<{ tempPassword: string }>(`/api/admin/users/${id}/reset-password`).then((r) => r.data),
   });
 }
