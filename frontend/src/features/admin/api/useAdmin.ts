@@ -15,6 +15,9 @@ import type {
   CreateScreenPayload, UpdateScreenPayload,
   AdminShowPage, AdminShowFilters, CancelShowResponse,
   CreateShowPayload,
+  BookingReportResponse, UserReportResponse,
+  AdminBanner, CreateBannerPayload, UpdateBannerPayload,
+  SettingItem,
 } from '../types';
 
 type ApiError = { response?: { data?: { error?: string }; statusText?: string } };
@@ -491,5 +494,161 @@ export function useAdminResetPassword() {
       api.post<{ tempPassword: string }>(`/api/admin/users/${id}/reset-password`).then((r) => r.data),
     onSuccess: () => toast('Password reset successfully', 'success'),
     onError: () => toast('Failed to reset password', 'error'),
+  });
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+
+export interface BookingReportParams {
+  fromDate: string;
+  toDate:   string;
+  groupBy:  string;
+  cityId?:  string;
+  movieId?: string;
+  venueId?: string;
+}
+
+export function useBookingReport(params: BookingReportParams) {
+  return useQuery<BookingReportResponse>({
+    queryKey: ['admin-report-bookings', params],
+    queryFn:  () =>
+      api.get<BookingReportResponse>('/api/admin/reports/bookings', { params }).then((r) => r.data),
+    staleTime: 5 * 60 * 1000,
+    enabled:   !!(params.fromDate && params.toDate),
+  });
+}
+
+export interface UserReportParams {
+  fromDate: string;
+  toDate:   string;
+  groupBy:  string;
+}
+
+export function useUserReport(params: UserReportParams) {
+  return useQuery<UserReportResponse>({
+    queryKey: ['admin-report-users', params],
+    queryFn:  () =>
+      api.get<UserReportResponse>('/api/admin/reports/users', { params }).then((r) => r.data),
+    staleTime: 5 * 60 * 1000,
+    enabled:   !!(params.fromDate && params.toDate),
+  });
+}
+
+export async function exportReport(type: 'bookings' | 'users', params: Record<string, string | undefined>) {
+  const url = `/api/admin/reports/${type}/export`;
+  const response = await api.get<Blob>(url, { params, responseType: 'blob' });
+  const blob = new Blob([response.data], { type: 'text/csv' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `${type}-report-${params.fromDate ?? ''}-${params.toDate ?? ''}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
+
+// ── CMS Banners ───────────────────────────────────────────────────────────────
+
+export function useAdminBanners() {
+  return useQuery<AdminBanner[]>({
+    queryKey: ['admin-banners'],
+    queryFn:  () => api.get<AdminBanner[]>('/api/admin/banners').then((r) => r.data),
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useCreateBanner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateBannerPayload) =>
+      api.post<AdminBanner>('/api/admin/banners', data).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-banners'] });
+      qc.invalidateQueries({ queryKey: ['home'] });
+      toast('Banner created', 'success');
+    },
+    onError: () => toast('Failed to create banner', 'error'),
+  });
+}
+
+export function useUpdateBanner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateBannerPayload }) =>
+      api.patch<AdminBanner>(`/api/admin/banners/${id}`, data).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-banners'] });
+      qc.invalidateQueries({ queryKey: ['home'] });
+      toast('Banner updated', 'success');
+    },
+    onError: () => toast('Failed to update banner', 'error'),
+  });
+}
+
+export function useDeleteBanner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.delete(`/api/admin/banners/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-banners'] });
+      qc.invalidateQueries({ queryKey: ['home'] });
+      toast('Banner deleted', 'success');
+    },
+    onError: () => toast('Failed to delete banner', 'error'),
+  });
+}
+
+export function useReorderBanners() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (orderedIds: string[]) =>
+      api.post('/api/admin/banners/reorder', { orderedIds }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-banners'] }),
+    onError: () => toast('Failed to reorder banners', 'error'),
+  });
+}
+
+export function useToggleBanner() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+      api.patch(`/api/admin/banners/${id}/toggle`, { isActive }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin-banners'] }),
+    onError: () => toast('Failed to toggle banner', 'error'),
+  });
+}
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+
+export function useAdminSettings() {
+  return useQuery<SettingItem[]>({
+    queryKey: ['admin-settings'],
+    queryFn:  () => api.get<SettingItem[]>('/api/admin/settings').then((r) => r.data),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useUpdateSetting() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ key, value }: { key: string; value: string }) =>
+      api.patch<SettingItem>(`/api/admin/settings/${key}`, { value }).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-settings'] });
+      toast('Setting updated', 'success');
+    },
+    onError: () => toast('Failed to update setting', 'error'),
+  });
+}
+
+export function useUpdateSettingsBatch() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (settings: Record<string, string>) =>
+      api.post<{ message: string; count: number }>('/api/admin/settings/batch', { settings }).then((r) => r.data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin-settings'] });
+      toast('All settings saved successfully', 'success');
+    },
+    onError: (err: ApiError) =>
+      toast(err.response?.data?.error ?? 'Failed to save settings', 'error'),
   });
 }

@@ -463,3 +463,86 @@ export interface CancelShowResponse {
   cancelledBookings: number;
   message:           string;
 }
+
+// ── Admin Reports ─────────────────────────────────────────────────────────────
+
+export interface ReportRow {
+  period:               string;
+  entityId:             string | null;
+  posterUrl:            string | null;
+  totalBookings:        number;
+  confirmedBookings:    number;
+  cancelledBookings:    number;
+  revenue:              number;
+  convenienceFeeRevenue: number;
+  gstCollected:         number;
+  discount:             number;
+}
+
+export interface ReportSummary {
+  totalBookings:         number;
+  confirmedBookings:     number;
+  cancelledBookings:     number;
+  totalRevenue:          number;
+  convenienceFeeRevenue: number;
+  gstCollected:          number;
+  totalDiscount:         number;
+  netRevenue:            number;
+}
+
+export interface BookingReportResponse {
+  fromDate: string;
+  toDate:   string;
+  groupBy:  string;
+  summary:  ReportSummary;
+  rows:     ReportRow[];
+}
+
+export interface UserReportRow {
+  period:        string;
+  newUsers:      number;
+  verifiedUsers: number;
+}
+
+export interface UserReportResponse {
+  fromDate:      string;
+  toDate:        string;
+  totalNewUsers: number;
+  verifiedUsers: number;
+  rows:          UserReportRow[];
+}
+
+// ── Admin Banners ─────────────────────────────────────────────────────────────
+
+export interface AdminBanner {
+  id:        string;
+  title:     string;
+  imageUrl:  string | null;
+  linkUrl:   string | null;
+  position:  number;
+  isActive:  boolean;
+  startsAt:  string | null;
+  endsAt:    string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateBannerPayload {
+  title:    string;
+  imageUrl: string;
+  linkUrl?: string;
+  position: number;
+  isActive: boolean;
+  startsAt?: string;
+  endsAt?:   string;
+}
+
+export type UpdateBannerPayload = Partial<CreateBannerPayload>;
+
+// ── Admin Settings ────────────────────────────────────────────────────────────
+
+export interface SettingItem {
+  key:       string;
+  value:     string;
+  updatedAt: string;
+}
