@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { useCheckoutStore } from '@/shared/store/checkoutStore';
@@ -157,6 +158,7 @@ export default function ConfirmationPage() {
         }
       `}</style>
 
+      <Helmet><title>Booking Confirmed | BookKaroo</title></Helmet>
       <div className="min-h-screen bg-bg-base text-text-primary font-sans pb-16 overflow-x-hidden">
         <motion.div
           className="max-w-[480px] mx-auto px-4 pt-10 relative"
@@ -398,6 +400,12 @@ export default function ConfirmationPage() {
               <li>Outside food and beverages not allowed inside the venue.</li>
               <li>Show QR code at the entry counter.</li>
             </ul>
+            <p className="text-sm text-text-muted font-sans mt-4">
+              Need help with this booking?{' '}
+              <Link to="/help#contact-section" className="text-accent-crimson hover:underline">
+                Contact Support →
+              </Link>
+            </p>
           </motion.div>
 
           {/* ── CTAs ── */}
