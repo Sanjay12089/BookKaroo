@@ -249,4 +249,106 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
         await _db.SaveChangesAsync(ct);
         return (payment.RefundId!, refundAmount);
     }
+
+    public async Task<List<AdminBookingDto>> GetAllForReportAsync(
+        DateOnly fromDate, DateOnly toDate,
+        Guid? cityId, Guid? movieId, Guid? venueId,
+        CancellationToken ct = default)
+    {
+        var fromDt = fromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var toDt   = toDate.ToDateTime(TimeOnly.MaxValue,   DateTimeKind.Utc);
+
+        var allBookings = await _db.Bookings
+            .Where(b => b.CreatedAt >= fromDt && b.CreatedAt <= toDt)
+            .OrderByDescending(b => b.CreatedAt)
+            .ToListAsync(ct);
+
+        if (allBookings.Count == 0) return [];
+
+        var bookingIds = allBookings.Select(b => b.Id).ToList();
+        var showIds    = allBookings.Select(b => b.ShowId).Distinct().ToList();
+        var userIds    = allBookings.Select(b => b.UserId).Distinct().ToList();
+
+        var shows   = await _db.Shows.Where(s => showIds.Contains(s.Id)).ToListAsync(ct);
+        var users   = await _db.Users.Where(u => userIds.Contains(u.Id)).ToListAsync(ct);
+
+        var movieIds  = shows.Where(s => s.MovieId.HasValue).Select(s => s.MovieId!.Value).Distinct().ToList();
+        var eventIds  = shows.Where(s => s.EventId.HasValue).Select(s => s.EventId!.Value).Distinct().ToList();
+        var venueIds  = shows.Select(s => s.VenueId).Distinct().ToList();
+        var screenIds = shows.Select(s => s.ScreenId).Distinct().ToList();
+
+        var movies  = movieIds.Count  > 0 ? await _db.Movies .Where(m => movieIds .Contains(m.Id)).ToListAsync(ct) : [];
+        var events  = eventIds.Count  > 0 ? await _db.Events .Where(e => eventIds .Contains(e.Id)).ToListAsync(ct) : [];
+        var venues  = venueIds.Count  > 0 ? await _db.Venues .Where(v => venueIds .Contains(v.Id)).ToListAsync(ct) : [];
+        var screens = screenIds.Count > 0 ? await _db.Screens.Where(s => screenIds.Contains(s.Id)).ToListAsync(ct) : [];
+
+        var cityIds = venues.Select(v => v.CityId).Distinct().ToList();
+        var cities  = cityIds.Count > 0 ? await _db.Cities.Where(c => cityIds.Contains(c.Id)).ToListAsync(ct) : [];
+
+        var showDict   = shows  .ToDictionary(s => s.Id);
+        var userDict   = users  .ToDictionary(u => u.Id);
+        var movieDict  = movies .ToDictionary(m => m.Id);
+        var eventDict  = events .ToDictionary(e => e.Id);
+        var venueDict  = venues .ToDictionary(v => v.Id);
+        var screenDict = screens.ToDictionary(s => s.Id);
+        var cityDict   = cities .ToDictionary(c => c.Id);
+
+        var result = new List<AdminBookingDto>();
+        foreach (var b in allBookings)
+        {
+            if (!showDict.TryGetValue(b.ShowId, out var show)) continue;
+            if (!venueDict.TryGetValue(show.VenueId, out var venue)) continue;
+            if (!cityDict.TryGetValue(venue.CityId, out var city)) continue;
+
+            if (cityId.HasValue  && city.Id      != cityId.Value)  continue;
+            if (movieId.HasValue && show.MovieId != movieId.Value) continue;
+            if (venueId.HasValue && show.VenueId != venueId.Value) continue;
+
+            var user   = userDict.TryGetValue(b.UserId, out var u) ? u : null;
+            var movie  = show.MovieId.HasValue && movieDict.TryGetValue(show.MovieId.Value, out var m) ? m : null;
+            var ev     = show.EventId.HasValue && eventDict.TryGetValue(show.EventId.Value, out var e) ? e : null;
+            screenDict.TryGetValue(show.ScreenId, out var screen);
+
+            result.Add(new AdminBookingDto(
+                Id:                 b.Id,
+                BookingRef:         b.BookingRef,
+                Status:             b.Status.ToString(),
+                AmountPaid:         b.AmountPaid,
+                Discount:           b.Discount,
+                TicketQty:          b.TicketQty,
+                ConvenienceFee:     b.ConvenienceFee,
+                Cgst:               b.Cgst,
+                Sgst:               b.Sgst,
+                Igst:               b.Igst,
+                OfferProcessingFee: b.OfferProcessingFee,
+                CreatedAt:          b.CreatedAt,
+                CancelledAt:        b.CancelledAt,
+                InvoiceUrl:         null,
+                QrUrl:              null,
+                InvoiceNumber:      null,
+                UserId:             b.UserId,
+                UserName:           user?.Name ?? string.Empty,
+                UserEmail:          user?.Email ?? string.Empty,
+                UserMobile:         user?.Mobile ?? string.Empty,
+                MovieTitle:         movie?.Title,
+                PosterUrl:          movie?.PosterUrl,
+                EventTitle:         ev?.Title,
+                ShowDate:           show.ShowDate,
+                ShowDateLabel:      show.ShowDate.ToString("ddd, dd MMM yyyy"),
+                ShowTimeLabel:      show.ShowTime.ToString("hh:mm tt"),
+                Format:             show.Format,
+                Language:           show.Language,
+                VenueName:          venue.Name,
+                ScreenName:         screen?.Name ?? string.Empty,
+                CityName:           city.Name,
+                PaymentMethod:      null,
+                ProviderPaymentId:  null,
+                PaymentStatus:      "None",
+                RefundAmount:       null,
+                RefundId:           null,
+                SeatsSummary:       string.Empty));
+        }
+
+        return result;
+    }
 }

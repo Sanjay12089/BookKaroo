@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using BookKaroo.Application.DTOs.Admin;
@@ -22,44 +24,50 @@ public class AdminService : IAdminService
     private readonly IScreenRepository   _screenRepo;
     private readonly IShowRepository     _showRepo;
     private readonly ICityRepository     _cities;
-    private readonly IBookingRepository  _bookings;
-    private readonly IUserRepository     _users;
-    private readonly IEmailService       _email;
+    private readonly IBookingRepository    _bookings;
+    private readonly IUserRepository       _users;
+    private readonly IEmailService         _email;
+    private readonly ICmsBannerRepository  _bannerRepo;
+    private readonly ISettingRepository    _settingRepo;
 
     // Keep legacy reference for event form dropdown (uses IRepository<Venue>)
     private readonly IRepository<Venue>  _venues;
 
     public AdminService(
-        IMovieRepository     movies,
-        IEventRepository     events,
-        IAdminRepository     adminRepo,
-        IAuditLogService     audit,
-        ITmdbService         tmdb,
-        IHttpClientFactory   http,
+        IMovieRepository      movies,
+        IEventRepository      events,
+        IAdminRepository      adminRepo,
+        IAuditLogService      audit,
+        ITmdbService          tmdb,
+        IHttpClientFactory    http,
         ILogger<AdminService> logger,
-        IVenueRepository     venueRepo,
-        IScreenRepository    screenRepo,
-        IShowRepository      showRepo,
-        ICityRepository      cities,
-        IBookingRepository   bookings,
-        IUserRepository      users,
-        IEmailService        email)
+        IVenueRepository      venueRepo,
+        IScreenRepository     screenRepo,
+        IShowRepository       showRepo,
+        ICityRepository       cities,
+        IBookingRepository    bookings,
+        IUserRepository       users,
+        IEmailService         email,
+        ICmsBannerRepository  bannerRepo,
+        ISettingRepository    settingRepo)
     {
-        _movies     = movies;
-        _events     = events;
-        _adminRepo  = adminRepo;
-        _audit      = audit;
-        _tmdb       = tmdb;
-        _http       = http;
-        _logger     = logger;
-        _venueRepo  = venueRepo;
-        _screenRepo = screenRepo;
-        _bookings   = bookings;
-        _users      = users;
-        _email      = email;
-        _showRepo   = showRepo;
-        _cities     = cities;
-        _venues     = venueRepo; // IVenueRepository extends IRepository<Venue>
+        _movies      = movies;
+        _events      = events;
+        _adminRepo   = adminRepo;
+        _audit       = audit;
+        _tmdb        = tmdb;
+        _http        = http;
+        _logger      = logger;
+        _venueRepo   = venueRepo;
+        _screenRepo  = screenRepo;
+        _bookings    = bookings;
+        _users       = users;
+        _email       = email;
+        _showRepo    = showRepo;
+        _cities      = cities;
+        _bannerRepo  = bannerRepo;
+        _settingRepo = settingRepo;
+        _venues      = venueRepo; // IVenueRepository extends IRepository<Venue>
     }
 
     // ── Legacy TMDB poster sync ───────────────────────────────────────────────
@@ -1101,5 +1109,245 @@ public class AdminService : IAdminService
         var tempPassword = await _users.AdminResetPasswordAsync(userId, ct);
         await _audit.LogAsync(null, "reset_password", "user", userId, null, null, null, ct);
         return tempPassword;
+    }
+
+    // ── Reports ───────────────────────────────────────────────────────────────
+
+    public async Task<BookingReportResponse> GetBookingReportAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy,
+        Guid? cityId, Guid? movieId, Guid? venueId, CancellationToken ct = default)
+    {
+        var rows = await FetchBookingReportRowsAsync(fromDate, toDate, groupBy, cityId, movieId, venueId, ct);
+
+        var summary = new ReportSummary(
+            TotalBookings:        rows.Sum(r => r.TotalBookings),
+            ConfirmedBookings:    rows.Sum(r => r.ConfirmedBookings),
+            CancelledBookings:    rows.Sum(r => r.CancelledBookings),
+            TotalRevenue:         rows.Sum(r => r.Revenue),
+            ConvenienceFeeRevenue: rows.Sum(r => r.ConvenienceFeeRevenue),
+            GstCollected:         rows.Sum(r => r.GstCollected),
+            TotalDiscount:        rows.Sum(r => r.Discount),
+            NetRevenue:           rows.Sum(r => r.Revenue) - rows.Sum(r => r.Discount));
+
+        return new BookingReportResponse(
+            fromDate.ToString("yyyy-MM-dd"),
+            toDate.ToString("yyyy-MM-dd"),
+            groupBy, summary, rows);
+    }
+
+    public async Task<UserReportResponse> GetUserAcquisitionReportAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy, CancellationToken ct = default)
+    {
+        var rows = await FetchUserReportRowsAsync(fromDate, toDate, groupBy, ct);
+        return new UserReportResponse(
+            fromDate.ToString("yyyy-MM-dd"),
+            toDate.ToString("yyyy-MM-dd"),
+            rows.Sum(r => r.NewUsers),
+            rows.Sum(r => r.VerifiedUsers),
+            rows);
+    }
+
+    public async Task<byte[]> ExportBookingReportCsvAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy,
+        Guid? cityId, Guid? movieId, Guid? venueId, CancellationToken ct = default)
+    {
+        var rows = await FetchBookingReportRowsAsync(fromDate, toDate, groupBy, cityId, movieId, venueId, ct);
+        var sb = new StringBuilder();
+        sb.AppendLine("Period,Total Bookings,Confirmed,Cancelled,Revenue (INR),Conv. Fee Revenue (INR),GST Collected (INR),Discount (INR)");
+        foreach (var r in rows)
+            sb.AppendLine($"{r.Period},{r.TotalBookings},{r.ConfirmedBookings},{r.CancelledBookings},{r.Revenue:F2},{r.ConvenienceFeeRevenue:F2},{r.GstCollected:F2},{r.Discount:F2}");
+        return Encoding.UTF8.GetBytes(sb.ToString());
+    }
+
+    public async Task<byte[]> ExportUserReportCsvAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy, CancellationToken ct = default)
+    {
+        var rows = await FetchUserReportRowsAsync(fromDate, toDate, groupBy, ct);
+        var sb = new StringBuilder();
+        sb.AppendLine("Period,New Users,Verified");
+        foreach (var r in rows)
+            sb.AppendLine($"{r.Period},{r.NewUsers},{r.VerifiedUsers}");
+        return Encoding.UTF8.GetBytes(sb.ToString());
+    }
+
+    private async Task<List<ReportRow>> FetchBookingReportRowsAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy,
+        Guid? cityId, Guid? movieId, Guid? venueId, CancellationToken ct)
+    {
+        var dtos = await _bookings.GetAllForReportAsync(fromDate, toDate, cityId, movieId, venueId, ct);
+        if (dtos.Count == 0) return [];
+
+        Func<AdminBookingDto, string> periodKey = groupBy.ToLower() switch
+        {
+            "week"  => d => GetWeekLabel(d.CreatedAt),
+            "month" => d => d.CreatedAt.ToString("MMMM yyyy"),
+            "movie" => d => d.MovieTitle ?? d.EventTitle ?? "Unknown",
+            "venue" => d => d.VenueName,
+            "city"  => d => d.CityName,
+            _       => d => d.CreatedAt.ToString("yyyy-MM-dd"),
+        };
+
+        Func<IGrouping<string, AdminBookingDto>, Guid?> entityId = groupBy.ToLower() switch
+        {
+            "movie" => _ => null,
+            "venue" => _ => null,
+            "city"  => _ => null,
+            _       => _ => null,
+        };
+
+        return dtos
+            .GroupBy(periodKey)
+            .OrderBy(g => g.Key)
+            .Select(g => new ReportRow(
+                Period:               g.Key,
+                EntityId:             null,
+                PosterUrl:            g.First().PosterUrl,
+                TotalBookings:        g.Count(),
+                ConfirmedBookings:    g.Count(d => d.Status == "Confirmed"),
+                CancelledBookings:    g.Count(d => d.Status == "Cancelled"),
+                Revenue:              g.Where(d => d.Status == "Confirmed").Sum(d => d.AmountPaid),
+                ConvenienceFeeRevenue: g.Where(d => d.Status == "Confirmed").Sum(d => d.ConvenienceFee),
+                GstCollected:         g.Where(d => d.Status == "Confirmed").Sum(d => d.Cgst + d.Sgst + d.Igst),
+                Discount:             g.Where(d => d.Status == "Confirmed").Sum(d => d.Discount)))
+            .ToList();
+    }
+
+    private async Task<List<UserReportRow>> FetchUserReportRowsAsync(
+        DateOnly fromDate, DateOnly toDate, string groupBy, CancellationToken ct)
+    {
+        var (items, _) = await _users.GetAllAdminAsync(null, null, null, null, 1, 10000, ct);
+        var fromDt = fromDate.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
+        var toDt   = toDate.ToDateTime(TimeOnly.MaxValue,   DateTimeKind.Utc);
+        var filtered = items.Where(u => u.CreatedAt >= fromDt && u.CreatedAt <= toDt).ToList();
+
+        Func<AdminUserDto, string> keySelector = groupBy.ToLower() switch
+        {
+            "week"  => u => GetWeekLabel(u.CreatedAt),
+            "month" => u => u.CreatedAt.ToString("MMMM yyyy"),
+            _       => u => u.CreatedAt.ToString("yyyy-MM-dd"),
+        };
+
+        return filtered
+            .GroupBy(keySelector)
+            .OrderBy(g => g.Key)
+            .Select(g => new UserReportRow(
+                Period:        g.Key,
+                NewUsers:      g.Count(),
+                VerifiedUsers: g.Count(u => u.EmailVerified)))
+            .ToList();
+    }
+
+    private static string GetWeekLabel(DateTime dt)
+    {
+        var cal  = CultureInfo.InvariantCulture.Calendar;
+        var week = cal.GetWeekOfYear(dt, CalendarWeekRule.FirstDay, DayOfWeek.Monday);
+        return $"W{week} {dt.Year}";
+    }
+
+    // ── CMS Banners ───────────────────────────────────────────────────────────
+
+    public async Task<List<AdminBannerResponse>> GetBannersAdminAsync(CancellationToken ct = default)
+    {
+        var banners = await _bannerRepo.GetAllAdminAsync(ct);
+        return banners.Select(MapBanner).ToList();
+    }
+
+    public async Task<AdminBannerResponse> GetBannerByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        var banner = await _bannerRepo.GetByIdAsync(id, ct)
+            ?? throw new KeyNotFoundException($"Banner {id} not found.");
+        return MapBanner(banner);
+    }
+
+    public async Task<AdminBannerResponse> CreateBannerAsync(CreateBannerRequest req, CancellationToken ct = default)
+    {
+        var banner = new CmsBanner
+        {
+            Id        = Guid.NewGuid(),
+            Title     = req.Title,
+            ImageUrl  = req.ImageUrl,
+            LinkUrl   = req.LinkUrl,
+            Position  = req.Position,
+            IsActive  = req.IsActive,
+            StartsAt  = req.StartsAt,
+            EndsAt    = req.EndsAt,
+        };
+        await _bannerRepo.AddAsync(banner, ct);
+        await _audit.LogAsync(null, "create", "banner", banner.Id, null, new { banner.Title }, null, ct);
+        return MapBanner(banner);
+    }
+
+    public async Task<AdminBannerResponse> UpdateBannerAsync(Guid id, UpdateBannerRequest req, CancellationToken ct = default)
+    {
+        var banner = await _bannerRepo.GetByIdAsync(id, ct)
+            ?? throw new KeyNotFoundException($"Banner {id} not found.");
+        var before = new { banner.Title, banner.IsActive };
+        if (req.Title    != null) banner.Title    = req.Title;
+        if (req.ImageUrl != null) banner.ImageUrl = req.ImageUrl;
+        if (req.LinkUrl  != null) banner.LinkUrl  = req.LinkUrl;
+        if (req.Position.HasValue) banner.Position = req.Position.Value;
+        if (req.IsActive.HasValue) banner.IsActive = req.IsActive.Value;
+        if (req.StartsAt.HasValue) banner.StartsAt = req.StartsAt;
+        if (req.EndsAt.HasValue)   banner.EndsAt   = req.EndsAt;
+        banner.UpdatedAt = DateTime.UtcNow;
+        await _bannerRepo.UpdateAsync(banner, ct);
+        await _audit.LogAsync(null, "update", "banner", id, before, new { banner.Title, banner.IsActive }, null, ct);
+        return MapBanner(banner);
+    }
+
+    public async Task DeleteBannerAsync(Guid id, CancellationToken ct = default)
+    {
+        var banner = await _bannerRepo.GetByIdAsync(id, ct)
+            ?? throw new KeyNotFoundException($"Banner {id} not found.");
+        await _bannerRepo.SoftDeleteAsync(id, ct);
+        await _audit.LogAsync(null, "delete", "banner", id, new { banner.Title }, null, null, ct);
+    }
+
+    public async Task ReorderBannersAsync(List<Guid> orderedIds, CancellationToken ct = default)
+    {
+        for (int i = 0; i < orderedIds.Count; i++)
+            await _bannerRepo.UpdatePositionAsync(orderedIds[i], i, ct);
+        await _audit.LogAsync(null, "reorder", "banners", null, null, new { count = orderedIds.Count }, null, ct);
+    }
+
+    public async Task ToggleBannerAsync(Guid id, bool isActive, CancellationToken ct = default)
+    {
+        await _bannerRepo.ToggleActiveAsync(id, isActive, ct);
+    }
+
+    private static AdminBannerResponse MapBanner(CmsBanner b) =>
+        new(b.Id, b.Title, b.ImageUrl, b.LinkUrl, b.Position, b.IsActive, b.StartsAt, b.EndsAt, b.CreatedAt, b.UpdatedAt);
+
+    // ── Settings ──────────────────────────────────────────────────────────────
+
+    public async Task<List<SettingResponse>> GetAllSettingsAsync(CancellationToken ct = default)
+    {
+        var dict = await _settingRepo.GetAllAsync(ct);
+        return dict
+            .OrderBy(kv => kv.Key)
+            .Select(kv => new SettingResponse(kv.Key, kv.Value, DateTime.UtcNow))
+            .ToList();
+    }
+
+    public async Task<SettingResponse?> GetSettingAsync(string key, CancellationToken ct = default)
+    {
+        var val = await _settingRepo.GetAsync(key, ct);
+        return val is null ? null : new SettingResponse(key, val, DateTime.UtcNow);
+    }
+
+    public async Task<SettingResponse> UpdateSettingAsync(string key, string value, CancellationToken ct = default)
+    {
+        var oldVal = await _settingRepo.GetAsync(key, ct);
+        await _settingRepo.SetAsync(key, value, ct);
+        await _audit.LogAsync(null, "update", "setting", null,
+            new { key, value = oldVal },
+            new { key, value }, null, ct);
+        return new SettingResponse(key, value, DateTime.UtcNow);
+    }
+
+    public async Task UpdateMultipleSettingsAsync(Dictionary<string, string> settings, CancellationToken ct = default)
+    {
+        foreach (var (key, value) in settings)
+            await UpdateSettingAsync(key, value, ct);
     }
 }
