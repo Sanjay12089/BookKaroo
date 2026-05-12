@@ -225,11 +225,18 @@ export default function AdminReportsPage() {
                     onChange={(e) => setBookingFilters((p) => ({ ...p, toDate: e.target.value }))}
                     className={INPUT} />
                 </div>
-                <div className="flex gap-1">
-                  {(['last7', 'last30', 'thisMonth'] as const).map((p) => (
-                    <button key={p} onClick={() => setQuickDate('bookings', p)}
-                      className="px-2.5 py-1 rounded-full text-xs font-semibold font-sans border border-border-default hover:bg-bg-surface2 transition-colors">
-                      {p === 'last7' ? 'Last 7d' : p === 'last30' ? 'Last 30d' : 'This month'}
+                <div className="flex gap-1.5">
+                  {([
+                    { key: 'last7',     label: 'Last 7 days'  },
+                    { key: 'last30',    label: 'Last 30 days' },
+                    { key: 'thisMonth', label: 'This month'   },
+                  ] as const).map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setQuickDate('bookings', key)}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold font-sans bg-bg-surface2 border border-border-default hover:bg-accent-indigo/20 hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+                    >
+                      {label}
                     </button>
                   ))}
                 </div>
@@ -331,11 +338,18 @@ export default function AdminReportsPage() {
                     onChange={(e) => setUserFilters((p) => ({ ...p, toDate: e.target.value }))}
                     className={INPUT} />
                 </div>
-                <div className="flex gap-1">
-                  {(['last7', 'last30', 'thisMonth'] as const).map((p) => (
-                    <button key={p} onClick={() => setQuickDate('users', p)}
-                      className="px-2.5 py-1 rounded-full text-xs font-semibold font-sans border border-border-default hover:bg-bg-surface2 transition-colors">
-                      {p === 'last7' ? 'Last 7d' : p === 'last30' ? 'Last 30d' : 'This month'}
+                <div className="flex gap-1.5">
+                  {([
+                    { key: 'last7',     label: 'Last 7 days'  },
+                    { key: 'last30',    label: 'Last 30 days' },
+                    { key: 'thisMonth', label: 'This month'   },
+                  ] as const).map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setQuickDate('users', key)}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold font-sans bg-bg-surface2 border border-border-default hover:bg-accent-indigo/20 hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+                    >
+                      {label}
                     </button>
                   ))}
                 </div>
