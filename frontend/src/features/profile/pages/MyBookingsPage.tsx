@@ -20,8 +20,8 @@ export default function MyBookingsPage() {
   const [page, setPage] = useState(1);
   const [cancellingBooking, setCancellingBooking] = useState<BookingListItem | null>(null);
 
-  const { data: upcomingData } = useMyBookings('upcoming', 1);
-  const { data: pastData }     = useMyBookings('past', 1);
+  const { data: upcomingData, isLoading: upcomingCountLoading } = useMyBookings('upcoming', 1);
+  const { data: pastData,     isLoading: pastCountLoading     } = useMyBookings('past', 1);
   const { data: currentData, isLoading: currentLoading } = useMyBookings(tab, page);
 
   const { mutate: cancelBooking, isPending: cancelling } = useCancelBooking();
@@ -96,6 +96,7 @@ export default function MyBookingsPage() {
         <div className="flex gap-1 border-b border-border-default mb-6">
           {(['upcoming', 'past'] as const).map((t) => {
             const count = t === 'upcoming' ? upcomingCount : pastCount;
+            const isCountLoading = t === 'upcoming' ? upcomingCountLoading : pastCountLoading;
             return (
               <button
                 key={t}
@@ -106,7 +107,7 @@ export default function MyBookingsPage() {
               >
                 {t}
                 <span className="ml-2 text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-bg-surface2 text-text-muted">
-                  {count}
+                  {isCountLoading ? '…' : count}
                 </span>
                 {tab === t && (
                   <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-accent-crimson rounded-full" />

@@ -237,3 +237,347 @@ public record AdminEventPagedResponse(
 // ── Venues (for event form dropdown) ─────────────────────────────────────────
 
 public record AdminVenueItem(Guid Id, string Name, string CityName);
+
+// ── Admin Bookings ────────────────────────────────────────────────────────────
+
+public record AdminBookingDto(
+    Guid      Id,
+    string    BookingRef,
+    string    Status,
+    decimal   AmountPaid,
+    decimal   Discount,
+    int       TicketQty,
+    decimal   ConvenienceFee,
+    decimal   Cgst,
+    decimal   Sgst,
+    decimal   Igst,
+    decimal   OfferProcessingFee,
+    DateTime  CreatedAt,
+    DateTime? CancelledAt,
+    string?   InvoiceUrl,
+    string?   QrUrl,
+    string?   InvoiceNumber,
+    Guid      UserId,
+    string    UserName,
+    string    UserEmail,
+    string    UserMobile,
+    string?   MovieTitle,
+    string?   PosterUrl,
+    string?   EventTitle,
+    DateOnly  ShowDate,
+    string    ShowDateLabel,
+    string    ShowTimeLabel,
+    string?   Format,
+    string?   Language,
+    string    VenueName,
+    string    ScreenName,
+    string    CityName,
+    string?   PaymentMethod,
+    string?   ProviderPaymentId,
+    string    PaymentStatus,
+    decimal?  RefundAmount,
+    string?   RefundId,
+    string    SeatsSummary);
+
+public record AdminBookingPagedResponse(
+    IReadOnlyList<AdminBookingDto> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalPages);
+
+public record AdminCancelBookingResponse(
+    string  BookingRef,
+    string  Status,
+    string  Message,
+    decimal RefundAmount);
+
+public record AdminRefundRequest(decimal RefundAmount);
+
+public record AdminRefundResponse(
+    string  BookingRef,
+    string  RefundId,
+    decimal RefundAmount,
+    string  Message);
+
+// ── Admin Users ───────────────────────────────────────────────────────────────
+
+public record AdminUserDto(
+    Guid      Id,
+    string    Name,
+    string    Email,
+    string    Mobile,
+    string?   Gender,
+    DateOnly? Dob,
+    string?   CityName,
+    string?   StateCode,
+    string    Role,
+    bool      IsBlocked,
+    bool      EmailVerified,
+    int       TotalBookings,
+    decimal   TotalSpent,
+    DateTime  CreatedAt,
+    string?   ProfilePicUrl,
+    string?   Preferences);
+
+public record AdminUserBookingSummaryDto(
+    string    BookingRef,
+    string    Status,
+    decimal   AmountPaid,
+    DateTime  CreatedAt,
+    int       TicketQty,
+    string?   MovieTitle,
+    string?   EventTitle,
+    DateOnly  ShowDate,
+    TimeOnly  ShowTime,
+    string    VenueName);
+
+public record AdminUserDetailDto(
+    Guid      Id,
+    string    Name,
+    string    Email,
+    string    Mobile,
+    string?   Gender,
+    DateOnly? Dob,
+    string?   CityName,
+    string?   StateCode,
+    string    Role,
+    bool      IsBlocked,
+    bool      EmailVerified,
+    int       TotalBookings,
+    decimal   TotalSpent,
+    DateTime  CreatedAt,
+    string?   ProfilePicUrl,
+    string?   Preferences,
+    List<AdminUserBookingSummaryDto> RecentBookings);
+
+public record AdminUserPagedResponse(
+    IReadOnlyList<AdminUserDto> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalPages);
+
+public record AdminResetPasswordResponse(string TempPassword);
+
+// ── Admin Venues CRUD ─────────────────────────────────────────────────────────
+
+public record VenueAdminDto(
+    Guid     Id,
+    string   Name,
+    string   Slug,
+    string?  Chain,
+    string   Address,
+    Guid     CityId,
+    string   CityName,
+    string   CityState,
+    string?  StateCode,
+    double   Latitude,
+    double   Longitude,
+    string[] Amenities,
+    bool     IsActive,
+    string?  ContactPhone,
+    string?  ContactEmail,
+    int      ScreenCount,
+    DateTime CreatedAt);
+
+public record ScreenDetailDto(
+    Guid   Id,
+    string Name,
+    int    TotalSeats,
+    bool   IsActive,
+    object? Layout);
+
+public record VenueWithScreensDto(
+    Guid              Id,
+    string            Name,
+    string            Slug,
+    string?           Chain,
+    string            Address,
+    Guid              CityId,
+    string            CityName,
+    string            CityState,
+    string?           StateCode,
+    double            Latitude,
+    double            Longitude,
+    string[]          Amenities,
+    bool              IsActive,
+    string?           ContactPhone,
+    string?           ContactEmail,
+    int               ScreenCount,
+    DateTime          CreatedAt,
+    List<ScreenDetailDto> Screens);
+
+public record AdminVenuePagedResponse(
+    IReadOnlyList<VenueAdminDto> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalPages);
+
+public record CreateVenueRequest(
+    string   Name,
+    string?  Chain,
+    string   Address,
+    Guid     CityId,
+    double?  Latitude,
+    double?  Longitude,
+    string?  ContactPhone,
+    string?  ContactEmail,
+    string[] Amenities,
+    bool     IsActive);
+
+public record UpdateVenueRequest(
+    string?   Name,
+    string?   Chain,
+    string?   Address,
+    Guid?     CityId,
+    double?   Latitude,
+    double?   Longitude,
+    string?   ContactPhone,
+    string?   ContactEmail,
+    string[]? Amenities,
+    bool?     IsActive);
+
+public record CreateScreenRequest(
+    string  Name,
+    string  LayoutJson,
+    bool    IsActive = true);
+
+public record UpdateScreenRequest(
+    string? Name,
+    string? LayoutJson,
+    bool?   IsActive);
+
+// ── Admin Shows CRUD ──────────────────────────────────────────────────────────
+
+public record ShowAdminDto(
+    Guid     ShowId,
+    string?  MovieTitle,
+    string?  MoviePosterUrl,
+    string?  EventTitle,
+    Guid     VenueId,
+    string   VenueName,
+    string   ScreenName,
+    string   CityName,
+    DateOnly ShowDate,
+    string   ShowDateLabel,
+    string   ShowTimeLabel,
+    DateTime ShowDatetime,
+    string?  Format,
+    string?  Language,
+    string   Status,
+    int      TotalSeats,
+    int      BookedSeats,
+    int      AvailableSeats,
+    decimal  OccupancyPercent,
+    decimal  RevenueGenerated);
+
+public record AdminShowPagedResponse(
+    IReadOnlyList<ShowAdminDto> Items,
+    int Total,
+    int Page,
+    int PageSize,
+    int TotalPages);
+
+public record CreateShowRequest(
+    Guid      ScreenId,
+    Guid?     MovieId,
+    Guid?     EventId,
+    DateOnly  ShowDate,
+    TimeOnly  ShowTime,
+    string    Format,
+    string    Language,
+    string?   PriceOverrides);
+
+public record CancelShowResponse(
+    Guid   ShowId,
+    int    CancelledBookings,
+    string Message);
+
+// ── Admin Reports ─────────────────────────────────────────────────────────────
+
+public record ReportRow(
+    string   Period,
+    Guid?    EntityId,
+    string?  PosterUrl,
+    int      TotalBookings,
+    int      ConfirmedBookings,
+    int      CancelledBookings,
+    decimal  Revenue,
+    decimal  ConvenienceFeeRevenue,
+    decimal  GstCollected,
+    decimal  Discount);
+
+public record ReportSummary(
+    int     TotalBookings,
+    int     ConfirmedBookings,
+    int     CancelledBookings,
+    decimal TotalRevenue,
+    decimal ConvenienceFeeRevenue,
+    decimal GstCollected,
+    decimal TotalDiscount,
+    decimal NetRevenue);
+
+public record BookingReportResponse(
+    string         FromDate,
+    string         ToDate,
+    string         GroupBy,
+    ReportSummary  Summary,
+    List<ReportRow> Rows);
+
+public record UserReportRow(
+    string Period,
+    int    NewUsers,
+    int    VerifiedUsers);
+
+public record UserReportResponse(
+    string             FromDate,
+    string             ToDate,
+    int                TotalNewUsers,
+    int                VerifiedUsers,
+    List<UserReportRow> Rows);
+
+// ── Admin Banners ─────────────────────────────────────────────────────────────
+
+public record AdminBannerResponse(
+    Guid      Id,
+    string    Title,
+    string?   ImageUrl,
+    string?   LinkUrl,
+    int       Position,
+    bool      IsActive,
+    DateTime? StartsAt,
+    DateTime? EndsAt,
+    DateTime  CreatedAt,
+    DateTime  UpdatedAt);
+
+public record CreateBannerRequest(
+    string    Title,
+    string    ImageUrl,
+    string?   LinkUrl,
+    int       Position,
+    bool      IsActive,
+    DateTime? StartsAt,
+    DateTime? EndsAt);
+
+public record UpdateBannerRequest(
+    string?   Title,
+    string?   ImageUrl,
+    string?   LinkUrl,
+    int?      Position,
+    bool?     IsActive,
+    DateTime? StartsAt,
+    DateTime? EndsAt);
+
+public record ReorderBannersRequest(List<Guid> OrderedIds);
+
+public record ToggleBannerRequest(bool IsActive);
+
+// ── Admin Settings ────────────────────────────────────────────────────────────
+
+public record SettingResponse(string Key, string Value, DateTime UpdatedAt);
+
+public record UpdateSettingValueRequest(string Value);
+
+public record BatchUpdateSettingsRequest(Dictionary<string, string> Settings);

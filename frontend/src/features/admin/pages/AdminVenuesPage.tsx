@@ -1,119 +1,287 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { AdminLayout } from '@/shared/components/layout/AdminLayout';
+import { AdminTable, type Column } from '../components/AdminTable';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
-import type { Venue, PaginatedResponse } from '@/shared/types';
+import { useDebounce } from '@/shared/hooks/useDebounce';
+import {
+  useAdminVenuesPaged, useAdminVenueDetail,
+  useDeleteVenue,
+} from '../api/useAdmin';
+import { VenueFormModal }   from '../components/VenueFormModal';
+import { VenueScreensPanel } from '../components/VenueScreensPanel';
+import { DeleteConfirmModal } from '../components/DeleteConfirmModal';
+import type { AdminVenue, AdminVenueFilters } from '../types';
 
-type ApiError = { response?: { status?: number }; statusCode?: number };
+const CHAINS = ['PVR', 'INOX', 'Cinepolis', 'Rajhans', 'Carnival', 'Miraj', 'SPI'];
+
+interface City { id: string; name: string; state: string; }
 
 export default function AdminVenuesPage() {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['admin', 'venues'],
-    queryFn: () =>
-      api.get<PaginatedResponse<Venue>>('/api/venues').then((r) => r.data),
-    retry: false,
+  const [view, setView]               = useState<'list' | 'detail'>('list');
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
+  const [page, setPage]               = useState(1);
+  const [searchInput, setSearchInput] = useState('');
+  const search = useDebounce(searchInput, 400);
+  const [cityId, setCityId]           = useState('');
+  const [chain, setChain]             = useState('');
+  const [showCreate, setShowCreate]   = useState(false);
+  const [editingVenue, setEditingVenue]   = useState<AdminVenue | null>(null);
+  const [deletingVenue, setDeletingVenue] = useState<AdminVenue | null>(null);
+
+  const filters: AdminVenueFilters = {
+    search: search || undefined,
+    cityId: cityId || undefined,
+    chain:  chain  || undefined,
+  };
+
+  const { data, isLoading } = useAdminVenuesPaged(filters, page);
+  const { data: detail }    = useAdminVenueDetail(selectedVenueId);
+  const deleteVenue         = useDeleteVenue();
+
+  const { data: cities } = useQuery<City[]>({
+    queryKey: ['cities'],
+    queryFn: () => api.get<City[]>('/api/cities').then((r) => r.data),
+    staleTime: 10 * 60_000,
   });
 
-  const is501 =
-    (error as ApiError | null)?.response?.status === 501 ||
-    (error as ApiError | null)?.statusCode === 501;
+  const venues = data?.items ?? [];
 
-  const venues: Venue[] = Array.isArray(data)
-    ? (data as Venue[])
-    : ((data as PaginatedResponse<Venue> | undefined)?.items ?? []);
+  const openDetail = (venue: AdminVenue) => {
+    setSelectedVenueId(venue.id);
+    setView('detail');
+  };
 
-  const showEmpty = is501 || (!isLoading && !error && venues.length === 0);
-  const showError = !isLoading && !!error && !is501;
+  const columns: Column<AdminVenue>[] = [
+    {
+      key: 'venue', header: 'Venue',
+      render: (v) => (
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="font-medium text-text-primary text-[14px]">{v.name}</span>
+            {v.chain && <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-bg-surface3 text-text-muted">{v.chain}</span>}
+          </div>
+          <p className="text-[12px] text-text-muted mt-0.5 truncate max-w-xs">{v.address}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'city', header: 'City',
+      render: (v) => (
+        <div>
+          <p className="text-[13px] text-text-primary">{v.cityName}</p>
+          <p className="text-[11px] text-text-muted">{v.cityState}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'screens', header: 'Screens',
+      render: (v) => (
+        <span className={`text-[13px] px-2 py-0.5 rounded-full font-medium ${v.screenCount > 0 ? 'text-semantic-success' : 'text-text-muted'}`}>
+          {v.screenCount} screen{v.screenCount !== 1 ? 's' : ''}
+        </span>
+      ),
+    },
+    {
+      key: 'amenities', header: 'Amenities',
+      render: (v) => {
+        const shown = v.amenities.slice(0, 3);
+        const extra = v.amenities.length - shown.length;
+        return (
+          <span className="text-[13px] text-text-secondary">
+            {shown.join(', ')}{extra > 0 ? ` +${extra}` : ''}
+          </span>
+        );
+      },
+    },
+    {
+      key: 'status', header: 'Status',
+      render: (v) => (
+        <span className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full ${v.isActive ? 'bg-semantic-success/15 text-semantic-success' : 'bg-bg-surface3 text-text-muted'}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${v.isActive ? 'bg-semantic-success' : 'bg-text-muted'}`} />
+          {v.isActive ? 'Active' : 'Inactive'}
+        </span>
+      ),
+    },
+    {
+      key: 'actions', header: 'Actions',
+      render: (v) => (
+        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => openDetail(v)}
+            className="px-2.5 py-1 rounded-lg bg-accent-indigo/15 text-accent-indigo text-[12px] font-semibold hover:bg-accent-indigo/25 transition-colors"
+          >
+            Manage
+          </button>
+          <button onClick={() => setEditingVenue(v)} className="p-1.5 rounded-lg text-text-muted hover:text-accent-indigo transition-colors" aria-label="Edit">
+            <Pencil size={13} />
+          </button>
+          <button onClick={() => setDeletingVenue(v)} className="p-1.5 rounded-lg text-text-muted hover:text-semantic-error transition-colors" aria-label="Delete">
+            <Trash2 size={13} />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
+  // ── Detail View ──────────────────────────────────────────────────────────────
+  if (view === 'detail' && selectedVenueId) {
+    return (
+      <AdminLayout>
+        <div className="p-6 md:p-8">
+          <button
+            onClick={() => { setView('list'); setSelectedVenueId(null); }}
+            className="flex items-center gap-1.5 text-text-muted hover:text-text-primary transition-colors text-sm mb-6"
+          >
+            <ArrowLeft size={15} /> Back to Venues
+          </button>
+
+          {detail ? (
+            <>
+              {/* Venue info card */}
+              <div className="rounded-xl border border-border-default bg-bg-surface p-5 mb-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h1 className="font-display font-bold text-2xl text-text-primary">{detail.name}</h1>
+                      {detail.chain && <span className="text-sm px-2 py-0.5 rounded-full bg-bg-surface3 text-text-muted">{detail.chain}</span>}
+                    </div>
+                    <p className="text-text-muted text-sm mb-1">{detail.address}</p>
+                    <p className="text-text-secondary text-sm">{detail.cityName}, {detail.cityState}</p>
+                    {detail.contactPhone && <p className="text-text-muted text-sm mt-1">📞 {detail.contactPhone}</p>}
+                    {detail.contactEmail && <p className="text-text-muted text-sm">✉️ {detail.contactEmail}</p>}
+                    {detail.amenities.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {detail.amenities.map((a) => (
+                          <span key={a} className="text-[11px] px-2 py-0.5 rounded-full bg-bg-surface2 text-text-secondary">{a}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setEditingVenue(detail as unknown as AdminVenue)}
+                    className="ml-4 px-3 py-1.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm"
+                  >
+                    Edit Venue
+                  </button>
+                </div>
+              </div>
+
+              {/* Screens panel */}
+              <VenueScreensPanel venueId={selectedVenueId} venueName={detail.name} />
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-64 text-text-muted">Loading venue…</div>
+          )}
+        </div>
+
+        {editingVenue && (
+          <VenueFormModal
+            mode="edit"
+            venue={editingVenue}
+            onClose={() => setEditingVenue(null)}
+            onSuccess={() => setEditingVenue(null)}
+          />
+        )}
+      </AdminLayout>
+    );
+  }
+
+  // ── List View ────────────────────────────────────────────────────────────────
   return (
     <AdminLayout>
-      <div className="p-8">
+      <div className="p-6 md:p-8">
+        {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display font-bold text-2xl mb-1 tracking-tight">Venues</h1>
             <p className="text-text-muted text-sm font-sans">Manage theatres, stadiums, and event venues.</p>
           </div>
           <button
-            disabled
-            className="px-4 py-2 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold opacity-50 cursor-not-allowed"
+            onClick={() => setShowCreate(true)}
+            className="px-4 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             + Add Venue
           </button>
         </div>
 
-        {isLoading && (
-          <div className="flex items-center justify-center h-64 text-text-muted text-sm font-sans">
-            Loading venues…
-          </div>
-        )}
-
-        {showEmpty && (
-          <div className="flex flex-col items-center justify-center h-64 gap-4">
-            <p className="text-4xl">📍</p>
-            <p className="text-text-secondary font-sans text-base">No venues found. Add your first venue.</p>
-            <button
-              disabled
-              className="px-4 py-2 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold opacity-50 cursor-not-allowed"
-            >
-              + Add Venue
+        {/* Filters */}
+        <div className="flex flex-wrap gap-3 mb-5">
+          <input
+            value={searchInput}
+            onChange={(e) => { setSearchInput(e.target.value); setPage(1); }}
+            placeholder="Search venue or chain…"
+            className="flex-1 min-w-48 px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+          />
+          <select
+            value={cityId}
+            onChange={(e) => { setCityId(e.target.value); setPage(1); }}
+            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+          >
+            <option value="">All Cities</option>
+            {cities?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select>
+          <select
+            value={chain}
+            onChange={(e) => { setChain(e.target.value); setPage(1); }}
+            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+          >
+            <option value="">All Chains</option>
+            {CHAINS.map((c) => <option key={c} value={c}>{c}</option>)}
+            <option value="other">Other</option>
+          </select>
+          {(search || cityId || chain) && (
+            <button onClick={() => { setSearchInput(''); setCityId(''); setChain(''); setPage(1); }} className="text-sm text-accent-indigo hover:underline">
+              Clear filters
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
-        {showError && (
-          <div className="flex items-center justify-center h-64 text-semantic-error text-sm font-sans">
-            Failed to load venues. Please try again.
-          </div>
-        )}
+        <AdminTable
+          columns={columns}
+          data={venues}
+          isLoading={isLoading}
+          emptyMessage="No venues found. Add your first venue."
+          onRowClick={openDetail}
+        />
 
-        {!isLoading && !showEmpty && !showError && venues.length > 0 && (
-          <div className="overflow-x-auto rounded-xl border border-border-default">
-            <table className="w-full text-sm font-sans">
-              <thead className="bg-bg-surface2 border-b border-border-default">
-                <tr>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Name</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">City</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Chain</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Amenities</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {venues.map((venue) => (
-                  <tr key={venue.id} className="border-b border-border-default hover:bg-bg-surface2/50 transition-colors">
-                    <td className="px-4 py-3">
-                      <span className="font-medium text-text-primary">{venue.name}</span>
-                      <p className="text-xs text-text-muted mt-0.5 truncate max-w-[200px]">{venue.address}</p>
-                    </td>
-                    <td className="px-4 py-3 text-text-secondary">{venue.cityId}</td>
-                    <td className="px-4 py-3 text-text-secondary">{venue.chain ?? '—'}</td>
-                    <td className="px-4 py-3 text-text-secondary text-xs truncate max-w-[160px]">
-                      {venue.amenities ?? '—'}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold ${
-                          venue.isActive
-                            ? 'bg-semantic-success/15 text-semantic-success'
-                            : 'bg-bg-surface3 text-text-muted'
-                        }`}
-                      >
-                        {venue.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button disabled className="text-xs text-accent-indigo opacity-40 cursor-not-allowed font-semibold">Edit</button>
-                        <button disabled className="text-xs text-semantic-error opacity-40 cursor-not-allowed font-semibold">Delete</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Pagination */}
+        {data && data.totalPages > 1 && (
+          <div className="flex items-center justify-between mt-4">
+            <p className="text-sm text-text-muted">{data.total} venues</p>
+            <div className="flex gap-2">
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">← Prev</button>
+              <span className="px-3 py-1 text-sm text-text-primary">Page {page} / {data.totalPages}</span>
+              <button disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">Next →</button>
+            </div>
           </div>
         )}
       </div>
+
+      {showCreate && (
+        <VenueFormModal mode="create" onClose={() => setShowCreate(false)} onSuccess={() => setShowCreate(false)} />
+      )}
+
+      {editingVenue && (
+        <VenueFormModal
+          mode="edit"
+          venue={editingVenue}
+          onClose={() => setEditingVenue(null)}
+          onSuccess={() => setEditingVenue(null)}
+        />
+      )}
+
+      {deletingVenue && (
+        <DeleteConfirmModal
+          itemName={deletingVenue.name}
+          isLoading={deleteVenue.isPending}
+          onClose={() => setDeletingVenue(null)}
+          onConfirm={() =>
+            deleteVenue.mutate(deletingVenue.id, { onSuccess: () => setDeletingVenue(null) })
+          }
+        />
+      )}
     </AdminLayout>
   );
 }

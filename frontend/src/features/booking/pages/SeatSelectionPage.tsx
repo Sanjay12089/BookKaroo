@@ -10,6 +10,7 @@ import { SeatBottomBar } from '../components/SeatBottomBar';
 import { useShowRealtime } from '@/shared/hooks/useSupabaseRealtime';
 import { ROUTES } from '@/shared/constants';
 import { toast } from '@/shared/components/ui/Toast';
+import { usePublicSettings, parseNum } from '@/shared/lib/usePublicSettings';
 import type { SeatState } from '@/shared/types';
 import type { SeatCategory, ScreenLayout } from '../types';
 
@@ -27,8 +28,6 @@ const FALLBACK_LAYOUT: ScreenLayout = {
   ],
 };
 
-const CONV_FEE = 59;
-
 export default function SeatSelectionPage() {
   const { showId = '' }  = useParams();
   const navigate          = useNavigate();
@@ -42,6 +41,11 @@ export default function SeatSelectionPage() {
     clearSeats,
     setLock,
   } = useSeatStore();
+
+  // ── Settings (conv fee + seat limit from DB) ───────────────────────────────
+  const { data: publicSettings } = usePublicSettings();
+  const CONV_FEE = parseNum(publicSettings?.convenience_fee_per_ticket, 59);
+  const MAX_SEATS = parseNum(publicSettings?.max_seats_per_booking, 10);
 
   // ── API ────────────────────────────────────────────────────────────────────
   const { data, isLoading } = useShowSeats(showId);
@@ -73,13 +77,14 @@ export default function SeatSelectionPage() {
   useShowRealtime(showId, onSeatLocked, onSeatUnlocked);
 
   // ── Lock expiry ────────────────────────────────────────────────────────────
-  const [remaining, setRemaining] = useState<number>(8 * 60);
+  const lockTotalSeconds = parseNum(publicSettings?.seat_lock_minutes, 8) * 60;
+  const [remaining, setRemaining] = useState<number>(lockTotalSeconds);
   const expiredRef = useRef(false);
 
   useEffect(() => {
     expiredRef.current = false;
     if (!lockExpiresAt) {
-      setRemaining(8 * 60);
+      setRemaining(lockTotalSeconds);
       return;
     }
     const tick = () => {
@@ -129,13 +134,13 @@ export default function SeatSelectionPage() {
       return;
     }
 
-    if (selectedSeats.length >= 10) {
-      toast('Maximum 10 seats allowed.', 'error');
+    if (selectedSeats.length >= MAX_SEATS) {
+      toast(`Maximum ${MAX_SEATS} seats allowed.`, 'error');
       return;
     }
 
     const newSeats = [...selectedSeats, label];
-    selectSeat(label);
+    selectSeat(label, MAX_SEATS);
 
     try {
       const result = await lockMutation.mutateAsync({ showId, seats: newSeats });
@@ -181,7 +186,7 @@ export default function SeatSelectionPage() {
       return;
     }
 
-    for (const s of picked) selectSeat(s);
+    for (const s of picked) selectSeat(s, MAX_SEATS);
 
     try {
       const result = await lockMutation.mutateAsync({ showId, seats: picked });
@@ -217,7 +222,7 @@ export default function SeatSelectionPage() {
 
         {lockExpiresAt && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface border border-border-strong">
-            <CountdownRing totalSeconds={8 * 60} remainingSeconds={remaining} size={44} strokeWidth={4} />
+            <CountdownRing totalSeconds={lockTotalSeconds} remainingSeconds={remaining} size={44} strokeWidth={4} />
             <div className="text-[10px] text-text-muted uppercase tracking-wider hidden sm:block">Hold expires</div>
           </div>
         )}
@@ -230,7 +235,7 @@ export default function SeatSelectionPage() {
             {/* Quick pick */}
             <div className="flex items-center gap-2 mb-6 flex-wrap">
               <span className="text-xs text-text-muted">Quick pick:</span>
-              {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+              {Array.from({ length: MAX_SEATS }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
                   onClick={() => void pickBest(n)}
@@ -325,7 +330,7 @@ export default function SeatSelectionPage() {
             {/* Countdown on desktop */}
             {lockExpiresAt && (
               <div className="mt-4 p-4 rounded-xl bg-bg-surface border border-border-default flex items-center gap-3">
-                <CountdownRing totalSeconds={8 * 60} remainingSeconds={remaining} size={56} strokeWidth={5} />
+                <CountdownRing totalSeconds={lockTotalSeconds} remainingSeconds={remaining} size={56} strokeWidth={5} />
                 <div>
                   <p className="text-xs font-semibold text-text-primary">Seats held for</p>
                   <p className="text-[11px] text-text-muted">Hold expires in {Math.floor(remaining / 60)}m {remaining % 60}s</p>

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using BookKaroo.Application.DTOs.Booking;
 using BookKaroo.Application.DTOs.Payment;
+using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -13,13 +14,15 @@ namespace BookKaroo.Api.Controllers;
 [Produces("application/json")]
 public class PaymentsController : ControllerBase
 {
-    private readonly IPaymentService  _payments;
+    private readonly IPaymentService     _payments;
     private readonly IWebHostEnvironment _env;
+    private readonly ISettingRepository  _settings;
 
-    public PaymentsController(IPaymentService payments, IWebHostEnvironment env)
+    public PaymentsController(IPaymentService payments, IWebHostEnvironment env, ISettingRepository settings)
     {
         _payments = payments;
         _env      = env;
+        _settings = settings;
     }
 
     /// <summary>Create a payment order and pending booking.</summary>
@@ -33,8 +36,11 @@ public class PaymentsController : ControllerBase
         [FromBody] CreateOrderRequest request,
         CancellationToken ct)
     {
-        if (request.Seats.Length == 0 || request.Seats.Length > 10)
-            return BadRequest("seats must contain 1–10 entries.");
+        var maxSeatsStr = await _settings.GetAsync("max_seats_per_booking", ct);
+        var maxSeats    = int.TryParse(maxSeatsStr, out var m) ? m : 10;
+
+        if (request.Seats.Length == 0 || request.Seats.Length > maxSeats)
+            return BadRequest($"seats must contain 1–{maxSeats} entries.");
 
         var effectiveKey = idempotencyKeyHeader ?? request.IdempotencyKey;
         if (string.IsNullOrWhiteSpace(effectiveKey))
