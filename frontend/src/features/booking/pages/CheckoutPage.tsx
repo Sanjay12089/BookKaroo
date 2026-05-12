@@ -5,6 +5,7 @@ import { useCheckoutStore } from '@/shared/store/checkoutStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useShowSeats, useCreateOrder, useValidateCoupon, useReleaseSeats } from '../api/useBooking';
 import { calculatePricing } from '@/shared/lib/pricing';
+import { usePublicSettings, parseNum } from '@/shared/lib/usePublicSettings';
 import { OrderSummaryPanel } from '../components/OrderSummaryPanel';
 import { MockPaymentModal } from '../components/MockPaymentModal';
 import { CountdownRing } from '@/shared/components/ui/CountdownRing';
@@ -102,11 +103,19 @@ export default function CheckoutPage() {
   const ticketTotal = selectedSeats.reduce((s, l) => s + getSeatPrice(l), 0);
   const avgPrice    = selectedSeats.length > 0 ? ticketTotal / selectedSeats.length : 260;
 
+  const { data: publicSettings } = usePublicSettings();
+  const pricingConfig = {
+    convFeePerTicket: parseNum(publicSettings?.convenience_fee_per_ticket, 59),
+    offerFeeBase:     parseNum(publicSettings?.offer_processing_fee, 15),
+    companyStateCode: publicSettings?.company_state_code ?? '24',
+  };
+
   const breakdown = calculatePricing(
     selectedSeats.length,
     avgPrice,
     stateCode,
     appliedCoupon ? { discount: appliedCoupon.discount, hasOfferFee: true } : null,
+    pricingConfig,
   );
 
   // ── Coupon handlers ───────────────────────────────────────────────────────

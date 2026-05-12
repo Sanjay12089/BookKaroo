@@ -10,6 +10,7 @@ import { SeatBottomBar } from '../components/SeatBottomBar';
 import { useShowRealtime } from '@/shared/hooks/useSupabaseRealtime';
 import { ROUTES } from '@/shared/constants';
 import { toast } from '@/shared/components/ui/Toast';
+import { usePublicSettings, parseNum } from '@/shared/lib/usePublicSettings';
 import type { SeatState } from '@/shared/types';
 import type { SeatCategory, ScreenLayout } from '../types';
 
@@ -27,8 +28,6 @@ const FALLBACK_LAYOUT: ScreenLayout = {
   ],
 };
 
-const CONV_FEE = 59;
-
 export default function SeatSelectionPage() {
   const { showId = '' }  = useParams();
   const navigate          = useNavigate();
@@ -42,6 +41,11 @@ export default function SeatSelectionPage() {
     clearSeats,
     setLock,
   } = useSeatStore();
+
+  // ── Settings (conv fee + seat limit from DB) ───────────────────────────────
+  const { data: publicSettings } = usePublicSettings();
+  const CONV_FEE = parseNum(publicSettings?.convenience_fee_per_ticket, 59);
+  const MAX_SEATS = parseNum(publicSettings?.max_seats_per_booking, 10);
 
   // ── API ────────────────────────────────────────────────────────────────────
   const { data, isLoading } = useShowSeats(showId);
@@ -129,13 +133,13 @@ export default function SeatSelectionPage() {
       return;
     }
 
-    if (selectedSeats.length >= 10) {
-      toast('Maximum 10 seats allowed.', 'error');
+    if (selectedSeats.length >= MAX_SEATS) {
+      toast(`Maximum ${MAX_SEATS} seats allowed.`, 'error');
       return;
     }
 
     const newSeats = [...selectedSeats, label];
-    selectSeat(label);
+    selectSeat(label, MAX_SEATS);
 
     try {
       const result = await lockMutation.mutateAsync({ showId, seats: newSeats });
@@ -181,7 +185,7 @@ export default function SeatSelectionPage() {
       return;
     }
 
-    for (const s of picked) selectSeat(s);
+    for (const s of picked) selectSeat(s, MAX_SEATS);
 
     try {
       const result = await lockMutation.mutateAsync({ showId, seats: picked });
@@ -230,7 +234,7 @@ export default function SeatSelectionPage() {
             {/* Quick pick */}
             <div className="flex items-center gap-2 mb-6 flex-wrap">
               <span className="text-xs text-text-muted">Quick pick:</span>
-              {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+              {Array.from({ length: MAX_SEATS }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
                   onClick={() => void pickBest(n)}

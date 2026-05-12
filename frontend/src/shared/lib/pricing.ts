@@ -1,24 +1,34 @@
 import type { PricingBreakdown } from '@/shared/types';
 
-const CONV_FEE_PER_TICKET = 59;
-const OFFER_FEE_BASE      = 15;
-const COMPANY_STATE_CODE  = import.meta.env.VITE_COMPANY_STATE_CODE ?? '24';
-
 export interface CouponInput {
   discount: number;
   hasOfferFee: boolean;
 }
+
+export interface PricingConfig {
+  convFeePerTicket:  number;
+  offerFeeBase:      number;
+  companyStateCode:  string;
+}
+
+const DEFAULT_CONFIG: PricingConfig = {
+  convFeePerTicket: 59,
+  offerFeeBase:     15,
+  companyStateCode: import.meta.env.VITE_COMPANY_STATE_CODE ?? '24',
+};
 
 export function calculatePricing(
   qty: number,
   seatPrice: number,
   customerStateCode: string,
   coupon: CouponInput | null,
+  config: PricingConfig = DEFAULT_CONFIG,
 ): PricingBreakdown {
-  const isIntraState  = customerStateCode === COMPANY_STATE_CODE;
+  const { convFeePerTicket, offerFeeBase, companyStateCode } = config;
+  const isIntraState  = customerStateCode === companyStateCode;
   const ticketAmount  = round(qty * seatPrice);
-  const convFee       = round(qty * CONV_FEE_PER_TICKET);
-  const offerFee      = coupon?.hasOfferFee ? OFFER_FEE_BASE : 0;
+  const convFee       = round(qty * convFeePerTicket);
+  const offerFee      = coupon?.hasOfferFee ? offerFeeBase : 0;
   const discount      = round(coupon?.discount ?? 0);
   const taxableAmount = round(convFee + offerFee);
 
