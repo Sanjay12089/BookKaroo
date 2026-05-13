@@ -6,7 +6,7 @@ import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useUpdateProfile } from '../api/useProfile';
+import { useUpdateProfile, useDeleteAccount } from '../api/useProfile';
 import { useCities } from '@/features/cities/api/useCities';
 import { toast } from '@/shared/components/ui/Toast';
 
@@ -21,6 +21,7 @@ type FormValues = z.infer<typeof schema>;
 export default function ProfilePage() {
   const { user } = useAuthStore();
   const { mutate: update, isPending } = useUpdateProfile();
+  const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
   const { data: cities = [] } = useCities();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
@@ -136,10 +137,18 @@ export default function ProfilePage() {
         <div className="p-5 rounded-xl bg-semantic-error/05 border border-semantic-error/20 mt-4">
           <p className="font-semibold text-sm text-semantic-error font-sans mb-1">Danger Zone</p>
           <p className="text-xs text-text-muted font-sans mb-3">
-            Deleting your account is permanent and cannot be undone.
+            Deleting your account is permanent and cannot be undone. A confirmation email will be sent to {user?.email}.
           </p>
-          <button className="text-xs text-semantic-error underline font-sans">
-            Delete my account
+          <button
+            disabled={isDeleting}
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+                deleteAccount();
+              }
+            }}
+            className="text-xs text-semantic-error underline font-sans disabled:opacity-50"
+          >
+            {isDeleting ? 'Deleting…' : 'Delete my account'}
           </button>
         </div>
       </div>

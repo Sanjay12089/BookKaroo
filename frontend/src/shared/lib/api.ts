@@ -14,8 +14,9 @@ export function configureApiInterceptors(opts: {
 }
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5000',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL:         import.meta.env.VITE_API_URL ?? 'http://localhost:5000',
+  headers:         { 'Content-Type': 'application/json' },
+  withCredentials: true, // required so the httpOnly bk_refresh cookie is sent on refresh calls
 });
 
 // ── Request: attach access token ───────────────────────────────────────────────
@@ -47,10 +48,13 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Never retry the refresh endpoint itself — that would deadlock the queue.
-    const isRefreshCall = originalRequest.url?.includes('/api/auth/refresh');
+    // Never retry auth endpoints — login/signup 401s are credential errors, not token expiry.
+    const url = originalRequest.url ?? '';
+    const isAuthCall = url.includes('/api/auth/refresh')
+                    || url.includes('/api/auth/login')
+                    || url.includes('/api/auth/signup');
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshCall) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthCall) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
