@@ -80,3 +80,25 @@ export interface BannerItem {
   linkUrl:  string | null;
   position: number;
 }
+
+export interface TierAvailability {
+  tierName:        string;
+  capacity:        number;
+  booked:          number;
+  locked:          number;
+  available:       number;
+  availabilityPct: number;
+  color:           string;
+}
+
+export interface EventAvailabilityResponse {
+  tiers: TierAvailability[];
+}
+
+export interface CreateEventOrderRequest {
+  eventId:        string;
+  tierName:       string;
+  quantity:       number;
+  couponCode?:    string;
+  idempotencyKey: string;
+}
