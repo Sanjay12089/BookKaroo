@@ -306,7 +306,13 @@ public class PaymentService : IPaymentService
         }
 
         var providerPaymentId = $"MOCK-PAY-{Guid.NewGuid():N}";
-        return await _bookingSvc.FinalizeBookingAsync(booking.Id, providerPaymentId, ct);
+
+        if (booking.ShowId.HasValue)
+            return await _bookingSvc.FinalizeBookingAsync(booking.Id, providerPaymentId, ct);
+        else if (booking.EventId.HasValue)
+            return await _bookingSvc.FinalizeEventBookingAsync(booking.Id, providerPaymentId, ct);
+        else
+            throw new InvalidOperationException("Booking has neither ShowId nor EventId.");
     }
 
     private record LayoutJson(LayoutCategory[]? Categories);
