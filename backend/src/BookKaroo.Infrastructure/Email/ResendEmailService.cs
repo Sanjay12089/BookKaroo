@@ -25,21 +25,26 @@ public class ResendEmailService : IEmailService
     }
 
     public async Task SendBookingConfirmationAsync(
-        Booking booking, Show show, Movie? movie, User user,
+        Booking booking, Show? show, Movie? movie, User user,
         byte[] invoicePdf, string? qrUrl, CancellationToken ct = default)
     {
         var companyGstin  = _config["COMPANY_GSTIN"] ?? "24XXXXX0000X1Z5";
         var frontendUrl   = _config["FRONTEND_URL"] ?? "http://localhost:5173";
         var openTicketUrl = $"{frontendUrl}/booking/confirmed?ref={Uri.EscapeDataString(booking.BookingRef)}";
-        var movieTitle    = movie?.Title ?? "Movie";
+
+        // For event bookings show/movie are null; use TierName as the display title
+        var isEventBooking = booking.EventId.HasValue;
+        var displayTitle   = isEventBooking
+            ? (booking.TierName is not null ? $"Event Ticket — {booking.TierName}" : "Event Ticket")
+            : (movie?.Title ?? "Movie");
 
         var html      = BuildBookingConfirmationHtml(booking, show, movie, user, openTicketUrl, companyGstin, qrUrl);
-        var plainText = BuildBookingConfirmationText(booking, show, movieTitle, user, openTicketUrl);
+        var plainText = BuildBookingConfirmationText(booking, show, displayTitle, user, openTicketUrl);
         var pdfBase64 = Convert.ToBase64String(invoicePdf);
 
         await SendAsync(
             to:          user.Email,
-            subject:     $"Your Tickets — {movieTitle} — {booking.BookingRef}",
+            subject:     $"Your Tickets — {displayTitle} — {booking.BookingRef}",
             html:        html,
             text:        plainText,
             attachments: [new EmailAttachment($"{booking.BookingRef}_GST_Invoice.pdf", pdfBase64)],
@@ -269,7 +274,7 @@ public class ResendEmailService : IEmailService
     }
 
     private static string BuildBookingConfirmationHtml(
-        Booking booking, Show show, Movie? movie, User user, string openTicketUrl, string companyGstin,
+        Booking booking, Show? show, Movie? movie, User user, string openTicketUrl, string companyGstin,
         string? qrUrl)
     {
         bool hasCoupon       = booking.CouponId.HasValue && booking.Discount > 0;
@@ -279,10 +284,15 @@ public class ResendEmailService : IEmailService
         var offerFeeTotal    = Math.Round(booking.OfferProcessingFee + offerFeeGst, 2);
         var confirmNum       = booking.Id.ToString("N")[..6].ToUpper();
         var bookingDt        = booking.CreatedAt.ToLocalTime().ToString("ddd, dd MMM yyyy | hh:mm tt");
-        var showDateStr      = show.ShowDate.ToString("ddd, dd MMM yyyy");
-        var showTimeStr      = show.ShowTime.ToString(@"hh\:mm tt");
+        // For event bookings show is null — show booking date and tier info instead
+        var showDateStr      = show is not null
+            ? show.ShowDate.ToString("ddd, dd MMM yyyy")
+            : booking.CreatedAt.ToLocalTime().ToString("ddd, dd MMM yyyy");
+        var showTimeStr      = show is not null
+            ? show.ShowTime.ToString(@"hh\:mm tt")
+            : (booking.TierName is not null ? $"Tier: {booking.TierName}" : "Event");
         var bookingRef       = booking.BookingRef;
-        var movieTitle       = movie?.Title ?? "Movie";
+        var movieTitle       = movie?.Title ?? (booking.TierName is not null ? $"Event — {booking.TierName}" : "Event Ticket");
         var certificate      = string.IsNullOrEmpty(movie?.Certificate) ? "" : $" ({movie.Certificate})";
         var ticketAmtStr     = booking.TicketAmount.ToString("F2");
         var convFeeStr       = booking.ConvenienceFee.ToString("F2");
@@ -437,15 +447,18 @@ public class ResendEmailService : IEmailService
             """;
     }
 
-    private static string BuildBookingConfirmationText(Booking booking, Show show, string movieTitle, User user, string openTicketUrl)
+    private static string BuildBookingConfirmationText(Booking booking, Show? show, string movieTitle, User user, string openTicketUrl)
     {
+        var showLine = show is not null
+            ? $"{show.ShowDate:ddd, dd MMM yyyy} · {show.ShowTime:hh\\:mm tt}"
+            : (booking.TierName is not null ? $"Tier: {booking.TierName} × {booking.TicketQty} ticket(s)" : "Event Ticket");
         return $"""
             BookKaroo — Your Booking Is Confirmed!
 
             Booking ID: {booking.BookingRef}
 
             {movieTitle}
-            {show.ShowDate:ddd, dd MMM yyyy} · {show.ShowTime:hh\:mm tt}
+            {showLine}
 
             ORDER SUMMARY
             Ticket Amount ({booking.TicketQty} tickets): Rs.{booking.TicketAmount:F2}
