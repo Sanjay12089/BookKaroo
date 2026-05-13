@@ -257,14 +257,16 @@ try
     // 16. Correlation ID (before everything else for full tracing)
     app.UseCorrelationId();
 
-    // 17. Global exception handler (before routing)
+    // 17. CORS must run BEFORE exception handler so error responses include
+    //     Access-Control-Allow-Origin headers — without this the browser blocks
+    //     5xx responses and Axios sees them as network errors (no response object).
+    app.UseCors();
+
+    // 18. Global exception handler (after CORS so error responses have CORS headers)
     app.UseGlobalExceptionHandler();
 
-    // 18. Rate limiting
+    // 19. Rate limiting
     app.UseIpRateLimiting();
-
-    // 19. CORS
-    app.UseCors();
 
     // 20. Auth
     app.UseAuthentication();
