@@ -64,6 +64,19 @@ public class NotificationService : INotificationService
         var venue   = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
         var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
 
+        // For event bookings: load event to get actual date + time + title
+        DateTime? eventDate  = null;
+        string?   eventTitle = null;
+        if (booking.EventId.HasValue)
+        {
+            var ev = await _db.Events.FirstOrDefaultAsync(e => e.Id == booking.EventId.Value, ct);
+            if (ev is not null)
+            {
+                eventDate  = ev.EventDate;
+                eventTitle = ev.Title;
+            }
+        }
+
         if (user is null)
         {
             _logger.LogWarning("User not found for booking {Ref}", booking.BookingRef);
@@ -108,7 +121,7 @@ public class NotificationService : INotificationService
             }
 
             // Send email with PDF attached and QR as a real HTTPS URL
-            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, qrUrl, ct);
+            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, qrUrl, ct, eventDate, eventTitle);
             _logger.LogInformation("Booking confirmation email sent for {Ref} to {Email}", booking.BookingRef, user.Email);
         }
         catch (Exception ex)

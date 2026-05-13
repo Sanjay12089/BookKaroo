@@ -6,7 +6,8 @@ public interface IEmailService
 {
     Task SendBookingConfirmationAsync(
         Booking booking, Show? show, Movie? movie, User user,
-        byte[] invoicePdf, string? qrUrl, CancellationToken ct = default);
+        byte[] invoicePdf, string? qrUrl, CancellationToken ct = default,
+        DateTime? eventDate = null, string? eventTitle = null);
 
     Task SendWelcomeAsync(User user, CancellationToken ct = default);
 
