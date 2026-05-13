@@ -78,7 +78,6 @@ public class UsersController : ControllerBase
 
         return Ok(new { message = "Password updated successfully." });
     }
-}
 
     /// <summary>Soft-delete (deactivate) the authenticated user's account and notify via email.</summary>
     [HttpDelete("me")]
