@@ -94,12 +94,20 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
             {booking.venueName} · {booking.screenName}
           </p>
 
-          {/* Seats */}
-          {Object.entries(seatsByCategory).map(([cat, labels]) => (
-            <p key={cat} className="text-xs text-text-muted font-mono">
-              {cat.toUpperCase()} — {labels.join(', ')}
-            </p>
-          ))}
+          {/* Seats / Tier info */}
+          {booking.seats.length > 0
+            ? Object.entries(seatsByCategory).map(([cat, labels]) => (
+                <p key={cat} className="text-xs text-text-muted font-mono">
+                  {cat.toUpperCase()} — {labels.join(', ')}
+                </p>
+              ))
+            : booking.ticketQty > 0 && (
+                <p className="text-xs text-text-muted font-sans">
+                  {booking.screenName !== 'Screen' ? `${booking.screenName} · ` : ''}
+                  {booking.ticketQty} ticket{booking.ticketQty !== 1 ? 's' : ''}
+                </p>
+              )
+          }
 
           {/* Booking ref + amount row */}
           <div className="flex items-center justify-between mt-2 flex-wrap gap-2">

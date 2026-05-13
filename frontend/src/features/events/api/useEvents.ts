@@ -1,6 +1,15 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { api } from '@/shared/lib/api';
-import type { EventDetail, EventListItem, EventListResponse, HomeData } from '../types';
+import type { CreateOrderResponse } from '@/features/booking/types';
+import type { ApiError } from '@/shared/types';
+import type {
+  EventDetail,
+  EventListItem,
+  EventListResponse,
+  HomeData,
+  EventAvailabilityResponse,
+  CreateEventOrderRequest,
+} from '../types';
 
 export function useEvents(
   type:   string | null = null,
@@ -55,5 +64,26 @@ export function useHomeData(cityId: string | null) {
 export function useRemindMeEvent(eventId: string) {
   return useMutation({
     mutationFn: () => api.post(`/api/events/${eventId}/remind-me`),
+  });
+}
+
+export function useEventAvailability(eventId: string) {
+  return useQuery<EventAvailabilityResponse>({
+    queryKey: ['event-availability', eventId],
+    queryFn: () =>
+      api.get<EventAvailabilityResponse>(`/api/events/${eventId}/availability`)
+        .then((r) => r.data),
+    staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000,
+    enabled: !!eventId,
+  });
+}
+
+export function useCreateEventOrder() {
+  return useMutation<CreateOrderResponse, ApiError, CreateEventOrderRequest>({
+    mutationFn: (data) =>
+      api.post<CreateOrderResponse>('/api/events/order', data, {
+        headers: { 'Idempotency-Key': data.idempotencyKey },
+      }).then((r) => r.data),
   });
 }

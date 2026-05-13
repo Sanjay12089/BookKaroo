@@ -97,14 +97,14 @@ public class ShowRepository : Repository<Show>, IShowRepository
         var bookedSeats = await (
             from bs in _db.BookingSeats
             join b in _db.Bookings on bs.BookingId equals b.Id
-            where showIds.Contains(b.ShowId) && b.Status == BookingStatus.Confirmed
-            group bs by b.ShowId into g
+            where b.ShowId.HasValue && showIds.Contains(b.ShowId!.Value) && b.Status == BookingStatus.Confirmed
+            group bs by b.ShowId!.Value into g
             select new { ShowId = g.Key, Count = g.Count() }
         ).ToDictionaryAsync(x => x.ShowId, x => x.Count, ct);
 
         var revenue = await _db.Bookings
-            .Where(b => showIds.Contains(b.ShowId) && b.Status == BookingStatus.Confirmed)
-            .GroupBy(b => b.ShowId)
+            .Where(b => b.ShowId.HasValue && showIds.Contains(b.ShowId!.Value) && b.Status == BookingStatus.Confirmed)
+            .GroupBy(b => b.ShowId!.Value)
             .Select(g => new { ShowId = g.Key, Total = g.Sum(b => b.AmountPaid) })
             .ToDictionaryAsync(x => x.ShowId, x => x.Total, ct);
 

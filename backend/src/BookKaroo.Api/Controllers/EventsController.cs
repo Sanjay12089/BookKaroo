@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using BookKaroo.Application.DTOs.Events;
+using BookKaroo.Application.Exceptions;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Domain.Entities;
@@ -13,13 +15,24 @@ namespace BookKaroo.Api.Controllers;
 [Produces("application/json")]
 public class EventsController : ControllerBase
 {
-    private readonly IEventService      _events;
-    private readonly IRemindMeRepository _remindMe;
+    private readonly IEventService              _events;
+    private readonly IRemindMeRepository        _remindMe;
+    private readonly IEventTicketLockRepository _eventLockRepo;
+    private readonly IBookingService            _bookingService;
+    private readonly IEventRepository           _eventRepo;
 
-    public EventsController(IEventService events, IRemindMeRepository remindMe)
+    public EventsController(
+        IEventService              events,
+        IRemindMeRepository        remindMe,
+        IEventTicketLockRepository eventLockRepo,
+        IBookingService            bookingService,
+        IEventRepository           eventRepo)
     {
-        _events   = events;
-        _remindMe = remindMe;
+        _events         = events;
+        _remindMe       = remindMe;
+        _eventLockRepo  = eventLockRepo;
+        _bookingService = bookingService;
+        _eventRepo      = eventRepo;
     }
 
     /// <summary>List published upcoming events with optional type and city filters.</summary>
@@ -75,6 +88,42 @@ public class EventsController : ControllerBase
 
         await _remindMe.AddAsync(new RemindMe { UserId = userId, EventId = id, Notified = false }, ct);
         return Ok(new { message = "We'll notify you when tickets are available!" });
+    }
+
+    /// <summary>Get tier availability for an event.</summary>
+    [HttpGet("{id:guid}/availability")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAvailability(Guid id, CancellationToken ct)
+    {
+        var ev = await _eventRepo.GetByIdAsync(id, ct);
+        if (ev == null) return NotFound();
+        var availability = await _eventLockRepo.GetTierAvailabilityAsync(id, ev.PriceTiers ?? "[]", ct);
+        return Ok(new { tiers = availability.Values });
+    }
+
+    /// <summary>Create an event order (reserve tickets and create payment order).</summary>
+    [HttpPost("order")]
+    [Authorize]
+    public async Task<IActionResult> CreateEventOrder(
+        [FromHeader(Name = "Idempotency-Key")] string? idempotencyKeyHeader,
+        [FromBody] CreateEventOrderRequest request,
+        CancellationToken ct)
+    {
+        if (request.Quantity < 1 || request.Quantity > 10)
+            return BadRequest(new { error = "Quantity must be between 1 and 10." });
+
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var effectiveKey = idempotencyKeyHeader ?? request.IdempotencyKey;
+        var req = request with { IdempotencyKey = effectiveKey };
+
+        try
+        {
+            return Ok(await _bookingService.CreateEventOrderAsync(req, userId, ct));
+        }
+        catch (NotFoundException ex)          { return NotFound(new { error = ex.Message }); }
+        catch (ConflictException ex)          { return Conflict(new { error = ex.Message }); }
+        catch (ArgumentException ex)          { return BadRequest(new { error = ex.Message }); }
+        catch (InvalidOperationException ex)  { return Conflict(new { error = ex.Message }); }
     }
 
     private static EventType? ParseEventType(string? type) => type?.ToLowerInvariant() switch

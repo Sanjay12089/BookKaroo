@@ -97,8 +97,8 @@ public class AdminRepository : IAdminRepository
     public async Task<IReadOnlyList<CityRevenue>> GetRevenuePerCityAsync(int top, CancellationToken ct = default)
     {
         var confirmedBookings = await _db.Bookings
-            .Where(b => b.Status == BookingStatus.Confirmed && b.DeletedAt == null)
-            .Select(b => new { b.ShowId, b.AmountPaid })
+            .Where(b => b.Status == BookingStatus.Confirmed && b.DeletedAt == null && b.ShowId.HasValue)
+            .Select(b => new { ShowId = b.ShowId!.Value, b.AmountPaid })
             .ToListAsync(ct);
 
         if (confirmedBookings.Count == 0) return Array.Empty<CityRevenue>();

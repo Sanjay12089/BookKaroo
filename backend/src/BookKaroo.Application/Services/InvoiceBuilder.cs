@@ -14,7 +14,7 @@ public class InvoiceBuilder
     }
 
     public async Task<InvoiceModel> BuildAsync(
-        Booking booking, Show show, Movie? movie, Venue? venue, Payment? payment,
+        Booking booking, Show? show, Movie? movie, Venue? venue, Payment? payment,
         User user, CancellationToken ct = default)
     {
         var allSettings     = await _settings.GetAllAsync(ct);
@@ -43,11 +43,16 @@ public class InvoiceBuilder
         decimal convIgst     = Math.Round(convTaxable * igstRate, 2);
         decimal convFeePerTk = booking.TicketQty > 0 ? Math.Round(convTaxable / booking.TicketQty, 2) : 59m;
 
+        bool isEventBooking = booking.EventId.HasValue;
         var movieTitle  = movie?.Title ?? "Movie";
         var certificate = movie?.Certificate ?? "";
 
+        var lineDescription = isEventBooking
+            ? $"{(movie?.Title ?? "Event")}\nConvenience fee/internet handling fee/delivery fee"
+            : $"{movieTitle} ({certificate})\nConvenience fee/internet handling fee/delivery fee";
+
         lines.Add(new InvoiceLine(
-            Description:    $"{movieTitle} ({certificate})\nConvenience fee/internet handling fee/delivery fee",
+            Description:    lineDescription,
             SacCode:        allSettings.GetValueOrDefault("sac_code_convenience", "998554"),
             Qty:            booking.TicketQty,
             Price:          convFeePerTk,
@@ -89,7 +94,7 @@ public class InvoiceBuilder
         decimal totalAfterTax  = totalBeforeTax + totalGst;
 
         var placeOfSupply = StateName(user.StateCode ?? companyStateCode);
-        var venueName     = venue?.Name ?? "Cinema";
+        var venueName     = venue?.Name ?? (isEventBooking ? "Event Organizer" : "Cinema");
 
         var paymentDateTime = payment?.CapturedAt ?? booking.CreatedAt;
         var paymentMethod   = payment?.Method ?? "Mock Payment (Test Mode)";
@@ -114,7 +119,9 @@ public class InvoiceBuilder
                 TotalGst:       totalGst,
                 TotalAfterTax:  totalAfterTax),
             AmountInWords:       Common.AmountInWordsConverter.Convert(booking.AmountPaid),
-            VenueNoteText:       $"Value of Rs.{booking.TicketAmount:F2}/- pertains to services provided by Theatre/Event Organizer/Cinema Owner: {venueName}.",
+            VenueNoteText:       isEventBooking
+                ? $"Value of Rs.{booking.TicketAmount:F2}/- pertains to services provided by Event Organizer: {venueName}."
+                : $"Value of Rs.{booking.TicketAmount:F2}/- pertains to services provided by Theatre/Event Organizer/Cinema Owner: {venueName}.",
             PaymentTransactionId: transactionId,
             PaymentTotal:        booking.AmountPaid,
             PaymentDateTime:     paymentDateTime,

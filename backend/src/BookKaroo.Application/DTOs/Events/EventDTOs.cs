@@ -1,5 +1,24 @@
 namespace BookKaroo.Application.DTOs.Events;
 
+public record TierAvailabilityDto(
+    string TierName,
+    int    Capacity,
+    int    Booked,
+    int    Locked,
+    int    Available,
+    double AvailabilityPct,
+    string Color);
+
+public record CreateEventOrderRequest(
+    Guid    EventId,
+    string  TierName,
+    int     Quantity,
+    string? CouponCode,
+    string  IdempotencyKey);
+
+public record EventAvailabilityResponse(
+    IReadOnlyList<TierAvailabilityDto> Tiers);
+
 public record PriceTier(
     string  Name,
     decimal Price,
