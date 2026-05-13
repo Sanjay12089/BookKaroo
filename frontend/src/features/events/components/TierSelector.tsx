@@ -130,12 +130,12 @@ export function TierSelector({
                 onClick={() => onSelectQty(n)}
                 disabled={n > selectedTier.available}
                 className={cn(
-                  'w-9 h-9 rounded-lg text-sm font-semibold font-sans transition-colors',
+                  'w-10 h-10 rounded-lg text-sm font-bold font-sans transition-all',
                   selectedQty === n
-                    ? 'bg-accent-crimson text-white border border-accent-crimson'
+                    ? 'bg-accent-crimson text-white shadow-[0_0_0_2px_rgba(229,9,20,0.35)] scale-105'
                     : n > selectedTier.available
-                      ? 'bg-bg-surface2 text-text-muted border border-border-default cursor-not-allowed opacity-40'
-                      : 'bg-bg-surface2 text-text-secondary border border-border-default hover:border-border-strong',
+                      ? 'bg-bg-surface2 text-text-muted border-2 border-border-default cursor-not-allowed opacity-30'
+                      : 'bg-bg-surface3 text-text-primary border-2 border-border-strong hover:border-accent-crimson hover:text-accent-crimson',
                 )}
               >
                 {n}
