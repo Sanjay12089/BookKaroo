@@ -218,6 +218,7 @@ try
     builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
     builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
     builder.Services.AddScoped<IEventRepository, EventRepository>();
+    builder.Services.AddScoped<IEventTicketLockRepository, EventTicketLockRepository>();
     builder.Services.AddScoped<ICmsBannerRepository, CmsBannerRepository>();
     builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
