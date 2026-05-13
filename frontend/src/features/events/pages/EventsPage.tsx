@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useCityStore } from '@/shared/store/cityStore';
@@ -60,6 +61,7 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
 
   return (
     <PublicLayout>
+      <Helmet><title>Events &amp; Shows | BookKaroo</title></Helmet>
       {/* Sticky filter bar */}
       <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none">

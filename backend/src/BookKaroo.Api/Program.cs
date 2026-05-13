@@ -275,8 +275,9 @@ try
     // 22. Controllers
     app.MapControllers();
 
-    // 23. Health checks
-    app.MapHealthChecks("/health");
+    // 23. Health checks — enhanced response via HealthController at GET /health
+    //     The built-in health check middleware is registered for internal tooling only.
+    app.MapHealthChecks("/healthz");
 
     // 24. Swagger (always available in non-production; can be gated by env)
     if (!app.Environment.IsProduction())

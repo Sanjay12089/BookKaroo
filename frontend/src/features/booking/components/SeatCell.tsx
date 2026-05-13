@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { cn } from '@/shared/lib/utils';
 import type { SeatState } from '@/shared/types';
 
@@ -8,7 +9,7 @@ interface Props {
   onClick: () => void;
 }
 
-export function SeatCell({ label, state, color, onClick }: Props) {
+function SeatCellComponent({ label, state, color, onClick }: Props) {
   const unavailable = state === 'booked' || state === 'locked';
 
   return (
@@ -37,3 +38,5 @@ export function SeatCell({ label, state, color, onClick }: Props) {
     </button>
   );
 }
+
+export const SeatCell = memo(SeatCellComponent);

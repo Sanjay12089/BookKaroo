@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { GlassCard } from '@/shared/components/ui/Card';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
@@ -54,6 +55,7 @@ export default function MyBookingsPage() {
 
   return (
     <PublicLayout>
+      <Helmet><title>My Bookings | BookKaroo</title></Helmet>
       {/* Profile header */}
       <div className="bg-gradient-to-b from-bg-surface2 to-bg-base border-b border-border-default">
         <div className="max-w-3xl mx-auto px-6 py-8">

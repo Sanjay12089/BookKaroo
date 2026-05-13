@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/shared/lib/utils';
 import type { Movie } from '@/shared/types';
@@ -9,7 +9,7 @@ interface MovieCardProps {
   coming?: boolean;
 }
 
-export function MovieCard({ movie, coming = false }: MovieCardProps) {
+function MovieCardComponent({ movie, coming = false }: MovieCardProps) {
   const [hovered, setHovered] = useState(false);
   const posterUrl = movie.posterUrl ? TMDB_POSTER(movie.posterUrl) : null;
 
@@ -85,3 +85,5 @@ export function MovieCard({ movie, coming = false }: MovieCardProps) {
     </Link>
   );
 }
+
+export const MovieCard = memo(MovieCardComponent);

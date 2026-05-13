@@ -14,4 +14,8 @@ public interface IEmailService
 
     Task SendBookingCancelledAsync(
         Booking booking, User user, decimal refundAmount, CancellationToken ct = default);
+
+    Task SendContactSupportAsync(
+        string name, string email, string subject, string message,
+        string? bookingRef, string supportEmail, CancellationToken ct = default);
 }

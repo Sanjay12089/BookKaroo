@@ -84,10 +84,39 @@ api.interceptors.response.use(
     }
 
     // Normalise error shape
+    if (!error.response) {
+      const apiError: ApiError = {
+        message: 'No internet connection. Please check your network.',
+        statusCode: 0,
+      };
+      return Promise.reject(apiError);
+    }
+
+    const { status, data } = error.response as { status: number; data: Record<string, unknown> };
+    let message: string;
+
+    if (status === 500) {
+      message = 'Something went wrong on our end. Please try again.';
+    } else if (status === 503) {
+      message = 'Service temporarily unavailable. Please try again shortly.';
+    } else if (status === 403) {
+      message = "You don't have permission to do this.";
+    } else if (status === 404) {
+      message = 'The requested resource was not found.';
+    } else {
+      message =
+        (data?.message as string | undefined) ??
+        (data?.error as string | undefined) ??
+        (data?.title as string | undefined) ??
+        (data?.detail as string | undefined) ??
+        error.message ??
+        'An error occurred.';
+    }
+
     const apiError: ApiError = {
-      message: (error.response?.data as { detail?: string })?.detail ?? error.message,
-      statusCode: error.response?.status ?? 0,
-      errors: (error.response?.data as { errors?: Record<string, string[]> })?.errors,
+      message,
+      statusCode: status,
+      errors: data?.errors as Record<string, string[]> | undefined,
     };
 
     return Promise.reject(apiError);
