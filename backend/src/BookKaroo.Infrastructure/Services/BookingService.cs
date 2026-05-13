@@ -193,15 +193,23 @@ public class BookingService : IBookingService
         query = tab switch
         {
             "upcoming" => query
-                .Where(b => b.Status == BookingStatus.Confirmed &&
-                            _db.Shows.Any(s => s.Id == b.ShowId && s.ShowDatetime > now))
-                .OrderBy(b => _db.Shows.Where(s => s.Id == b.ShowId).Select(s => s.ShowDatetime).FirstOrDefault()),
+                .Where(b => b.Status == BookingStatus.Confirmed && (
+                    (b.ShowId.HasValue && _db.Shows.Any(s => s.Id == b.ShowId && s.ShowDatetime > now)) ||
+                    (b.EventId.HasValue && _db.Events.Any(e => e.Id == b.EventId && e.EventDate > now))))
+                .OrderBy(b =>
+                    b.ShowId.HasValue
+                        ? _db.Shows.Where(s => s.Id == b.ShowId).Select(s => s.ShowDatetime).FirstOrDefault()
+                        : _db.Events.Where(e => e.Id == b.EventId).Select(e => e.EventDate ?? DateTime.MinValue).FirstOrDefault()),
             "past" => query
-                .Where(b => (b.Status == BookingStatus.Confirmed &&
-                             _db.Shows.Any(s => s.Id == b.ShowId && s.ShowDatetime <= now)) ||
+                .Where(b => (b.Status == BookingStatus.Confirmed && (
+                             (b.ShowId.HasValue && _db.Shows.Any(s => s.Id == b.ShowId && s.ShowDatetime <= now)) ||
+                             (b.EventId.HasValue && _db.Events.Any(e => e.Id == b.EventId && e.EventDate <= now)))) ||
                             b.Status == BookingStatus.Cancelled ||
                             b.Status == BookingStatus.Refunded)
-                .OrderByDescending(b => _db.Shows.Where(s => s.Id == b.ShowId).Select(s => s.ShowDatetime).FirstOrDefault()),
+                .OrderByDescending(b =>
+                    b.ShowId.HasValue
+                        ? _db.Shows.Where(s => s.Id == b.ShowId).Select(s => s.ShowDatetime).FirstOrDefault()
+                        : _db.Events.Where(e => e.Id == b.EventId).Select(e => e.EventDate ?? DateTime.MinValue).FirstOrDefault()),
             _ => query.OrderByDescending(b => b.CreatedAt)
         };
 
@@ -246,15 +254,46 @@ public class BookingService : IBookingService
                 slug  = evt?.Slug  ?? "";
                 poster = evt?.PosterUrl;
             }
+            else if (b.EventId.HasValue)
+            {
+                // Direct event booking (no show, has EventId on booking itself)
+                evt   = await _db.Events.FirstOrDefaultAsync(e => e.Id == b.EventId!.Value, ct);
+                title = evt?.Title ?? "Unknown";
+                slug  = evt?.Slug  ?? "";
+                poster = evt?.PosterUrl;
+                if (evt?.VenueId.HasValue == true)
+                    venue = allVenues.FirstOrDefault(v => v.Id == evt.VenueId!.Value);
+            }
 
             var seats = await _db.BookingSeats
                 .Where(bs => bs.BookingId == b.Id)
                 .Select(bs => new BookingSeatItem(bs.SeatLabel, bs.Category, bs.Price))
                 .ToListAsync(ct);
 
-            var showDatetime = show?.ShowDatetime ?? DateTime.MinValue;
-            var minutesLeft  = (showDatetime - now).TotalMinutes;
-            var canCancel    = b.Status == BookingStatus.Confirmed && minutesLeft > 120;
+            // Determine event datetime for sorting/cancellation
+            DateTime eventDatetime;
+            string showDateStr, showTimeStr;
+            if (show is not null)
+            {
+                eventDatetime = show.ShowDatetime;
+                showDateStr   = show.ShowDate.ToString("ddd, dd MMM yyyy");
+                showTimeStr   = show.ShowTime.ToString("hh\\:mm tt");
+            }
+            else if (evt?.EventDate.HasValue == true)
+            {
+                eventDatetime = evt.EventDate.Value;
+                showDateStr   = evt.EventDate.Value.ToString("ddd, dd MMM yyyy");
+                showTimeStr   = evt.EventDate.Value.ToString("hh:mm tt");
+            }
+            else
+            {
+                eventDatetime = DateTime.MinValue;
+                showDateStr   = "";
+                showTimeStr   = "";
+            }
+
+            var minutesLeft = (eventDatetime - now).TotalMinutes;
+            var canCancel   = b.Status == BookingStatus.Confirmed && minutesLeft > 120;
 
             var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == b.Id, ct);
 
@@ -268,12 +307,12 @@ public class BookingService : IBookingService
                 Certificate:    certificate,
                 Format:         format,
                 Language:       language,
-                ShowDate:       show?.ShowDate.ToString("ddd, dd MMM yyyy") ?? "",
-                ShowTime:       show?.ShowTime.ToString("hh\\:mm tt") ?? "",
-                ShowDatetime:   showDatetime,
+                ShowDate:       showDateStr,
+                ShowTime:       showTimeStr,
+                ShowDatetime:   eventDatetime,
                 VenueName:      venue?.Name    ?? "Unknown",
                 VenueAddress:   venue?.Address ?? "",
-                ScreenName:     screen?.Name   ?? "Screen",
+                ScreenName:     b.TierName ?? screen?.Name ?? "Screen",
                 Seats:          seats,
                 TicketQty:      b.TicketQty,
                 AmountPaid:     b.AmountPaid,
