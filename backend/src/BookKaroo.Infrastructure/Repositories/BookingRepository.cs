@@ -104,7 +104,7 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
         var merged = new List<AdminBookingDto>();
         foreach (var b in allBookings)
         {
-            if (!showDict.TryGetValue(b.ShowId, out var show)) continue;
+            if (!b.ShowId.HasValue || !showDict.TryGetValue(b.ShowId.Value, out var show)) continue;
             if (!userDict.TryGetValue(b.UserId, out var user)) continue;
             if (!venueDict.TryGetValue(show.VenueId, out var venue)) continue;
             if (!cityDict.TryGetValue(venue.CityId, out var city)) continue;
@@ -296,7 +296,7 @@ public class BookingRepository : Repository<Booking>, IBookingRepository
         var result = new List<AdminBookingDto>();
         foreach (var b in allBookings)
         {
-            if (!showDict.TryGetValue(b.ShowId, out var show)) continue;
+            if (!b.ShowId.HasValue || !showDict.TryGetValue(b.ShowId.Value, out var show)) continue;
             if (!venueDict.TryGetValue(show.VenueId, out var venue)) continue;
             if (!cityDict.TryGetValue(venue.CityId, out var city)) continue;
 

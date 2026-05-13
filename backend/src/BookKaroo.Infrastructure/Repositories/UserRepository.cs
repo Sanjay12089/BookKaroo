@@ -143,7 +143,7 @@ public class UserRepository : Repository<User>, IUserRepository
 
         var recentBookings = bookings.Select(b =>
         {
-            showDict.TryGetValue(b.ShowId, out var show);
+            var show = b.ShowId.HasValue && showDict.TryGetValue(b.ShowId.Value, out var s) ? s : null;
             var venue = show != null && venueDict.TryGetValue(show.VenueId, out var v) ? v : null;
             var movie = show?.MovieId.HasValue == true && movieDict.TryGetValue(show.MovieId!.Value, out var m) ? m : null;
             var ev    = show?.EventId.HasValue == true && eventDict.TryGetValue(show.EventId!.Value, out var e) ? e : null;

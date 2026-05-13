@@ -58,7 +58,7 @@ public class NotificationService : INotificationService
         }
 
         var user    = await _users.GetByIdAsync(booking.UserId, ct);
-        var show    = await _shows.GetByIdAsync(booking.ShowId, ct);
+        var show    = booking.ShowId.HasValue ? await _shows.GetByIdAsync(booking.ShowId.Value, ct) : null;
         var movie   = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
         var allVenues = await _venues.GetAllAsync(ct);
         var venue   = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
@@ -69,7 +69,8 @@ public class NotificationService : INotificationService
             _logger.LogWarning("User not found for booking {Ref}", booking.BookingRef);
             return;
         }
-        if (show is null)
+        // For event bookings, show may be null — allow proceeding without show
+        if (show is null && booking.ShowId.HasValue)
         {
             _logger.LogWarning("Show not found for booking {Ref}", booking.BookingRef);
             return;
