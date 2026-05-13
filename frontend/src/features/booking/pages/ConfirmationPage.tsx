@@ -133,7 +133,9 @@ export default function ConfirmationPage() {
     navigate(ROUTES.HOME);
   }
 
-  const pricing = detail?.pricing;
+  const pricing      = detail?.pricing;
+  // Event booking: seats array is empty and screenName holds tier name
+  const isEventBooking = detail && detail.seats.length === 0 && !!detail.show.screenName;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -232,7 +234,7 @@ export default function ConfirmationPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0 pr-2">
                     <p className="font-display font-black text-base text-text-primary leading-tight mb-1 line-clamp-2">
-                      {detail?.movie.title ?? 'Movie Ticket'}
+                      {detail?.movie.title ?? (isEventBooking ? 'Event Ticket' : 'Movie Ticket')}
                     </p>
                     <p className="text-[12px] text-text-secondary font-sans">
                       {detail?.show.date} · {detail?.show.time}
@@ -240,16 +242,24 @@ export default function ConfirmationPage() {
                     <p className="text-[12px] text-text-muted font-sans mt-0.5 leading-snug line-clamp-2">
                       {detail?.show.venueName}
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-default text-[10px] font-mono text-text-secondary uppercase">
-                        {detail?.show.screenName ?? 'SCREEN'}
-                      </span>
-                      {detail?.seats.map(s => (
-                        <span key={s.label} className="px-1.5 py-0.5 rounded bg-accent-indigo/10 border border-accent-indigo/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
-                          {s.label}
+                    {isEventBooking ? (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <span className="px-1.5 py-0.5 rounded bg-accent-indigo/10 border border-accent-indigo/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
+                          {detail?.show.screenName}
                         </span>
-                      ))}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-default text-[10px] font-mono text-text-secondary uppercase">
+                          {detail?.show.screenName ?? 'SCREEN'}
+                        </span>
+                        {detail?.seats.map(s => (
+                          <span key={s.label} className="px-1.5 py-0.5 rounded bg-accent-indigo/10 border border-accent-indigo/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
+                            {s.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
