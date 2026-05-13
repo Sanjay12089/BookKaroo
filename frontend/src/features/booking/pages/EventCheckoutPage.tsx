@@ -9,7 +9,7 @@ import { OrderSummaryPanel } from '../components/OrderSummaryPanel';
 import { MockPaymentModal } from '../components/MockPaymentModal';
 import { CountdownRing } from '@/shared/components/ui/CountdownRing';
 import { toast } from '@/shared/components/ui/Toast';
-import { ROUTES } from '@/shared/constants';
+import { ROUTES, TMDB_POSTER } from '@/shared/constants';
 import { formatCurrency } from '@/shared/lib/utils';
 import type { BookingDetailResponse, CouponValidation } from '../types';
 import type { ApiError } from '@/shared/types';
@@ -136,9 +136,7 @@ export default function EventCheckoutPage() {
 
   if (!orderResponse) return null;
 
-  // Extract event info from the checkout store (order carries bookingRef)
-  const eventTitle = (orderResponse as { eventTitle?: string }).eventTitle ?? 'Event Booking';
-  const tierName   = (orderResponse as { tierName?: string }).tierName ?? '';
+  const ctx = checkoutStore.eventContext;
 
   return (
     <div className="min-h-screen bg-bg-base text-text-primary font-sans pb-10">
@@ -156,21 +154,55 @@ export default function EventCheckoutPage() {
       <div className="max-w-[1100px] mx-auto px-4 md:px-6 pt-6 grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
         {/* ── LEFT PANEL ── */}
         <div className="space-y-4">
-          {/* Event card */}
+          {/* Event details card */}
           <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
-            <div className="flex items-start gap-3 mb-3">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-accent-indigo/30 to-accent-purple/30 flex items-center justify-center text-xl flex-shrink-0">
-                🎪
+            <div className="flex items-start gap-4">
+              {/* Poster */}
+              <div className="flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-bg-surface2 border border-border-default">
+                {ctx?.posterUrl
+                  ? <img src={TMDB_POSTER(ctx.posterUrl)} alt={ctx.eventTitle} className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-2xl">🎪</div>
+                }
               </div>
+
+              {/* Info */}
               <div className="flex-1 min-w-0">
-                <p className="font-display font-bold text-lg leading-tight truncate">{eventTitle}</p>
-                <p className="text-sm text-text-secondary font-sans mt-0.5">
-                  {tierName && `${tierName} · `}{ticketQty} ticket{ticketQty !== 1 ? 's' : ''}
+                <p className="font-display font-bold text-lg leading-tight">
+                  {ctx?.eventTitle ?? 'Event Booking'}
                 </p>
+                {ctx?.venueName && (
+                  <p className="text-sm text-text-secondary font-sans mt-1">
+                    📍 {ctx.venueName}{ctx.cityName ? `, ${ctx.cityName}` : ''}
+                  </p>
+                )}
+                {ctx?.eventDate && (
+                  <p className="text-sm text-text-muted font-sans mt-0.5">
+                    📅 {new Date(ctx.eventDate).toLocaleDateString('en-IN', {
+                      weekday: 'short', day: '2-digit', month: 'short', year: 'numeric',
+                    })}
+                    {' · '}
+                    {new Date(ctx.eventDate).toLocaleTimeString('en-IN', {
+                      hour: '2-digit', minute: '2-digit', hour12: true,
+                    })}
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="flex items-center justify-between py-2.5 border-t border-border-default">
+            {/* Tier + quantity */}
+            {ctx && (
+              <div className="mt-4 flex items-center gap-3 pt-4 border-t border-border-default">
+                <span className="px-3 py-1 rounded-full bg-accent-indigo/15 text-accent-indigo text-xs font-semibold font-sans">
+                  {ctx.tierName}
+                </span>
+                <span className="text-sm text-text-secondary font-sans">
+                  {ctx.quantity} ticket{ctx.quantity !== 1 ? 's' : ''}
+                  {ctx.unitPrice > 0 && ` · ${formatCurrency(ctx.unitPrice)}/ticket`}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between py-2.5 mt-3 border-t border-border-default">
               <span className="text-sm text-text-muted font-sans">Ticket Amount</span>
               <span className="font-semibold text-sm text-text-primary font-sans">
                 {formatCurrency(ticketAmount)}

@@ -95,6 +95,17 @@ export default function EventDetailPage() {
         idempotencyKey,
       });
       checkoutStore.setOrder(result);
+      checkoutStore.setEventContext({
+        eventId:    event.id,
+        eventTitle: event.title,
+        tierName:   selectedTier.tierName,
+        quantity:   selectedQty,
+        unitPrice,
+        posterUrl:  event.posterUrl ?? null,
+        eventDate:  event.eventDate ?? null,
+        venueName:  event.venueName,
+        cityName:   event.cityName,
+      });
       navigate('/booking/event-checkout');
     } catch (err: unknown) {
       const apiErr = err as ApiError;
