@@ -22,7 +22,7 @@
         "JWT_SECRET": "dev-super-secret-key-that-is-at-least-256-bits-long-for-hmac-sha256",
         "JWT_ISSUER": "bookkaroo",
         "JWT_AUDIENCE": "bookkaroo-api",
-        "JWT_ACCESS_TTL_MIN": "15",
+        "JWT_ACCESS_TTL_MIN": "120",
         "JWT_REFRESH_TTL_DAYS": "30",
 
         "PAYMENT_PROVIDER": "mock",

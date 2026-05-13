@@ -53,7 +53,8 @@ public class AuthService : IAuthService
 
         await _users.AddAsync(user, ct);
 
-        _ = Task.Run(() => _email.SendWelcomeAsync(user, ct), ct);
+        // CancellationToken.None — fire-and-forget; request ct cancels when response is sent
+        _ = Task.Run(() => _email.SendWelcomeAsync(user, CancellationToken.None));
 
         var (accessToken, refreshToken) = GenerateTokens(user);
         user.RefreshToken = BCrypt.Net.BCrypt.HashPassword(refreshToken, workFactor: 4);
