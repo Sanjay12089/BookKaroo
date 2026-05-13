@@ -4,6 +4,7 @@ using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BookKaroo.Api.Controllers;
 
@@ -13,13 +14,13 @@ namespace BookKaroo.Api.Controllers;
 [Authorize]
 public class UsersController : ControllerBase
 {
-    private readonly IUserRepository _users;
-    private readonly IEmailService   _email;
+    private readonly IUserRepository    _users;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public UsersController(IUserRepository users, IEmailService email)
+    public UsersController(IUserRepository users, IServiceScopeFactory scopeFactory)
     {
-        _users = users;
-        _email = email;
+        _users        = users;
+        _scopeFactory = scopeFactory;
     }
 
     /// <summary>Update the authenticated user's profile.</summary>
@@ -94,7 +95,16 @@ public class UsersController : ControllerBase
         user.RefreshTokenExpiresAt = null;
         await _users.UpdateAsync(user, ct);
 
-        _ = Task.Run(() => _email.SendAccountDeletedAsync(user, CancellationToken.None));
+        var capturedName  = user.Name;
+        var capturedEmail = user.Email;
+        _ = Task.Run(async () =>
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var email = scope.ServiceProvider.GetRequiredService<IEmailService>();
+            await email.SendAccountDeletedAsync(
+                new BookKaroo.Domain.Entities.User { Name = capturedName, Email = capturedEmail },
+                CancellationToken.None);
+        });
 
         return Ok(new { message = "Your account has been deactivated. We're sorry to see you go." });
     }

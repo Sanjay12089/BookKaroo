@@ -9,6 +9,7 @@ using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookKaroo.Application.Services;
@@ -19,17 +20,20 @@ public class AuthService : IAuthService
     private readonly IPasswordResetTokenRepository _resetTokens;
     private readonly IEmailService _email;
     private readonly IConfiguration _config;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public AuthService(
         IUserRepository users,
         IPasswordResetTokenRepository resetTokens,
         IEmailService email,
-        IConfiguration config)
+        IConfiguration config,
+        IServiceScopeFactory scopeFactory)
     {
-        _users = users;
-        _resetTokens = resetTokens;
-        _email = email;
-        _config = config;
+        _users        = users;
+        _resetTokens  = resetTokens;
+        _email        = email;
+        _config       = config;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task<AuthResponse> SignupAsync(SignupRequest request, CancellationToken ct = default)
@@ -53,8 +57,17 @@ public class AuthService : IAuthService
 
         await _users.AddAsync(user, ct);
 
-        // CancellationToken.None — fire-and-forget; request ct cancels when response is sent
-        _ = Task.Run(() => _email.SendWelcomeAsync(user, CancellationToken.None));
+        // Use a fresh scope so the scoped IEmailService isn't disposed when the request ends
+        var capturedName  = user.Name;
+        var capturedEmail = user.Email;
+        _ = Task.Run(async () =>
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var email = scope.ServiceProvider.GetRequiredService<IEmailService>();
+            await email.SendWelcomeAsync(
+                new User { Name = capturedName, Email = capturedEmail },
+                CancellationToken.None);
+        });
 
         var (accessToken, refreshToken) = GenerateTokens(user);
         user.RefreshToken = BCrypt.Net.BCrypt.HashPassword(refreshToken, workFactor: 4);
