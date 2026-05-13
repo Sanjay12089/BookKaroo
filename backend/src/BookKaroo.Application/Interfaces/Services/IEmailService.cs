@@ -19,4 +19,6 @@ public interface IEmailService
     Task SendContactSupportAsync(
         string name, string email, string subject, string message,
         string? bookingRef, string supportEmail, CancellationToken ct = default);
+
+    Task SendAccountDeletedAsync(User user, CancellationToken ct = default);
 }

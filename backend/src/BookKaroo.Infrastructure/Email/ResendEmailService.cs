@@ -479,5 +479,79 @@ public class ResendEmailService : IEmailService
             """;
     }
 
+    public async Task SendAccountDeletedAsync(User user, CancellationToken ct = default)
+    {
+        var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+        var html = $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8"/>
+              <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+              <title>Account Deactivated — BookKaroo</title>
+            </head>
+            <body style="margin:0;padding:0;background:#F4F4F5;font-family:'Inter','Segoe UI',Helvetica,Arial,sans-serif">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F4F5">
+                <tr><td align="center" style="padding:24px 16px">
+                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.06)">
+
+                    <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
+                      <span style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:700;color:#FFF">
+                        Book<span style="color:#E50914">Karoo</span>
+                      </span>
+                    </td></tr>
+
+                    <tr><td style="padding:36px 32px">
+                      <h2 style="color:#18181B;margin:0 0 12px;font-size:22px">
+                        Your account has been deactivated
+                      </h2>
+                      <p style="color:#52525B;line-height:1.7;margin:0 0 16px">
+                        Hi <strong>{user.Name}</strong>, your BookKaroo account associated with
+                        <strong>{user.Email}</strong> has been deactivated as requested.
+                      </p>
+                      <p style="color:#52525B;line-height:1.7;margin:0 0 16px">
+                        Your booking history has been retained for legal and compliance purposes.
+                        Your personal data will be permanently removed within 30 days.
+                      </p>
+                      <p style="color:#52525B;line-height:1.7;margin:0 0 24px">
+                        If you believe this was a mistake or want to reactivate your account,
+                        please contact our support team within 7 days.
+                      </p>
+                      <a href="{frontendUrl}/help"
+                         style="display:inline-block;background:#E50914;color:#FFF;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
+                        Contact Support
+                      </a>
+                    </td></tr>
+
+                    <tr><td align="center" style="background:#FAFAFA;padding:20px 32px;color:#71717A;font-size:12px;line-height:1.6">
+                      We're sorry to see you go. Thank you for being part of BookKaroo.<br/>
+                      © 2026 BookKaroo Pvt Ltd. All rights reserved.
+                    </td></tr>
+
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
+            """;
+
+        var text = $"""
+            BookKaroo — Account Deactivated
+
+            Hi {user.Name},
+
+            Your BookKaroo account ({user.Email}) has been deactivated as requested.
+
+            Your booking history has been retained for legal and compliance purposes.
+            Your personal data will be permanently removed within 30 days.
+
+            If this was a mistake, contact us at {frontendUrl}/help within 7 days.
+
+            Thank you for being part of BookKaroo.
+            """;
+
+        await SendAsync(user.Email, "Your BookKaroo account has been deactivated", html, text, ct: ct);
+    }
+
     private record EmailAttachment(string Filename, string ContentBase64);
 }

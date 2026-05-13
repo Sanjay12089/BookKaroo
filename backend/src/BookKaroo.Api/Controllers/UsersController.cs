@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using BCrypt.Net;
 using BookKaroo.Application.Interfaces.Repositories;
+using BookKaroo.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,8 +14,13 @@ namespace BookKaroo.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserRepository _users;
+    private readonly IEmailService   _email;
 
-    public UsersController(IUserRepository users) => _users = users;
+    public UsersController(IUserRepository users, IEmailService email)
+    {
+        _users = users;
+        _email = email;
+    }
 
     /// <summary>Update the authenticated user's profile.</summary>
     [HttpPut("me")]
@@ -71,6 +77,27 @@ public class UsersController : ControllerBase
         await _users.UpdateAsync(user, ct);
 
         return Ok(new { message = "Password updated successfully." });
+    }
+}
+
+    /// <summary>Soft-delete (deactivate) the authenticated user's account and notify via email.</summary>
+    [HttpDelete("me")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> DeleteMe(CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var user   = await _users.GetByIdAsync(userId, ct);
+        if (user == null) return NotFound();
+
+        user.DeletedAt = DateTime.UtcNow;
+        user.RefreshToken = null;
+        user.RefreshTokenExpiresAt = null;
+        await _users.UpdateAsync(user, ct);
+
+        _ = Task.Run(() => _email.SendAccountDeletedAsync(user, CancellationToken.None));
+
+        return Ok(new { message = "Your account has been deactivated. We're sorry to see you go." });
     }
 }
 
