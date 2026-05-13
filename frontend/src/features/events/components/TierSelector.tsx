@@ -39,6 +39,7 @@ interface TierSelectorProps {
   onSelectTier:    (tier: TierAvailability) => void;
   onSelectQty:     (qty: number) => void;
   unitPrice?:      number;
+  tierPrices?:     Record<string, number>; // price per tier name (lowercase key)
 }
 
 export function TierSelector({
@@ -48,6 +49,7 @@ export function TierSelector({
   onSelectTier,
   onSelectQty,
   unitPrice = 0,
+  tierPrices = {},
 }: TierSelectorProps) {
   if (tiers.length === 0) {
     return (
@@ -93,7 +95,7 @@ export function TierSelector({
                   {tier.tierName}
                 </span>
                 <span className="font-display font-bold text-base text-accent-indigo">
-                  {formatCurrency(unitPrice || 0)}
+                  {formatCurrency(tierPrices[tier.tierName.toLowerCase()] ?? unitPrice)}
                 </span>
               </div>
 

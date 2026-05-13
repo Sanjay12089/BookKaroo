@@ -40,7 +40,25 @@ export default function EventDetailPage() {
 
   // Availability
   const { data: availabilityData, isLoading: availLoading } = useEventAvailability(event?.id ?? '');
-  const tiers = availabilityData?.tiers ?? [];
+
+  // Build displayTiers — use real availability data when present, otherwise derive
+  // clickable tiers from event.allPriceTiers so booking is always accessible even
+  // if the availability API hasn't responded yet or returns empty.
+  const displayTiers: TierAvailability[] = (() => {
+    if (availabilityData?.tiers && availabilityData.tiers.length > 0) {
+      return availabilityData.tiers;
+    }
+    if (!event) return [];
+    return event.allPriceTiers.map((t) => ({
+      tierName:        t.name,
+      capacity:        t.capacity ?? 999,
+      booked:          0,
+      locked:          0,
+      available:       t.capacity ?? 999,
+      availabilityPct: 100,
+      color:           t.color,
+    }));
+  })();
 
   // Realtime capacity updates
   const qc = useQueryClient();
@@ -52,11 +70,14 @@ export default function EventDetailPage() {
   // Create event order
   const createEventOrder = useCreateEventOrder();
 
-  // Find unit price for selected tier from event.allPriceTiers
+  // Price lookup per tier (used by TierSelector to show each tier's price)
+  const tierPrices: Record<string, number> = Object.fromEntries(
+    (event?.allPriceTiers ?? []).map((t) => [t.name.toLowerCase(), t.price])
+  );
+
+  // Unit price for the currently selected tier (for pricing preview)
   const unitPrice = selectedTier
-    ? (event?.allPriceTiers.find(
-        (t) => t.name.toLowerCase() === selectedTier.tierName.toLowerCase(),
-      )?.price ?? 0)
+    ? (tierPrices[selectedTier.tierName.toLowerCase()] ?? 0)
     : 0;
 
   async function handleProceedToCheckout() {
@@ -185,18 +206,19 @@ export default function EventDetailPage() {
           <div id="tier-selector" className="mt-10 p-6 rounded-xl bg-bg-surface border border-border-default">
             <h2 className="font-display font-semibold text-xl mb-5">Select Tickets</h2>
 
-            {availLoading ? (
+            {availLoading && displayTiers.length === 0 ? (
               <div className="space-y-3">
-                {Array.from({ length: 2 }, (_, i) => (
+                {Array.from({ length: 3 }, (_, i) => (
                   <Skeleton key={i} height={80} className="rounded-xl" />
                 ))}
               </div>
-            ) : tiers.length > 0 ? (
+            ) : (
               <>
                 <TierSelector
-                  tiers={tiers}
+                  tiers={displayTiers}
                   selectedTier={selectedTier}
                   selectedQty={selectedQty}
+                  tierPrices={tierPrices}
                   onSelectTier={(tier) => {
                     setSelectedTier(tier);
                     setSelectedQty(1);
@@ -206,25 +228,16 @@ export default function EventDetailPage() {
                 />
 
                 {selectedTier && selectedQty > 0 && (
-                  <Button
-                    size="lg"
-                    className="w-full mt-5"
-                    loading={createEventOrder.isPending}
+                  <button
+                    type="button"
+                    disabled={createEventOrder.isPending}
                     onClick={() => void handleProceedToCheckout()}
+                    className="w-full mt-5 py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold font-sans text-base hover:-translate-y-0.5 transition-all disabled:opacity-50 shadow-[0_10px_40px_-10px_rgba(229,9,20,0.5)]"
                   >
-                    Proceed to Checkout →
-                  </Button>
+                    {createEventOrder.isPending ? 'Processing…' : `Proceed to Checkout — ₹${(unitPrice * selectedQty).toLocaleString('en-IN')} →`}
+                  </button>
                 )}
               </>
-            ) : (
-              <div className="space-y-3">
-                {event.allPriceTiers.map((tier) => (
-                  <TierCard key={tier.name} tier={tier} />
-                ))}
-                <p className="text-sm text-text-muted font-sans mt-3">
-                  Booking opens soon — set a reminder to be notified.
-                </p>
-              </div>
             )}
           </div>
         )}
