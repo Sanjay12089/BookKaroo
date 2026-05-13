@@ -6,7 +6,7 @@ import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useUpdateProfile, useDeleteAccount } from '../api/useProfile';
+import { useProfile, useUpdateProfile, useDeleteAccount } from '../api/useProfile';
 import { useCities } from '@/features/cities/api/useCities';
 import { toast } from '@/shared/components/ui/Toast';
 
@@ -19,27 +19,26 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function ProfilePage() {
-  const { user } = useAuthStore();
+  // Prefer fresh server data; fall back to in-memory auth store while loading
+  const { data: profileData, isLoading: profileLoading } = useProfile();
+  const { user: storeUser } = useAuthStore();
+  const user = profileData ?? storeUser;
+
   const { mutate: update, isPending } = useUpdateProfile();
   const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
   const { data: cities = [] } = useCities();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      name:   user?.name   ?? '',
-      mobile: user?.mobile ?? '',
-      gender: user?.gender ?? '',
-      cityId: user?.cityId ?? '',
-    },
+    defaultValues: { name: '', mobile: '', gender: '', cityId: '' },
   });
 
-  // Re-populate form whenever user data loads/changes
+  // Populate form as soon as user data is available (from API or store)
   useEffect(() => {
     if (user) {
       reset({
-        name:   user.name,
-        mobile: user.mobile,
+        name:   user.name   ?? '',
+        mobile: user.mobile ?? '',
         gender: user.gender ?? '',
         cityId: user.cityId ?? '',
       });
@@ -48,6 +47,16 @@ export default function ProfilePage() {
 
   function onSubmit(data: FormValues) {
     update(data, { onSuccess: () => toast('Profile updated!', 'success') });
+  }
+
+  if (profileLoading && !user) {
+    return (
+      <PublicLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="w-8 h-8 rounded-full border-2 border-accent-indigo/20 border-t-accent-indigo animate-spin" />
+        </div>
+      </PublicLayout>
+    );
   }
 
   return (
