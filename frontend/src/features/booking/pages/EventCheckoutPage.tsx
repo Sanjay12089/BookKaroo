@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCheckoutStore } from '@/shared/store/checkoutStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useValidateCoupon } from '../api/useBooking';
+import { useValidateCoupon, useVerifyPayment } from '../api/useBooking';
 import { calculatePricing } from '@/shared/lib/pricing';
 import { usePublicSettings, parseNum } from '@/shared/lib/usePublicSettings';
 import { OrderSummaryPanel } from '../components/OrderSummaryPanel';
@@ -11,8 +11,11 @@ import { CountdownRing } from '@/shared/components/ui/CountdownRing';
 import { toast } from '@/shared/components/ui/Toast';
 import { ROUTES, TMDB_POSTER } from '@/shared/constants';
 import { formatCurrency } from '@/shared/lib/utils';
-import type { BookingDetailResponse, CouponValidation } from '../types';
+import { openRazorpayCheckout } from '@/shared/lib/razorpay';
+import type { BookingDetailResponse, CouponValidation, CreateOrderResponse } from '../types';
 import type { ApiError } from '@/shared/types';
+
+const paymentProvider = import.meta.env.VITE_PAYMENT_PROVIDER ?? 'mock';
 
 export default function EventCheckoutPage() {
   const navigate       = useNavigate();
@@ -27,6 +30,7 @@ export default function EventCheckoutPage() {
   }, []);
 
   const validateCoupon = useValidateCoupon();
+  const verifyPayment  = useVerifyPayment();
 
   // Idempotency key is already used (embedded in order), nothing to re-create
   const [mobile, setMobile] = useState(user?.mobile ?? '');
@@ -36,8 +40,9 @@ export default function EventCheckoutPage() {
   const [appliedCoupon, setAppliedCoupon] = useState<CouponValidation | null>(null);
   const [couponError,   setCouponError]   = useState<string | null>(null);
 
-  const [agreedToTerms,   setAgreedToTerms]   = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [agreedToTerms,    setAgreedToTerms]    = useState(false);
+  const [showPaymentModal, setShowPaymentModal]  = useState(false);
+  const [isVerifying,      setIsVerifying]       = useState(false);
 
   // Countdown based on lockExpiresAt from order response
   const orderResponse  = checkoutStore.orderResponse;
@@ -115,6 +120,44 @@ export default function EventCheckoutPage() {
     setCouponError(null);
   }
 
+  // ── Razorpay handler ──────────────────────────────────────────────────────
+  function handleRazorpayCheckout(order: CreateOrderResponse) {
+    openRazorpayCheckout({
+      keyId:          order.razorpayKeyId!,
+      orderId:        order.providerOrderId,
+      amount:         order.amount,
+      currency:       order.currency,
+      bookingRef:     order.bookingRef,
+      customerName:   user?.name ?? '',
+      customerEmail:  email,
+      customerMobile: mobile,
+      onSuccess: (response) => {
+        setIsVerifying(true);
+        verifyPayment.mutate(
+          {
+            razorpayOrderId:   response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+          },
+          {
+            onSuccess: (detail) => {
+              checkoutStore.setBookingDetail(detail);
+              navigate(ROUTES.CONFIRMATION);
+            },
+            onError: (err: unknown) => {
+              setIsVerifying(false);
+              const apiErr = err as ApiError;
+              toast(apiErr?.message ?? 'Payment verification failed. Please contact support.', 'error');
+            },
+          },
+        );
+      },
+      onDismiss: () => {
+        toast("Payment cancelled. Your seats are held for a few more minutes.", 'info');
+      },
+    });
+  }
+
   // ── Pay handler ───────────────────────────────────────────────────────────
   function handlePay() {
     if (!mobile || !email) {
@@ -126,7 +169,11 @@ export default function EventCheckoutPage() {
       return;
     }
     checkoutStore.setContact(mobile, email);
-    setShowPaymentModal(true);
+    if (paymentProvider === 'razorpay' && orderResponse?.razorpayKeyId) {
+      handleRazorpayCheckout(orderResponse);
+    } else {
+      setShowPaymentModal(true);
+    }
   }
 
   function handlePaymentSuccess(detail: BookingDetailResponse) {
@@ -264,6 +311,19 @@ export default function EventCheckoutPage() {
           onSuccess={handlePaymentSuccess}
           onClose={() => setShowPaymentModal(false)}
         />
+      )}
+
+      {isVerifying && (
+        <div className="fixed inset-0 z-[9999] bg-bg-base/95 backdrop-blur-sm flex flex-col items-center justify-center gap-6">
+          <div className="font-display font-bold text-2xl text-text-primary">
+            Book<span className="text-accent-crimson">Karoo</span>
+          </div>
+          <div className="w-12 h-12 rounded-full border-4 border-accent-crimson/20 border-t-accent-crimson animate-spin" />
+          <div className="text-center">
+            <p className="font-semibold text-text-primary font-sans">Verifying your payment...</p>
+            <p className="text-sm text-text-muted font-sans mt-1">Please do not close this window</p>
+          </div>
+        </div>
       )}
     </div>
   );
