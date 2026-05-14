@@ -114,7 +114,27 @@ Isue 2: Verify home page reflects changes:
 Issue 3: Updated Max Seats per Booking to 11 in /admin/settings page, but it still allows only 10 bookings on /booking/{movieid}/seats page, 
 Also Convenience fee updated on /admin/settings page does not reflected in booking page
 -- Also verify all updates values on /admin/settings page are reflected on site
+====================
+Login or singup issue 
+
+Issue 1: on /login page, if provide wrong password, then it shows "No refresh token." message 
+Expected result - It should show message like wrong password
+
+Issue 2: on /login page, When trying to login using correct mobile number and correct password it shows message "No refresh token."
+Expected result - It should allow to login successfully
+
+Issue 3: On /profile page, it should show the form wiht pre-filled values, but it shows blank full name and mobile number
+
+Issue 4: After sometime, on refreshing page, it automatically redirect to login page. Increase the timout time to 2 hours if its set statically from frontent or backend
+
+Issue 5: On /signup page, after signup, it is not sending welcome mail to user on provided email address
+
+Issue 6: On Delete my account, it should send mail to user on his email address, you can decide email template on your own based on other email templates
+
+
+
 =========================ABOVE DONE===============
+
 STILL ISSUE AFTER SPRONT 15
 Issue 2: on /admin/venues page UI issues
 -> Correct the UI of Cancel and Create Venue buttons
@@ -188,14 +208,31 @@ Go to my bookings, and refresh , should not logout
 Validation for signup form, for email, mobile number
 
 
-send welcome mail on signup
-
-
-/movies/{should not show movie shows for which time is less then current time}/showtimes
-
 /booking/{ID}/seats page, selecte 5 seats, unselect 3 seats , then clikc on pay now will redirect to /booking/checkout, from here now click Back button, it will show 3 unseleced seats as locked
 
 
-On bookig -> seat selection "GST 18%" it seems its statis, it should show based on selected GST Rate in /admin/settings page
+Cancelled movie or event's seat/count should be updated  
+
+On cancellation mail, showing incorrect refund amount
+
+Invoice does not contains detials of movie/event
+
+delete account - sign up using same email address
+
+=======================================
+## 14 may 2026
+Here I have listed few issues, please review and solve it. Make sure that updates d:
+
+Issue 1: Please correct the UI of all buttons, some buttons are looked like label only, so correct it
+
+Issue 2: On /Events page, it show many events of Play and Sports as well, but on /Sports and /Plays page it does not show any event
+
+Issue 3: While bookig -> seat selection, "GST 18%" it seems its statis, it should show based on selected GST Rate in /admin/settings page
+
+Issue 4: On filling up the signup form and click on Submit, it should send a welcome mail to sigup user on the provided email address
+
+Issue 5: While cancelling the ticket, it sends mail, but it does not contains details like movie/event name, date time, location, paid amoiunt and refund amount, you can generate mail template for this mail at your own by using the new booking email tempalte
+-> Also while Delete account, it should send mail to use whose account is deleted
+
 
 

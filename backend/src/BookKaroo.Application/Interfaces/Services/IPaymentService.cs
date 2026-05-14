@@ -15,4 +15,8 @@ public interface IPaymentService
         Guid              userId,
         bool              simulateFailure,
         CancellationToken ct = default);
+
+    Task<BookingDetailResponse> VerifyPaymentAsync(
+        VerifyPaymentRequest request,
+        CancellationToken    ct = default);
 }

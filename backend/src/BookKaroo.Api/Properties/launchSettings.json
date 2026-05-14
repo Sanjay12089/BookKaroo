@@ -25,7 +25,9 @@
         "JWT_ACCESS_TTL_MIN": "120",
         "JWT_REFRESH_TTL_DAYS": "30",
 
-        "PAYMENT_PROVIDER": "mock",
+        "PAYMENT_PROVIDER": "razorpay",
+        "RAZORPAY_KEY_ID": "rzp_test_So9AWdYbyCdzjw",
+        "RAZORPAY_KEY_SECRET": "kbPU1Na9adO7l9rOdKDqkK2x",
 
         "RESEND_API_KEY": "re_A2tdeXiD_D3dMEkq8UenhaZQqPU3CGZS2",
         "RESEND_FROM": "BookKaroo <onboarding@resend.dev>",

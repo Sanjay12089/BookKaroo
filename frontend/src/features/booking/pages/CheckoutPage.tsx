@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useSeatStore } from '../store/seatStore';
 import { useCheckoutStore } from '@/shared/store/checkoutStore';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useShowSeats, useCreateOrder, useValidateCoupon, useReleaseSeats } from '../api/useBooking';
+import { useShowSeats, useCreateOrder, useValidateCoupon, useReleaseSeats, useVerifyPayment } from '../api/useBooking';
 import { calculatePricing } from '@/shared/lib/pricing';
 import { usePublicSettings, parseNum } from '@/shared/lib/usePublicSettings';
 import { OrderSummaryPanel } from '../components/OrderSummaryPanel';
@@ -11,7 +11,8 @@ import { MockPaymentModal } from '../components/MockPaymentModal';
 import { CountdownRing } from '@/shared/components/ui/CountdownRing';
 import { toast } from '@/shared/components/ui/Toast';
 import { ROUTES, TMDB_POSTER } from '@/shared/constants';
-import type { BookingDetailResponse, CouponValidation, ScreenLayout } from '../types';
+import { openRazorpayCheckout } from '@/shared/lib/razorpay';
+import type { BookingDetailResponse, CouponValidation, CreateOrderResponse, ScreenLayout } from '../types';
 import type { ApiError } from '@/shared/types';
 
 // Same fallback as SeatSelectionPage — used when backend has no layout JSON
@@ -27,6 +28,8 @@ const FALLBACK_LAYOUT: ScreenLayout = {
   ],
 };
 
+const paymentProvider = import.meta.env.VITE_PAYMENT_PROVIDER ?? 'mock';
+
 export default function CheckoutPage() {
   const navigate = useNavigate();
 
@@ -37,6 +40,8 @@ export default function CheckoutPage() {
   // Prevents the guard below from firing when payment succeeds and clearSeats is called
   const paymentCompletedRef = useRef(false);
 
+  const [isVerifying, setIsVerifying] = useState(false);
+
   // Guard: no seats → back to home (suppressed after successful payment)
   useEffect(() => {
     if (selectedSeats.length === 0 && !paymentCompletedRef.current) navigate('/');
@@ -46,6 +51,7 @@ export default function CheckoutPage() {
   const createOrderMutation = useCreateOrder();
   const validateCoupon      = useValidateCoupon();
   const releaseMutation     = useReleaseSeats();
+  const verifyPayment       = useVerifyPayment();
 
   // Idempotency key — stable for the lifetime of this checkout session
   const [idempotencyKey] = useState(() => crypto.randomUUID());
@@ -144,6 +150,49 @@ export default function CheckoutPage() {
     setCouponError(null);
   }
 
+  // ── Razorpay handler ──────────────────────────────────────────────────────
+  function handleRazorpayCheckout(order: CreateOrderResponse) {
+    openRazorpayCheckout({
+      keyId:          order.razorpayKeyId!,
+      orderId:        order.providerOrderId,
+      amount:         order.amount,
+      currency:       order.currency,
+      bookingRef:     order.bookingRef,
+      customerName:   user?.name ?? '',
+      customerEmail:  email,
+      customerMobile: mobile,
+      onSuccess: (response) => {
+        setIsVerifying(true);
+        verifyPayment.mutate(
+          {
+            razorpayOrderId:   response.razorpay_order_id,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpaySignature: response.razorpay_signature,
+          },
+          {
+            onSuccess: (detail) => {
+              paymentCompletedRef.current = true;
+              checkoutStore.setBookingDetail(detail);
+              // Navigate first so the guard in ConfirmationPage sees bookingDetail
+              // before clearSeats() triggers a CheckoutPage re-render
+              navigate(ROUTES.CONFIRMATION);
+              clearSeats();
+              setIsVerifying(false);
+            },
+            onError: (err: unknown) => {
+              setIsVerifying(false);
+              const apiErr = err as ApiError;
+              toast(apiErr?.message ?? 'Payment verification failed. Please contact support.', 'error');
+            },
+          },
+        );
+      },
+      onDismiss: () => {
+        toast("Payment cancelled. Your seats are held for a few more minutes.", 'info');
+      },
+    });
+  }
+
   // ── Pay handler ───────────────────────────────────────────────────────────
   async function handlePay() {
     if (!mobile || !email) {
@@ -167,8 +216,13 @@ export default function CheckoutPage() {
       checkoutStore.setContact(mobile, email);
       if (appliedCoupon) checkoutStore.setCoupon(appliedCoupon.code, appliedCoupon);
 
-      // Open mock payment modal instead of navigating directly
-      setShowPaymentModal(true);
+      // Use key from backend response; fall back to frontend env (both should be same test key)
+      const effectiveKeyId = result.razorpayKeyId ?? import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (paymentProvider === 'razorpay' && effectiveKeyId) {
+        handleRazorpayCheckout({ ...result, razorpayKeyId: effectiveKeyId });
+      } else {
+        setShowPaymentModal(true);
+      }
     } catch (err: unknown) {
       const apiErr = err as ApiError;
       if (apiErr?.statusCode === 409) {
@@ -305,6 +359,19 @@ export default function CheckoutPage() {
           onSuccess={handlePaymentSuccess}
           onClose={() => setShowPaymentModal(false)}
         />
+      )}
+
+      {isVerifying && (
+        <div className="fixed inset-0 z-[9999] bg-bg-base/95 backdrop-blur-sm flex flex-col items-center justify-center gap-6">
+          <div className="font-display font-bold text-2xl text-text-primary">
+            Book<span className="text-accent-crimson">Karoo</span>
+          </div>
+          <div className="w-12 h-12 rounded-full border-4 border-accent-crimson/20 border-t-accent-crimson animate-spin" />
+          <div className="text-center">
+            <p className="font-semibold text-text-primary font-sans">Verifying your payment...</p>
+            <p className="text-sm text-text-muted font-sans mt-1">Please do not close this window</p>
+          </div>
+        </div>
       )}
     </div>
   );
