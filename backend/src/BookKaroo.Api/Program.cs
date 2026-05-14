@@ -194,9 +194,17 @@ try
 
     // 11. IPaymentProvider — select based on PAYMENT_PROVIDER env var
     var paymentProvider = builder.Configuration["PAYMENT_PROVIDER"] ?? "mock";
-    if (paymentProvider == "mock")
-        builder.Services.AddScoped<IPaymentProvider, MockPaymentProvider>();
-    // Phase 1.5: add Razorpay/PayPal providers here
+    switch (paymentProvider.ToLowerInvariant())
+    {
+        case "razorpay":
+            builder.Services.AddScoped<IPaymentProvider, RazorpayPaymentProvider>();
+            break;
+        default:
+            if (builder.Environment.IsProduction())
+                throw new InvalidOperationException("MockPaymentProvider cannot be used in Production.");
+            builder.Services.AddScoped<IPaymentProvider, MockPaymentProvider>();
+            break;
+    }
 
     // 12. HttpClient
     builder.Services.AddHttpClient();
