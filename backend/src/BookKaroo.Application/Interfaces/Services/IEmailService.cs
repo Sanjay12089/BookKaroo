@@ -14,7 +14,8 @@ public interface IEmailService
     Task SendPasswordResetAsync(User user, string token, CancellationToken ct = default);
 
     Task SendBookingCancelledAsync(
-        Booking booking, User user, decimal refundAmount, CancellationToken ct = default);
+        Booking booking, User user, decimal refundAmount, CancellationToken ct = default,
+        string? contentTitle = null, string? venueAndCity = null, DateTime? showDateTime = null);
 
     Task SendContactSupportAsync(
         string name, string email, string subject, string message,

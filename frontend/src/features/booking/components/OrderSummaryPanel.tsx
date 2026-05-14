@@ -94,9 +94,9 @@ export function OrderSummaryPanel({
               </span>
               <button
                 onClick={onRemoveCoupon}
-                className="text-xs text-text-muted hover:text-semantic-error underline font-sans"
+                className="px-2.5 py-1 rounded-full text-xs font-sans border border-border-default text-text-muted hover:border-semantic-error hover:text-semantic-error transition-colors"
               >
-                Remove
+                ✕ Remove
               </button>
             </div>
           ) : (
@@ -163,8 +163,7 @@ export function OrderSummaryPanel({
 
         {/* Payment icons */}
         <div className="mt-3 text-center">
-          <p className="text-xs text-text-muted font-sans mb-1">Visa · Mastercard · RuPay · UPI · NetBanking</p>
-          <p className="text-[10px] text-text-muted font-sans">(Test Mode — No real payment)</p>
+          <p className="text-xs text-text-muted font-sans">Visa · Mastercard · RuPay · UPI · NetBanking</p>
         </div>
       </div>
     </div>

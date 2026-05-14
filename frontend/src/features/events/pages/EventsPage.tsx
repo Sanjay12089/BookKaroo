@@ -22,9 +22,10 @@ const TABS: Tab[] = [
 interface EventsPageProps {
   defaultType?: string;
   title?:       string;
+  noCityFilter?: boolean;
 }
 
-export default function EventsPage({ defaultType, title }: EventsPageProps) {
+export default function EventsPage({ defaultType, title, noCityFilter }: EventsPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedCity } = useCityStore();
   const cityId   = selectedCity?.id ?? null;
@@ -47,8 +48,9 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Only apply city filter for specific type tabs; "All" shows everything across all cities
-  const effectiveCityId = activeType ? cityId : null;
+  // Specialized pages (Sports, Plays, etc.) never filter by city — they show all events of that type.
+  // On the main /events page, city filter applies only on specific-type tabs, not "All".
+  const effectiveCityId = noCityFilter ? null : (activeType ? cityId : null);
 
   const { data, isLoading, isFetching } = useEvents(activeType, effectiveCityId, page);
   const events     = data?.items ?? [];

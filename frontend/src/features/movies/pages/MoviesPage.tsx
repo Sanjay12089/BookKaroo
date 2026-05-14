@@ -191,8 +191,8 @@ export default function MoviesPage() {
               </button>
             ))}
             {activeFilters.length > 0 && (
-              <button onClick={clearAll} className="text-xs text-text-muted hover:text-text-secondary underline font-sans">
-                Clear all
+              <button onClick={clearAll} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-sans bg-bg-surface2 border border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors">
+                ✕ Clear all
               </button>
             )}
           </div>
