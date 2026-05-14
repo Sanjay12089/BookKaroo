@@ -30,7 +30,13 @@ export function useCancelBooking() {
   return useMutation<CancelResponse, ApiError, string>({
     mutationFn: (ref: string) =>
       api.post<CancelResponse>(`/api/bookings/${ref}/cancel`).then((r) => r.data),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] });
+      void qc.invalidateQueries({ queryKey: ['my-bookings'] });
+      // Freed seats/counts should be immediately visible to other users
+      void qc.invalidateQueries({ queryKey: ['show-seats'] });
+      void qc.invalidateQueries({ queryKey: ['event-availability'] });
+    },
   });
 }
 

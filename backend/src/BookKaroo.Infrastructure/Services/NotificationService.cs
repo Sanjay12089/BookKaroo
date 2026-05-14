@@ -57,14 +57,14 @@ public class NotificationService : INotificationService
             return;
         }
 
-        var user    = await _users.GetByIdAsync(booking.UserId, ct);
-        var show    = booking.ShowId.HasValue ? await _shows.GetByIdAsync(booking.ShowId.Value, ct) : null;
-        var movie   = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
+        var user      = await _users.GetByIdAsync(booking.UserId, ct);
+        var show      = booking.ShowId.HasValue ? await _shows.GetByIdAsync(booking.ShowId.Value, ct) : null;
+        var movie     = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
         var allVenues = await _venues.GetAllAsync(ct);
-        var venue   = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
-        var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
+        var venue     = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+        var payment   = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
 
-        // For event bookings: load event to get actual date + time + title
+        // For event bookings: load event to get actual date + time + title + venue
         DateTime? eventDate  = null;
         string?   eventTitle = null;
         if (booking.EventId.HasValue)
@@ -74,6 +74,9 @@ public class NotificationService : INotificationService
             {
                 eventDate  = ev.EventDate;
                 eventTitle = ev.Title;
+                // Use event venue for the invoice if no show venue
+                if (venue is null && ev.VenueId.HasValue)
+                    venue = allVenues.FirstOrDefault(v => v.Id == ev.VenueId.Value);
             }
         }
 
@@ -91,8 +94,9 @@ public class NotificationService : INotificationService
 
         try
         {
-            // Build GST invoice
-            var invoiceModel = await _invoiceBuilder.BuildAsync(booking, show, movie, venue, payment, user, ct);
+            // Build GST invoice — pass event details so event bookings show real title/date
+            var invoiceModel = await _invoiceBuilder.BuildAsync(booking, show, movie, venue, payment, user, ct,
+                eventTitle, eventDate);
             var pdfBytes     = _pdfGenerator.Generate(invoiceModel);
 
             // QR URL for email — use Supabase URL if available, otherwise public QR API

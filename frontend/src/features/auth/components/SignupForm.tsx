@@ -54,6 +54,7 @@ export function SignupForm() {
     register,
     handleSubmit,
     watch,
+    setError,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
@@ -75,7 +76,13 @@ export function SignupForm() {
     signup(data, {
       onError: (err: unknown) => {
         const e = err as ApiError;
-        setApiError(e?.message ?? 'Signup failed. Please try again.');
+        const msg = e?.message ?? 'Signup failed. Please try again.';
+        if (e?.statusCode === 409) {
+          // Highlight the email field directly instead of showing a generic banner
+          setError('email', { message: msg });
+        } else {
+          setApiError(msg);
+        }
       },
     });
   }
@@ -159,7 +166,7 @@ export function SignupForm() {
         <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">City</p>
         <select
           {...register('cityId')}
-          className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15 transition-all"
+          className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15 transition-all [color-scheme:dark]"
         >
           <option value="">{citiesLoading ? 'Loading…' : 'Select your city'}</option>
           {cities.map((c) => (

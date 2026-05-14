@@ -131,6 +131,15 @@ export default function SeatSelectionPage() {
       const remaining = selectedSeats.filter((s) => s !== label);
       if (remaining.length === 0) {
         await releaseMutation.mutateAsync(showId);
+      } else {
+        // Re-lock with only the remaining seats so the backend lock matches
+        // what the user actually has selected (prevents ghost locks on Back)
+        try {
+          const result = await lockMutation.mutateAsync({ showId, seats: remaining });
+          setLock(result.lockId, result.expiresAt);
+        } catch {
+          // Non-fatal: ghost lock will expire naturally
+        }
       }
       return;
     }
@@ -348,6 +357,8 @@ export default function SeatSelectionPage() {
         getCategory={getCategoryForSeat}
         onPay={() => navigate(ROUTES.CHECKOUT)}
         onDeselect={(label) => void handleSeatClick(label, 'selected')}
+        convFeePerTicket={CONV_FEE}
+        gstRate={GST_RATE}
       />
     </div>
   );

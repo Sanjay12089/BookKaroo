@@ -90,7 +90,7 @@ function RadioChips({ options, value, onChange, labelMap }: RadioChipsProps) {
   );
 }
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-sm text-text-primary font-sans focus:outline-none focus:border-accent-indigo';
+const inputCls = 'w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-sm text-text-primary font-sans focus:outline-none focus:border-accent-indigo [color-scheme:dark]';
 const labelCls = 'block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1';
 const sectionCls = 'border-t border-border-default pt-4 mt-4';
 

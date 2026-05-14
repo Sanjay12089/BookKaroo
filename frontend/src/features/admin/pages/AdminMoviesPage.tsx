@@ -178,7 +178,7 @@ export default function AdminMoviesPage() {
             <select
               value={statusTab}
               onChange={(e) => { setStatusTab(e.target.value); setPage(1); }}
-              className="px-3 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo cursor-pointer"
+              className="px-3 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo cursor-pointer [color-scheme:dark]"
             >
               {STATUS_TABS.map((t) => (
                 <option key={t} value={t}>{t}</option>
@@ -194,7 +194,7 @@ export default function AdminMoviesPage() {
             <select
               value={categoryTab}
               onChange={(e) => { setCategoryTab(e.target.value); setPage(1); }}
-              className="px-3 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo cursor-pointer"
+              className="px-3 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans text-text-primary focus:outline-none focus:border-accent-indigo cursor-pointer [color-scheme:dark]"
             >
               {CATEGORY_TABS.map((t) => (
                 <option key={t} value={t}>{CATEGORY_LABEL[t] ?? t}</option>

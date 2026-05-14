@@ -171,7 +171,7 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
 
           <div>
             <label className="block text-sm font-medium text-text-primary mb-1">City *</label>
-            <select {...register('cityId')} className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo">
+            <select {...register('cityId')} className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]">
               <option value="">— Select City —</option>
               {cities?.map((c) => <option key={c.id} value={c.id}>{c.name}, {c.state}</option>)}
             </select>
