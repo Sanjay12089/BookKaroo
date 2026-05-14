@@ -359,8 +359,10 @@ public class BookingService : IBookingService
                 throw new AppException("Cannot cancel within 2 hours of event.", 400);
         }
 
+        // Non-refundable: convenience fee, offer processing fee, and all GST on those fees
         var refundAmount = booking.AmountPaid
-            - (booking.ConvenienceFee + booking.Cgst + booking.Sgst + booking.Igst);
+            - (booking.ConvenienceFee + booking.OfferProcessingFee
+               + booking.Cgst + booking.Sgst + booking.Igst);
         refundAmount = Math.Max(0, Math.Round(refundAmount, 2));
 
         var refundId = $"MOCK-REF-{Guid.NewGuid():N}";

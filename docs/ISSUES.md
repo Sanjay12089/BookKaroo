@@ -234,5 +234,18 @@ Issue 4: On filling up the signup form and click on Submit, it should send a wel
 Issue 5: While cancelling the ticket, it sends mail, but it does not contains details like movie/event name, date time, location, paid amoiunt and refund amount, you can generate mail template for this mail at your own by using the new booking email tempalte
 -> Also while Delete account, it should send mail to use whose account is deleted
 
+=============
+## 14 may 2026 2
+Issue 1: on /movies page, UI of each filter is looks like labels only please correc the UI of filters and also validate that filters are wokring correctly
+-> Also correct the UI of Sort dropdown, on clicking Sort dropdown, it shows options but text are while so text are not visible
+
+Issue 2: On /booking/confirmed page, Correc the UI of View my bookingd and Back to Home button
+
+Issue 3: On /signup page, when fill the EMAIL address of existing user, and submit the form, it shows the message 'conflict', instead it should show proper message of already existing user with selected email address.
+
+
+
+
+
 
 

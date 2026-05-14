@@ -2,15 +2,15 @@ import { cn } from '@/shared/lib/utils';
 import type { SeatCategory } from '../types';
 
 interface Props {
-  selectedSeats: string[];
-  getCategory:   (label: string) => SeatCategory | undefined;
-  onPay:         () => void;
-  onDeselect:    (label: string) => void;
+  selectedSeats:    string[];
+  getCategory:      (label: string) => SeatCategory | undefined;
+  onPay:            () => void;
+  onDeselect:       (label: string) => void;
+  convFeePerTicket: number;
+  gstRate:          number;
 }
 
-const CONV_FEE = 59;
-
-export function SeatBottomBar({ selectedSeats, getCategory, onPay, onDeselect }: Props) {
+export function SeatBottomBar({ selectedSeats, getCategory, onPay, onDeselect, convFeePerTicket, gstRate }: Props) {
   if (selectedSeats.length === 0) {
     return (
       <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-bg-surface/95 backdrop-blur-md border-t border-border-default lg:hidden">
@@ -20,8 +20,8 @@ export function SeatBottomBar({ selectedSeats, getCategory, onPay, onDeselect }:
   }
 
   const ticketTotal = selectedSeats.reduce((sum, label) => sum + (getCategory(label)?.price ?? 0), 0);
-  const convFee     = selectedSeats.length * CONV_FEE;
-  const gst         = Math.round(convFee * 0.18);
+  const convFee     = selectedSeats.length * convFeePerTicket;
+  const gst         = Math.round(convFee * gstRate);
   const grand       = ticketTotal + convFee + gst;
 
   return (

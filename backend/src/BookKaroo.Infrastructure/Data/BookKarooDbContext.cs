@@ -92,7 +92,8 @@ public class BookKarooDbContext : DbContext
         modelBuilder.Entity<User>(e =>
         {
             e.HasKey(u => u.Id);
-            e.HasIndex(u => u.Email).IsUnique();
+            // Partial unique index: allow re-signup with a soft-deleted user's email
+            e.HasIndex(u => u.Email).IsUnique().HasFilter("\"deleted_at\" IS NULL");
             e.HasIndex(u => u.Mobile);
             e.HasIndex(u => u.CityId);
             e.HasQueryFilter(u => u.DeletedAt == null);

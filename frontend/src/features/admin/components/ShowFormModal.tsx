@@ -122,8 +122,8 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
     onClose();
   };
 
-  const inputCls = 'w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo';
-  const selectCls = inputCls;
+  const inputCls  = 'w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo';
+  const selectCls = inputCls + ' [color-scheme:dark]';
 
   return (
     <Modal open onClose={onClose} maxWidth="max-w-lg">

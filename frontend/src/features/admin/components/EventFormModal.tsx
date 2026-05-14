@@ -16,7 +16,7 @@ const EVENT_TYPES = [
 const STATUSES = ['Draft', 'Published', 'Archived'];
 const TIER_COLORS = ['#E11D48', '#6366F1', '#F59E0B', '#22C55E', '#A855F7', '#0EA5E9'];
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-sm text-text-primary font-sans focus:outline-none focus:border-accent-indigo';
+const inputCls = 'w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-sm text-text-primary font-sans focus:outline-none focus:border-accent-indigo [color-scheme:dark]';
 const labelCls = 'block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1';
 const sectionCls = 'border-t border-border-default pt-4 mt-4';
 

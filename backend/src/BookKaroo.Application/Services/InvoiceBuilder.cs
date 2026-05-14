@@ -15,7 +15,8 @@ public class InvoiceBuilder
 
     public async Task<InvoiceModel> BuildAsync(
         Booking booking, Show? show, Movie? movie, Venue? venue, Payment? payment,
-        User user, CancellationToken ct = default)
+        User user, CancellationToken ct = default,
+        string? eventTitle = null, DateTime? eventDate = null)
     {
         var allSettings     = await _settings.GetAllAsync(ct);
         var companyStateCode = allSettings.GetValueOrDefault("company_state_code", "24");
@@ -47,8 +48,13 @@ public class InvoiceBuilder
         var movieTitle  = movie?.Title ?? "Movie";
         var certificate = movie?.Certificate ?? "";
 
+        var eventDisplayTitle = eventTitle ?? "Event Ticket";
+        var eventDateSuffix   = eventDate.HasValue
+            ? $" | {eventDate.Value:dd MMM yyyy, hh:mm tt}"
+            : string.Empty;
+
         var lineDescription = isEventBooking
-            ? $"{(movie?.Title ?? "Event")}\nConvenience fee/internet handling fee/delivery fee"
+            ? $"{eventDisplayTitle}{eventDateSuffix}\nConvenience fee/internet handling fee/delivery fee"
             : $"{movieTitle} ({certificate})\nConvenience fee/internet handling fee/delivery fee";
 
         lines.Add(new InvoiceLine(
