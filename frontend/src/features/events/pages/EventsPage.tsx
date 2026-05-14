@@ -50,9 +50,9 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Specialized pages (Sports, Plays, etc.) never filter by city — they show all events of that type.
-  // On the main /events page, city filter applies only on specific-type tabs, not "All".
-  const effectiveCityId = noCityFilter ? null : (resolvedType ? cityId : null);
+  // Sports/Plays pages pass noCityFilter so touring events without a venue show everywhere.
+  // On /events, city always filters — All tab and type-specific tabs both respect selected city.
+  const effectiveCityId = noCityFilter ? null : cityId;
 
   const { data, isLoading, isFetching } = useEvents(resolvedType, effectiveCityId, page);
   const events     = data?.items ?? [];
@@ -94,7 +94,7 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">
-            {headingTitle}{resolvedType && cityName ? ` · ${cityName}` : ''}
+            {headingTitle}{cityName && !noCityFilter ? ` · ${cityName}` : ''}
           </p>
           <h1 className="font-display font-semibold text-3xl md:text-4xl tracking-tight">
             {headingTitle === 'All' ? 'Events & Shows' : headingTitle}
@@ -102,7 +102,7 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
           {!isLoading && (
             <p className="text-text-secondary text-sm mt-2 font-sans">
               {total} event{total === 1 ? '' : 's'}
-              {resolvedType && cityName ? ` in ${cityName}` : ''}
+              {cityName && !noCityFilter ? ` in ${cityName}` : ''}
             </p>
           )}
         </div>
@@ -124,7 +124,7 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
               No {headingTitle === 'All' ? 'events' : headingTitle.toLowerCase()} right now
             </h3>
             <p className="text-text-muted text-sm font-sans">
-              {resolvedType && cityName ? `Try changing your city or c` : 'C'}heck back soon — events are added regularly.
+              {cityName && !noCityFilter ? `Try changing your city or c` : 'C'}heck back soon — events are added regularly.
             </p>
           </div>
         ) : (
