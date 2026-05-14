@@ -26,6 +26,9 @@ public class EventRepository : Repository<Event>, IEventRepository
 
         if (type.HasValue)
             query = query.Where(e => e.Type == type.Value);
+        else
+            // "All" tab: exclude Play and IPL — they have dedicated top-menu pages
+            query = query.Where(e => e.Type != EventType.Play && e.Type != EventType.Ipl);
 
         if (cityId.HasValue)
         {
@@ -33,7 +36,9 @@ public class EventRepository : Repository<Event>, IEventRepository
                 .Where(v => v.CityId == cityId.Value && v.DeletedAt == null)
                 .Select(v => v.Id);
 
-            query = query.Where(e => e.VenueId != null && venueIdsInCity.Contains(e.VenueId.Value));
+            // Events with no venue (VenueId == null) are national/touring — show in every city.
+            // Events with a venue are shown only when that venue is in the selected city.
+            query = query.Where(e => e.VenueId == null || venueIdsInCity.Contains(e.VenueId.Value));
         }
 
         query = query.OrderBy(e => e.EventDate);
@@ -72,7 +77,7 @@ public class EventRepository : Repository<Event>, IEventRepository
                 .Where(v => v.CityId == cityId.Value && v.DeletedAt == null)
                 .Select(v => v.Id);
 
-            query = query.Where(e => e.VenueId != null && venueIdsInCity.Contains(e.VenueId.Value));
+            query = query.Where(e => e.VenueId == null || venueIdsInCity.Contains(e.VenueId.Value));
         }
 
         return await query
