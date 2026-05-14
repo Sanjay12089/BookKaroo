@@ -34,29 +34,28 @@ public class SeatLockService : ISeatLockService
         var lockMinutes  = double.TryParse(minutesStr, out var min) ? min : 8;
         var lockDuration = TimeSpan.FromMinutes(lockMinutes);
 
-        var newLocks = new List<SeatLock>();
+        // Release ALL existing locks for this user+show before creating the new set.
+        // If the user has deselected seats (e.g. had A1–A5 locked, now wants A1–A3),
+        // the old A4/A5 locks must be removed so other users see them as available.
+        await _lockRepo.DeleteByUserAndShowAsync(userId, showId, ct);
+
+        // Single expiry for the whole batch (consistent countdown for all seats)
+        var expiresAt = DateTime.UtcNow.Add(lockDuration);
+        var newLocks  = new List<SeatLock>();
 
         foreach (var seat in seats)
         {
-            // Check confirmed booking
+            // Reject if already booked by anyone
             var isBooked = await _bookingRepo.IsSeatBookedAsync(showId, seat, ct);
             if (isBooked)
                 throw new ConflictException($"Seat {seat} is already booked.");
 
-            // Check existing lock
+            // Reject if another user holds this seat
             var existing = await _lockRepo.GetActiveLockForSeatAsync(showId, seat, ct);
-            if (existing is not null)
-            {
-                if (existing.UserId != userId)
-                    throw new ConflictException($"Seat {seat} is currently held by another user.");
+            if (existing is not null && existing.UserId != userId)
+                throw new ConflictException($"Seat {seat} is currently held by another user.");
 
-                // Same user already holds this seat — idempotent, collect the existing lock
-                newLocks.Add(existing);
-                continue;
-            }
-
-            var expiresAt = DateTime.UtcNow.Add(lockDuration);
-            var seatLock  = new SeatLock
+            var seatLock = new SeatLock
             {
                 Id        = Guid.NewGuid(),
                 ShowId    = showId,
@@ -68,13 +67,10 @@ public class SeatLockService : ISeatLockService
 
             var added = await _lockRepo.AddAsync(seatLock, ct);
             newLocks.Add(added);
-            _logger.LogInformation("Seat locked {Seat} for show {ShowId} by user {UserId}", seat, showId, userId);
+            _logger.LogInformation("Seat locked {Seat}/{ShowId}/{UserId}", seat, showId, userId);
         }
 
-        var first     = newLocks[0];
-        var expiresAt2 = newLocks.Min(l => l.ExpiresAt);
-
-        return new SeatLockResponse(first.Id, expiresAt2, seats);
+        return new SeatLockResponse(newLocks[0].Id, expiresAt, seats);
     }
 
     public async Task ReleaseLocksAsync(Guid userId, Guid showId, CancellationToken ct = default)
