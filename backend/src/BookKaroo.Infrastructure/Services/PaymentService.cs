@@ -24,6 +24,7 @@ public class PaymentService : IPaymentService
     private readonly IPricingService         _pricing;
     private readonly ICouponService          _couponSvc;
     private readonly IBookingService         _bookingSvc;
+    private readonly IPaymentProvider        _paymentProvider;
     private readonly BookKarooDbContext      _db;
     private readonly ILogger<PaymentService> _logger;
 
@@ -36,19 +37,21 @@ public class PaymentService : IPaymentService
         IPricingService      pricing,
         ICouponService       couponSvc,
         IBookingService      bookingSvc,
+        IPaymentProvider     paymentProvider,
         BookKarooDbContext   db,
         ILogger<PaymentService> logger)
     {
-        _shows      = shows;
-        _users      = users;
-        _locks      = locks;
-        _coupons    = coupons;
-        _screens    = screens;
-        _pricing    = pricing;
-        _couponSvc  = couponSvc;
-        _bookingSvc = bookingSvc;
-        _db         = db;
-        _logger     = logger;
+        _shows           = shows;
+        _users           = users;
+        _locks           = locks;
+        _coupons         = coupons;
+        _screens         = screens;
+        _pricing         = pricing;
+        _couponSvc       = couponSvc;
+        _bookingSvc      = bookingSvc;
+        _paymentProvider = paymentProvider;
+        _db              = db;
+        _logger          = logger;
     }
 
     public async Task<CreateOrderResponse> CreateOrderAsync(
@@ -141,11 +144,20 @@ public class PaymentService : IPaymentService
                     }, ct);
                 }
 
-                var providerOrderId = $"MOCK-{Guid.NewGuid():N}";
+                var providerOrder = await _paymentProvider.CreateOrderAsync(
+                    new ProviderOrderRequest(breakdown.AmountPaid, "INR"), ct);
+                var providerOrderId = providerOrder.ProviderOrderId;
+
+                var providerEnum = _paymentProvider.ProviderName.ToLowerInvariant() switch
+                {
+                    "razorpay" => PaymentProvider.Razorpay,
+                    _          => PaymentProvider.Mock,
+                };
+
                 await _db.Payments.AddAsync(new PaymentEntity
                 {
                     BookingId       = booking.Id,
-                    Provider        = PaymentProvider.Mock,
+                    Provider        = providerEnum,
                     ProviderOrderId = providerOrderId,
                     Amount          = breakdown.AmountPaid,
                     Currency        = "INR",
@@ -169,7 +181,8 @@ public class PaymentService : IPaymentService
 
                 var response = new CreateOrderResponse(
                     booking.Id, booking.BookingRef, providerOrderId,
-                    "mock", breakdown.AmountPaid, "INR", breakdown);
+                    _paymentProvider.ProviderName, breakdown.AmountPaid, "INR", breakdown,
+                    RazorpayKeyId: providerOrder.RazorpayKeyId);
 
                 await _db.IdempotencyKeys.AddAsync(new IdempotencyKey
                 {
@@ -311,6 +324,57 @@ public class PaymentService : IPaymentService
             return await _bookingSvc.FinalizeBookingAsync(booking.Id, providerPaymentId, ct);
         else if (booking.EventId.HasValue)
             return await _bookingSvc.FinalizeEventBookingAsync(booking.Id, providerPaymentId, ct);
+        else
+            throw new InvalidOperationException("Booking has neither ShowId nor EventId.");
+    }
+
+    public async Task<BookingDetailResponse> VerifyPaymentAsync(
+        VerifyPaymentRequest request, CancellationToken ct = default)
+    {
+        // Verify HMAC signature using RazorpayPaymentProvider
+        if (_paymentProvider is not BookKaroo.Infrastructure.Payment.RazorpayPaymentProvider razorpay)
+            throw new AppException("Verify endpoint only available for Razorpay provider.", 400);
+
+        if (!razorpay.VerifyPaymentSignature(
+                request.RazorpayOrderId, request.RazorpayPaymentId, request.RazorpaySignature))
+        {
+            throw new AppException("Payment verification failed. Invalid signature.", 400);
+        }
+
+        // Find payment record
+        var payment = await _db.Payments
+            .FirstOrDefaultAsync(p => p.ProviderOrderId == request.RazorpayOrderId, ct)
+            ?? throw new NotFoundException("Payment order not found.");
+
+        // Idempotency — already captured?
+        if (payment.Status == PaymentStatus.Captured)
+        {
+            var existingBooking = await _db.Bookings
+                .FirstOrDefaultAsync(b => b.Id == payment.BookingId, ct)
+                ?? throw new NotFoundException("Booking not found.");
+
+            if (existingBooking.ShowId.HasValue)
+                return await _bookingSvc.FinalizeBookingAsync(existingBooking.Id, payment.ProviderPaymentId!, ct);
+            else if (existingBooking.EventId.HasValue)
+                return await _bookingSvc.FinalizeEventBookingAsync(existingBooking.Id, payment.ProviderPaymentId!, ct);
+            else
+                throw new InvalidOperationException("Booking has neither ShowId nor EventId.");
+        }
+
+        // Store provider payment ID and signature
+        payment.ProviderPaymentId = request.RazorpayPaymentId;
+        payment.ProviderSignature = request.RazorpaySignature;
+        await _db.SaveChangesAsync(ct);
+
+        // Find booking and finalize
+        var booking = await _db.Bookings
+            .FirstOrDefaultAsync(b => b.Id == payment.BookingId, ct)
+            ?? throw new NotFoundException("Booking not found.");
+
+        if (booking.ShowId.HasValue)
+            return await _bookingSvc.FinalizeBookingAsync(booking.Id, request.RazorpayPaymentId, ct);
+        else if (booking.EventId.HasValue)
+            return await _bookingSvc.FinalizeEventBookingAsync(booking.Id, request.RazorpayPaymentId, ct);
         else
             throw new InvalidOperationException("Booking has neither ShowId nor EventId.");
     }
