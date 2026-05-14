@@ -169,8 +169,9 @@ export default function EventCheckoutPage() {
       return;
     }
     checkoutStore.setContact(mobile, email);
-    if (paymentProvider === 'razorpay' && orderResponse?.razorpayKeyId) {
-      handleRazorpayCheckout(orderResponse);
+    const effectiveKeyId = orderResponse?.razorpayKeyId ?? import.meta.env.VITE_RAZORPAY_KEY_ID;
+    if (paymentProvider === 'razorpay' && effectiveKeyId) {
+      handleRazorpayCheckout({ ...orderResponse!, razorpayKeyId: effectiveKeyId });
     } else {
       setShowPaymentModal(true);
     }

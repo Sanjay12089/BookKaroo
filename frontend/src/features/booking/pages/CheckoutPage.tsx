@@ -213,10 +213,11 @@ export default function CheckoutPage() {
       checkoutStore.setContact(mobile, email);
       if (appliedCoupon) checkoutStore.setCoupon(appliedCoupon.code, appliedCoupon);
 
-      if (paymentProvider === 'razorpay' && result.razorpayKeyId) {
-        handleRazorpayCheckout(result);
+      // Use key from backend response; fall back to frontend env (both should be same test key)
+      const effectiveKeyId = result.razorpayKeyId ?? import.meta.env.VITE_RAZORPAY_KEY_ID;
+      if (paymentProvider === 'razorpay' && effectiveKeyId) {
+        handleRazorpayCheckout({ ...result, razorpayKeyId: effectiveKeyId });
       } else {
-        // Open mock payment modal
         setShowPaymentModal(true);
       }
     } catch (err: unknown) {
