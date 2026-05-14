@@ -260,6 +260,18 @@ try
         .AddJsonOptions(o =>
             o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
+    // ── Listen on PORT (Render / Railway / Fly inject this at runtime) ───────
+    // ASP.NET Core does NOT automatically read $PORT — it needs ASPNETCORE_URLS
+    // or explicit Kestrel config. Without this the app defaults to port 5000
+    // while Render health-checks $PORT → mismatch → "Application exited early".
+    // Skip if ASPNETCORE_URLS is already set so manual overrides still work.
+    if (string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_URLS"]))
+    {
+        var listenPort = builder.Configuration["PORT"] ?? "10000";
+        builder.WebHost.UseUrls($"http://0.0.0.0:{listenPort}");
+        Log.Information("Listening on http://0.0.0.0:{Port}", listenPort);
+    }
+
     // ── Build app ─────────────────────────────────────────────────────────────
     var app = builder.Build();
 
