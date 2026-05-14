@@ -164,6 +164,7 @@ export default function ShowtimesPage() {
                     venue={vg}
                     selectedShowId={selectedShowId}
                     onSelectShow={handleSelectShow}
+                    selectedDate={DATES[dateIdx].isoDate}
                   />
                 ))}
               </>
