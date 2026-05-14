@@ -26,6 +26,8 @@
         "JWT_REFRESH_TTL_DAYS": "30",
 
         "PAYMENT_PROVIDER": "mock",
+        "RAZORPAY_KEY_ID": "",
+        "RAZORPAY_KEY_SECRET": "",
 
         "RESEND_API_KEY": "re_A2tdeXiD_D3dMEkq8UenhaZQqPU3CGZS2",
         "RESEND_FROM": "BookKaroo <onboarding@resend.dev>",
