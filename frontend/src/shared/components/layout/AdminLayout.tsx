@@ -57,7 +57,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-3 px-2 space-y-0.5">
+        <nav className="py-3 px-2 space-y-0.5">
           {NAV.map(({ label, icon: Icon, href }) => {
             const active = pathname === href;
             return (
@@ -80,36 +80,39 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* Footer */}
-        <div className={cn('border-t border-border-default p-3 space-y-1', collapsed && 'flex flex-col items-center')}>
+        {/* View Site + Sign out — directly below Settings, not at page bottom */}
+        <div className={cn('border-t border-border-default mx-2 mt-1 pt-2 pb-3 space-y-0.5', collapsed && 'flex flex-col items-center mx-0 px-2')}>
           <Link
             to={ROUTES.HOME}
             title="View Site"
             className={cn(
-              'flex items-center gap-2.5 px-2 py-2 rounded-md text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors w-full',
-              collapsed && 'justify-center w-auto'
+              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors w-full',
+              collapsed && 'justify-center w-auto px-2'
             )}
           >
-            <Home size={15} className="flex-shrink-0" />
+            <Home size={16} className="flex-shrink-0" />
             {!collapsed && <span className="font-sans">View Site</span>}
           </Link>
-
-          {!collapsed && (
-            <p className="text-[11px] text-text-muted truncate px-2 pt-1">{user?.email}</p>
-          )}
 
           <button
             onClick={handleLogout}
             title="Sign out"
             className={cn(
-              'flex items-center gap-2.5 px-2 py-2 rounded-md text-sm text-text-muted hover:text-semantic-error hover:bg-semantic-error/08 transition-colors w-full',
-              collapsed && 'justify-center w-auto'
+              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-text-muted hover:text-semantic-error hover:bg-semantic-error/08 transition-colors w-full',
+              collapsed && 'justify-center w-auto px-2'
             )}
           >
-            <LogOut size={15} className="flex-shrink-0" />
+            <LogOut size={16} className="flex-shrink-0" />
             {!collapsed && <span className="font-sans">Sign out</span>}
           </button>
+
+          {!collapsed && (
+            <p className="text-[11px] text-text-muted truncate px-3 pt-1">{user?.email}</p>
+          )}
         </div>
+
+        {/* Spacer so sidebar background fills remaining height */}
+        <div className="flex-1" />
       </aside>
 
       {/* Main */}
