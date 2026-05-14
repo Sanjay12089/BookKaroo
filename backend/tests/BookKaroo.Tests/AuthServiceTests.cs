@@ -33,7 +33,8 @@ public class AuthServiceTests
             })
             .Build();
 
-        return new AuthService(userRepo.Object, tokenRepo.Object, email.Object, config);
+        var scopeFactory = new Mock<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
+        return new AuthService(userRepo.Object, tokenRepo.Object, email.Object, config, scopeFactory.Object);
     }
 
     // ── Signup ────────────────────────────────────────────────────────────────
