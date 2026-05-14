@@ -464,8 +464,8 @@ function ReviewCard({ review }: { review: Review }) {
       {review.title && <p className="font-semibold text-sm text-text-primary font-sans">{review.title}</p>}
       {review.body  && <p className="text-sm text-text-secondary leading-relaxed font-sans">{review.body}</p>}
       <div className="flex items-center gap-4 text-xs text-text-muted font-sans">
-        <button className="flex items-center gap-1 hover:text-text-secondary"><ThumbsUp size={13} /> {review.thumbsUp}</button>
-        <button className="flex items-center gap-1 hover:text-text-secondary"><ThumbsDown size={13} /> {review.thumbsDown}</button>
+        <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-default bg-bg-surface hover:border-border-strong hover:text-text-secondary transition-colors"><ThumbsUp size={13} /> {review.thumbsUp}</button>
+        <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-default bg-bg-surface hover:border-border-strong hover:text-text-secondary transition-colors"><ThumbsDown size={13} /> {review.thumbsDown}</button>
       </div>
     </div>
   );

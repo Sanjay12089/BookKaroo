@@ -121,29 +121,69 @@ public class ResendEmailService : IEmailService
     }
 
     public async Task SendBookingCancelledAsync(
-        Booking booking, User user, decimal refundAmount, CancellationToken ct = default)
+        Booking booking, User user, decimal refundAmount, CancellationToken ct = default,
+        string? contentTitle = null, string? venueAndCity = null, DateTime? showDateTime = null)
     {
+        var titleRow = contentTitle is not null
+            ? $"""<tr style="border-bottom:1px solid #F4F4F5"><td style="padding:12px 16px;font-size:14px;color:#71717A">Event / Movie</td><td style="padding:12px 16px;font-size:14px;font-weight:600;color:#18181B">{contentTitle}</td></tr>"""
+            : string.Empty;
+
+        var venueRow = venueAndCity is not null
+            ? $"""<tr style="border-bottom:1px solid #F4F4F5"><td style="padding:12px 16px;font-size:14px;color:#71717A">Venue</td><td style="padding:12px 16px;font-size:14px;font-weight:600;color:#18181B">{venueAndCity}</td></tr>"""
+            : string.Empty;
+
+        var dateRow = showDateTime.HasValue
+            ? $"""<tr style="border-bottom:1px solid #F4F4F5"><td style="padding:12px 16px;font-size:14px;color:#71717A">Date &amp; Time</td><td style="padding:12px 16px;font-size:14px;font-weight:600;color:#18181B">{showDateTime.Value:ddd, dd MMM yyyy · hh:mm tt}</td></tr>"""
+            : string.Empty;
+
+        var refundRow = refundAmount > 0
+            ? $"""<tr><td style="padding:12px 16px;font-size:14px;color:#71717A">Refund Amount</td><td style="padding:12px 16px;font-size:14px;font-weight:700;color:#10B981">₹{refundAmount:F2}</td></tr>"""
+            : $"""<tr><td style="padding:12px 16px;font-size:14px;color:#71717A">Refund</td><td style="padding:12px 16px;font-size:14px;color:#71717A">Not applicable</td></tr>""";
+
+        var refundNote = refundAmount > 0
+            ? $"<p style=\"color:#52525B;margin-top:16px\">Your refund of <strong>₹{refundAmount:F2}</strong> will be credited to your original payment method within <strong>7 business days</strong>.</p>"
+            : string.Empty;
+
         var html = $"""
             <!DOCTYPE html>
             <html lang="en">
             <body style="margin:0;padding:0;background:#F4F4F5;font-family:sans-serif">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F4F5">
                 <tr><td align="center" style="padding:24px 16px">
-                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden">
+                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden;max-width:600px">
                     <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
                       <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                      <p style="color:#A1A1AA;margin:6px 0 0;font-size:14px">Booking Cancellation Confirmation</p>
                     </td></tr>
                     <tr><td style="padding:32px">
-                      <h2 style="color:#18181B;margin:0 0 12px">Booking Cancelled</h2>
-                      <p style="color:#52525B">Hi {user.Name}, your booking <strong style="font-family:monospace">{booking.BookingRef}</strong> has been cancelled.</p>
-                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4E4E7;border-radius:12px;margin-top:16px">
-                        <tr><td style="padding:16px;font-size:14px;font-weight:600">Refund Amount</td><td align="right" style="padding:16px;font-size:14px;font-weight:700;color:#10B981">₹{refundAmount:F2}</td></tr>
+                      <p style="color:#52525B;margin:0 0 20px">Hi <strong>{user.Name}</strong>, your booking has been successfully cancelled. Here's a summary:</p>
+
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4E4E7;border-radius:12px;overflow:hidden">
+                        <tr style="background:#F9FAFB;border-bottom:1px solid #F4F4F5">
+                          <td colspan="2" style="padding:12px 16px;font-size:12px;font-weight:700;color:#71717A;letter-spacing:.05em;text-transform:uppercase">Booking Details</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #F4F4F5">
+                          <td style="padding:12px 16px;font-size:14px;color:#71717A">Booking Ref</td>
+                          <td style="padding:12px 16px;font-size:14px;font-weight:700;font-family:monospace;color:#18181B">{booking.BookingRef}</td>
+                        </tr>
+                        {titleRow}
+                        {venueRow}
+                        {dateRow}
+                        <tr style="background:#F9FAFB;border-top:1px solid #E4E4E7;border-bottom:1px solid #F4F4F5">
+                          <td colspan="2" style="padding:12px 16px;font-size:12px;font-weight:700;color:#71717A;letter-spacing:.05em;text-transform:uppercase">Payment Summary</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #F4F4F5">
+                          <td style="padding:12px 16px;font-size:14px;color:#71717A">Amount Paid</td>
+                          <td style="padding:12px 16px;font-size:14px;font-weight:600;color:#18181B">₹{booking.AmountPaid:F2}</td>
+                        </tr>
+                        {refundRow}
                       </table>
-                      <p style="color:#52525B;margin-top:16px">Refunds are processed within <strong>7 business days</strong> to your original payment method.</p>
-                      <p style="color:#71717A;font-size:13px">Note: Convenience fees are non-refundable.</p>
+
+                      {refundNote}
+                      <p style="color:#71717A;font-size:13px;margin-top:8px">Note: Convenience fees are non-refundable.</p>
                     </td></tr>
                     <tr><td align="center" style="background:#FAFAFA;padding:20px;color:#71717A;font-size:12px">
-                      Need help? Contact us at support@bookkaroo.com<br/>© 2026 BookKaroo Pvt Ltd.
+                      Need help? Contact us at <a href="mailto:support@bookkaroo.com" style="color:#6366F1">support@bookkaroo.com</a><br/>© 2026 BookKaroo Pvt Ltd. All rights reserved.
                     </td></tr>
                   </table>
                 </td></tr>
@@ -154,7 +194,7 @@ public class ResendEmailService : IEmailService
 
         await SendAsync(
             to: user.Email,
-            subject: $"Your booking {booking.BookingRef} has been cancelled",
+            subject: $"Cancellation confirmed — {booking.BookingRef}",
             html: html,
             ct: ct);
     }

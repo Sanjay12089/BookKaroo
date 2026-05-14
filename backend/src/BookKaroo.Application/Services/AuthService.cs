@@ -10,6 +10,7 @@ using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookKaroo.Application.Services;
@@ -21,19 +22,22 @@ public class AuthService : IAuthService
     private readonly IEmailService _email;
     private readonly IConfiguration _config;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository users,
         IPasswordResetTokenRepository resetTokens,
         IEmailService email,
         IConfiguration config,
-        IServiceScopeFactory scopeFactory)
+        IServiceScopeFactory scopeFactory,
+        ILogger<AuthService> logger)
     {
         _users        = users;
         _resetTokens  = resetTokens;
         _email        = email;
         _config       = config;
         _scopeFactory = scopeFactory;
+        _logger       = logger;
     }
 
     public async Task<AuthResponse> SignupAsync(SignupRequest request, CancellationToken ct = default)
@@ -62,11 +66,19 @@ public class AuthService : IAuthService
         var capturedEmail = user.Email;
         _ = Task.Run(async () =>
         {
-            await using var scope = _scopeFactory.CreateAsyncScope();
-            var email = scope.ServiceProvider.GetRequiredService<IEmailService>();
-            await email.SendWelcomeAsync(
-                new User { Name = capturedName, Email = capturedEmail },
-                CancellationToken.None);
+            try
+            {
+                await using var scope = _scopeFactory.CreateAsyncScope();
+                var email = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                await email.SendWelcomeAsync(
+                    new User { Name = capturedName, Email = capturedEmail },
+                    CancellationToken.None);
+                _logger.LogInformation("Welcome email sent to {Email}", capturedEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send welcome email to {Email}", capturedEmail);
+            }
         });
 
         var (accessToken, refreshToken) = GenerateTokens(user);

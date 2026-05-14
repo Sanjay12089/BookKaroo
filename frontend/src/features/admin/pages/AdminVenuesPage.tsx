@@ -232,8 +232,8 @@ export default function AdminVenuesPage() {
             <option value="other">Other</option>
           </select>
           {(search || cityId || chain) && (
-            <button onClick={() => { setSearchInput(''); setCityId(''); setChain(''); setPage(1); }} className="text-sm text-accent-indigo hover:underline">
-              Clear filters
+            <button onClick={() => { setSearchInput(''); setCityId(''); setChain(''); setPage(1); }} className="px-3 py-1.5 rounded-lg text-sm font-sans border border-border-default bg-bg-surface text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors">
+              ✕ Clear filters
             </button>
           )}
         </div>

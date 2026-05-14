@@ -140,9 +140,45 @@ public class NotificationService : INotificationService
 
         _logger.LogInformation("Sending cancellation notification for {Ref}", booking.BookingRef);
 
+        // Enrich with show / event details for the email template
+        string?   contentTitle = null;
+        string?   venueAndCity = null;
+        DateTime? showDateTime = null;
+
+        if (booking.ShowId.HasValue)
+        {
+            var show  = await _shows.GetByIdAsync(booking.ShowId.Value, ct);
+            var movie = show?.MovieId.HasValue == true
+                ? await _movies.GetByIdAsync(show.MovieId!.Value, ct)
+                : null;
+            var allVenues = await _db.Venues.ToListAsync(ct);
+            var venue     = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+
+            contentTitle = movie?.Title;
+            if (venue is not null)
+                venueAndCity = venue.Name;
+            if (show is not null)
+                showDateTime = show.ShowDatetime;
+        }
+        else if (booking.EventId.HasValue)
+        {
+            var ev = await _db.Events.FirstOrDefaultAsync(e => e.Id == booking.EventId.Value, ct);
+            if (ev is not null)
+            {
+                contentTitle = ev.Title;
+                showDateTime = ev.EventDate;
+                if (ev.VenueId.HasValue)
+                {
+                    var evVenue = await _db.Venues.FirstOrDefaultAsync(v => v.Id == ev.VenueId.Value, ct);
+                    venueAndCity = evVenue?.Name;
+                }
+            }
+        }
+
         try
         {
-            await _email.SendBookingCancelledAsync(booking, user, refundAmount, ct);
+            await _email.SendBookingCancelledAsync(booking, user, refundAmount, ct,
+                contentTitle, venueAndCity, showDateTime);
         }
         catch (Exception ex)
         {

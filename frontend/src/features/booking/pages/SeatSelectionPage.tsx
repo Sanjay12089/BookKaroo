@@ -44,8 +44,9 @@ export default function SeatSelectionPage() {
 
   // ── Settings (conv fee + seat limit from DB) ───────────────────────────────
   const { data: publicSettings } = usePublicSettings();
-  const CONV_FEE = parseNum(publicSettings?.convenience_fee_per_ticket, 59);
+  const CONV_FEE  = parseNum(publicSettings?.convenience_fee_per_ticket, 59);
   const MAX_SEATS = parseNum(publicSettings?.max_seats_per_booking, 10);
+  const GST_RATE  = parseNum(publicSettings?.gst_rate, 0.18);
 
   // ── API ────────────────────────────────────────────────────────────────────
   const { data, isLoading } = useShowSeats(showId);
@@ -118,7 +119,7 @@ export default function SeatSelectionPage() {
 
   const ticketTotal = selectedSeats.reduce((sum, l) => sum + (getCategoryForSeat(l)?.price ?? 0), 0);
   const convFee     = selectedSeats.length * CONV_FEE;
-  const gst         = Math.round(convFee * 0.18);
+  const gst         = Math.round(convFee * GST_RATE);
   const grand       = ticketTotal + convFee + gst;
 
   // ── Seat click ─────────────────────────────────────────────────────────────
@@ -300,7 +301,7 @@ export default function SeatSelectionPage() {
                     <span>Convenience fee</span><span>₹{convFee}</span>
                   </div>
                   <div className="flex justify-between text-text-secondary">
-                    <span>GST 18%</span><span>₹{gst}</span>
+                    <span>GST {Math.round(GST_RATE * 100)}%</span><span>₹{gst}</span>
                   </div>
                   <div className="flex justify-between border-t border-border-default pt-2 mt-2 font-semibold text-base text-text-primary">
                     <span>Total</span>

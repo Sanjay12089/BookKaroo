@@ -221,7 +221,7 @@ delete account - sign up using same email address
 
 =======================================
 ## 14 may 2026
-Here I have listed few issues, please review and solve it. Make sure that updates d:
+Here I have listed few issues, please review and solve it. Make sure that any updates you made in code do not affect or break other features:
 
 Issue 1: Please correct the UI of all buttons, some buttons are looked like label only, so correct it
 
