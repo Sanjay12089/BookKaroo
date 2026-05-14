@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Input } from '@/shared/components/ui/Input';
@@ -46,6 +46,7 @@ function getPasswordStrength(pwd: string): number {
 
 export function SignupForm() {
   const { mutate: signup, isPending } = useSignup();
+  const navigate = useNavigate();
   const { data: cities = [], isLoading: citiesLoading } = useCities();
   const [showPwd, setShowPwd] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -74,11 +75,11 @@ export function SignupForm() {
   function onSubmit(data: FormValues) {
     setApiError(null);
     signup(data, {
+      onSuccess: () => navigate(ROUTES.HOME, { replace: true }),
       onError: (err: unknown) => {
         const e = err as ApiError;
         const msg = e?.message ?? 'Signup failed. Please try again.';
         if (e?.statusCode === 409) {
-          // Highlight the email field directly instead of showing a generic banner
           setError('email', { message: msg });
         } else {
           setApiError(msg);

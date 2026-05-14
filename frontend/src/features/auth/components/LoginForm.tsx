@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
@@ -19,6 +19,10 @@ type FormValues = z.infer<typeof schema>;
 
 export function LoginForm() {
   const { mutate: login, isPending } = useLogin();
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const returnTo  = (location.state as { returnTo?: string } | null)?.returnTo ?? ROUTES.HOME;
+
   const [showPwd, setShowPwd] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
 
@@ -29,6 +33,7 @@ export function LoginForm() {
   function onSubmit(data: FormValues) {
     setApiError(null);
     login(data, {
+      onSuccess: () => navigate(returnTo, { replace: true }),
       onError: (err: unknown) => {
         const e = err as ApiError;
         setApiError(e?.message ?? 'Invalid credentials.');

@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 
@@ -71,14 +71,19 @@ const StaticPage         = lazy(() => import('@/features/static/pages/StaticPage
 // ── Guards ────────────────────────────────────────────────────────────────────
 function ProtectedRoute() {
   const { isAuthenticated, isInitialized } = useAuthStore();
+  const location = useLocation();
   if (!isInitialized) return null;
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  return isAuthenticated
+    ? <Outlet />
+    : <Navigate to="/login" state={{ returnTo: location.pathname + location.search }} replace />;
 }
 
 function AdminRoute() {
   const { user, isAuthenticated, isInitialized } = useAuthStore();
+  const location = useLocation();
   if (!isInitialized) return null;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated)
+    return <Navigate to="/login" state={{ returnTo: location.pathname + location.search }} replace />;
   if (user?.role !== 'Admin') return <Navigate to="/" replace />;
   return <Outlet />;
 }
