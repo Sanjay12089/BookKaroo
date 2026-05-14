@@ -67,6 +67,7 @@ export interface CreateOrderResponse {
   amount:          number;
   currency:        string;
   breakdown:       import('@/shared/types').PricingBreakdown;
+  razorpayKeyId?:  string;
 }
 
 export interface ValidateCouponRequest {

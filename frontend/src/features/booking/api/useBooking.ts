@@ -9,6 +9,12 @@ import type {
 } from '../types';
 import type { ApiError } from '@/shared/types';
 
+interface VerifyPaymentData {
+  razorpayOrderId:   string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+}
+
 export function useMyBookings(tab: 'upcoming' | 'past' = 'upcoming', page = 1) {
   return useQuery<PaginatedBookings>({
     queryKey: ['bookings', 'mine', tab, page],
@@ -77,6 +83,15 @@ export function useMockCapture() {
   return useMutation<BookingDetailResponse, ApiError, MockCaptureRequest>({
     mutationFn: (data) =>
       api.post<BookingDetailResponse>('/api/payments/mock-capture', data).then((r) => r.data),
+  });
+}
+
+export function useVerifyPayment() {
+  const queryClient = useQueryClient();
+  return useMutation<BookingDetailResponse, ApiError, VerifyPaymentData>({
+    mutationFn: (data) =>
+      api.post<BookingDetailResponse>('/api/payments/verify', data).then((r) => r.data),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['my-bookings'] }),
   });
 }
 
