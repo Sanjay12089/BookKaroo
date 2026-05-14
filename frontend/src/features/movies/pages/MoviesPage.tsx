@@ -197,12 +197,12 @@ export default function MoviesPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface border border-border-default text-sm font-sans shrink-0">
-            <span className="text-text-muted">Sort</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface2 border border-border-strong text-sm font-sans shrink-0">
+            <span className="text-text-muted">↕</span>
             <select
               value={sort ?? ''}
               onChange={(e) => update('sort', e.target.value || null)}
-              className="bg-transparent text-text-primary outline-none cursor-pointer"
+              className="[color-scheme:dark] bg-transparent text-text-primary outline-none cursor-pointer font-sans"
             >
               {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </select>
