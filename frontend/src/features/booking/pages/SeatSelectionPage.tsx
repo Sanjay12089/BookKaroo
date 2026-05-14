@@ -75,7 +75,7 @@ export default function SeatSelectionPage() {
     setRealtimeLocked((prev) => prev.filter((s) => !seats.includes(s)));
   }, []);
 
-  useShowRealtime(showId, onSeatLocked, onSeatUnlocked);
+  const broadcastSeat = useShowRealtime(showId, onSeatLocked, onSeatUnlocked);
 
   // ── Lock expiry ────────────────────────────────────────────────────────────
   const lockTotalSeconds = parseNum(publicSettings?.seat_lock_minutes, 8) * 60;
@@ -128,12 +128,20 @@ export default function SeatSelectionPage() {
 
     if (state === 'selected') {
       deselectSeat(label);
+
+      // ── Optimistic update: remove from realtimeLocked immediately ──────
+      // The Supabase DELETE event arrives ~100–500 ms after the DB write.
+      // Without this, the seat briefly appears as "Held" to the deselecting
+      // user because it's still in realtimeLocked but no longer in selectedSeats.
+      setRealtimeLocked((prev) => prev.filter((s) => s !== label));
+
+      // ── Broadcast the unlock instantly to all other users ──────────────
+      broadcastSeat('unlock', [label]);
+
       const remaining = selectedSeats.filter((s) => s !== label);
       if (remaining.length === 0) {
         await releaseMutation.mutateAsync(showId);
       } else {
-        // Re-lock with only the remaining seats so the backend lock matches
-        // what the user actually has selected (prevents ghost locks on Back)
         try {
           const result = await lockMutation.mutateAsync({ showId, seats: remaining });
           setLock(result.lockId, result.expiresAt);
@@ -152,11 +160,17 @@ export default function SeatSelectionPage() {
     const newSeats = [...selectedSeats, label];
     selectSeat(label, MAX_SEATS);
 
+    // Broadcast immediately so other users see the seat lock without waiting
+    // for the DB write → Supabase WAL → postgres_changes pipeline (~200-500 ms)
+    broadcastSeat('lock', [label]);
+
     try {
       const result = await lockMutation.mutateAsync({ showId, seats: newSeats });
       setLock(result.lockId, result.expiresAt);
     } catch (err: unknown) {
       deselectSeat(label);
+      // Undo the optimistic broadcast on failure
+      broadcastSeat('unlock', [label]);
       const msg = (err as { message?: string })?.message ?? 'Could not lock seat. Try another.';
       toast(msg, 'error');
     }
@@ -197,12 +211,14 @@ export default function SeatSelectionPage() {
     }
 
     for (const s of picked) selectSeat(s, MAX_SEATS);
+    broadcastSeat('lock', picked);
 
     try {
       const result = await lockMutation.mutateAsync({ showId, seats: picked });
       setLock(result.lockId, result.expiresAt);
     } catch (err: unknown) {
       clearSeats(showId);
+      broadcastSeat('unlock', picked);
       const msg = (err as { message?: string })?.message ?? 'Could not lock those seats. Try again.';
       toast(msg, 'error');
     }
