@@ -111,8 +111,8 @@ api.interceptors.response.use(
       message =
         (data?.message as string | undefined) ??
         (data?.error as string | undefined) ??
-        (data?.title as string | undefined) ??
-        (data?.detail as string | undefined) ??
+        (data?.detail as string | undefined) ??   // ProblemDetails: human-readable detail
+        (data?.title as string | undefined) ??    // fallback to status name e.g. "Conflict"
         error.message ??
         'An error occurred.';
     }

@@ -13,7 +13,7 @@ export function Chip({ active = false, onToggle, className, onClick, children, .
         'inline-flex items-center gap-1.5 px-3 h-[30px] rounded-full text-sm font-medium font-sans transition-all duration-150 cursor-pointer',
         active
           ? 'bg-gradient-to-r from-accent-indigo to-accent-purple text-white border-transparent shadow-[0_10px_40px_-10px_rgba(99,102,241,0.55)]'
-          : 'bg-bg-surface border border-border-default text-text-secondary hover:border-border-strong hover:text-text-primary',
+          : 'bg-bg-surface2 border border-border-strong text-text-secondary hover:border-accent-indigo/60 hover:text-text-primary hover:bg-bg-surface3',
         className
       )}
       onClick={(e) => {

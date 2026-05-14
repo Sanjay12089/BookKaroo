@@ -426,15 +426,15 @@ export default function ConfirmationPage() {
           {/* ── CTAs ── */}
           <motion.div variants={itemVariants} className="flex flex-col gap-3">
             <Link to={ROUTES.MY_BOOKINGS} className="w-full">
-              <button className="w-full py-3.5 rounded-xl border border-border-default text-sm font-semibold font-sans text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors">
+              <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all shadow-[0_8px_24px_-8px_rgba(229,9,20,0.45)]">
                 View My Bookings →
               </button>
             </Link>
             <button
               onClick={handleDone}
-              className="w-full py-3 rounded-xl text-sm font-sans text-text-muted hover:text-text-secondary transition-colors"
+              className="w-full py-3 rounded-xl border border-border-default bg-bg-surface text-sm font-semibold font-sans text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors"
             >
-              Back to Home
+              ← Back to Home
             </button>
           </motion.div>
         </motion.div>
