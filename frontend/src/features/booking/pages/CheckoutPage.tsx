@@ -173,8 +173,11 @@ export default function CheckoutPage() {
             onSuccess: (detail) => {
               paymentCompletedRef.current = true;
               checkoutStore.setBookingDetail(detail);
-              clearSeats();
+              // Navigate first so the guard in ConfirmationPage sees bookingDetail
+              // before clearSeats() triggers a CheckoutPage re-render
               navigate(ROUTES.CONFIRMATION);
+              clearSeats();
+              setIsVerifying(false);
             },
             onError: (err: unknown) => {
               setIsVerifying(false);

@@ -143,6 +143,7 @@ export default function EventCheckoutPage() {
             onSuccess: (detail) => {
               checkoutStore.setBookingDetail(detail);
               navigate(ROUTES.CONFIRMATION);
+              setIsVerifying(false);
             },
             onError: (err: unknown) => {
               setIsVerifying(false);

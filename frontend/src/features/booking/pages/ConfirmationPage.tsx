@@ -64,10 +64,15 @@ export default function ConfirmationPage() {
   const detail = bookingDetail ?? fetched ?? null;
 
   useEffect(() => {
-    if (!bookingDetail && !orderResponse && !urlRef) {
-      navigate('/');
-    }
-  }, []);
+    // Delay the guard so the Zustand store (persisted in sessionStorage) has
+    // time to settle after navigation from CheckoutPage.
+    const t = setTimeout(() => {
+      if (!bookingDetail && !orderResponse && !urlRef) {
+        navigate('/');
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [bookingDetail, orderResponse, urlRef]);
 
   useEffect(() => {
     const t = setTimeout(() => setStampDone(true), 1300);
