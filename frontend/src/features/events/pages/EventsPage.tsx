@@ -3,10 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { Chip } from '@/shared/components/ui/Chip';
 import { useCityStore } from '@/shared/store/cityStore';
 import { EventCard } from '../components/EventCard';
 import { useEvents } from '../api/useEvents';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/shared/lib/utils'; // used by grid opacity
 
 interface Tab { key: string | null; label: string; emoji: string }
 
@@ -72,18 +73,13 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none">
             <div className="flex gap-1.5 flex-nowrap">
               {TABS.map((t) => (
-                <button
+                <Chip
                   key={t.label}
-                  onClick={() => selectTab(t.key)}
-                  className={cn(
-                    'flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold font-sans transition-all duration-150 border',
-                    resolvedType === t.key
-                      ? 'bg-gradient-to-r from-accent-indigo to-accent-purple text-white border-transparent'
-                      : 'border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong bg-bg-surface',
-                  )}
+                  active={resolvedType === t.key}
+                  onToggle={() => selectTab(t.key)}
                 >
                   {t.emoji} {t.label}
-                </button>
+                </Chip>
               ))}
             </div>
           </div>
