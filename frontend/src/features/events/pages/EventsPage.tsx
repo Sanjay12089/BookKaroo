@@ -13,8 +13,6 @@ interface Tab { key: string | null; label: string; emoji: string }
 const TABS: Tab[] = [
   { key: null,         label: 'All',        emoji: '🎪' },
   { key: 'live_event', label: 'Concerts',   emoji: '🎵' },
-  { key: 'play',       label: 'Plays',      emoji: '🎭' },
-  { key: 'sport',      label: 'Sports',     emoji: '🏟️' },
   { key: 'comedy',     label: 'Comedy',     emoji: '😂' },
   { key: 'activity',   label: 'Activities', emoji: '⚡' },
 ];
@@ -23,9 +21,10 @@ interface EventsPageProps {
   defaultType?: string;
   title?:       string;
   noCityFilter?: boolean;
+  fixedType?:   string;  // locks the type filter and hides the tab bar
 }
 
-export default function EventsPage({ defaultType, title, noCityFilter }: EventsPageProps) {
+export default function EventsPage({ defaultType, title, noCityFilter, fixedType }: EventsPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedCity } = useCityStore();
   const cityId   = selectedCity?.id ?? null;
@@ -36,6 +35,9 @@ export default function EventsPage({ defaultType, title, noCityFilter }: EventsP
 
   const [activeType, setActiveType] = useState<string | null>(typeParam);
   const [page, setPage] = useState(pageParam);
+
+  // When fixedType is provided, always use it regardless of tab/URL state
+  const resolvedType = fixedType ?? activeType;
 
   function selectTab(key: string | null) {
     setActiveType(key);
@@ -50,47 +52,49 @@ export default function EventsPage({ defaultType, title, noCityFilter }: EventsP
 
   // Specialized pages (Sports, Plays, etc.) never filter by city — they show all events of that type.
   // On the main /events page, city filter applies only on specific-type tabs, not "All".
-  const effectiveCityId = noCityFilter ? null : (activeType ? cityId : null);
+  const effectiveCityId = noCityFilter ? null : (resolvedType ? cityId : null);
 
-  const { data, isLoading, isFetching } = useEvents(activeType, effectiveCityId, page);
+  const { data, isLoading, isFetching } = useEvents(resolvedType, effectiveCityId, page);
   const events     = data?.items ?? [];
   const total      = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 0;
 
   const headingTitle = title
-    ?? TABS.find((t) => t.key === activeType)?.label
+    ?? TABS.find((t) => t.key === resolvedType)?.label
     ?? 'Events';
 
   return (
     <PublicLayout>
       <Helmet><title>Events &amp; Shows | BookKaroo</title></Helmet>
-      {/* Sticky filter bar */}
-      <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none">
-          <div className="flex gap-1.5 flex-nowrap">
-            {TABS.map((t) => (
-              <button
-                key={t.label}
-                onClick={() => selectTab(t.key)}
-                className={cn(
-                  'flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold font-sans transition-all duration-150 border',
-                  activeType === t.key
-                    ? 'bg-gradient-to-r from-accent-indigo to-accent-purple text-white border-transparent'
-                    : 'border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong bg-bg-surface',
-                )}
-              >
-                {t.emoji} {t.label}
-              </button>
-            ))}
+      {/* Sticky filter bar — hidden when fixedType locks the page to a single type */}
+      {!fixedType && (
+        <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none">
+            <div className="flex gap-1.5 flex-nowrap">
+              {TABS.map((t) => (
+                <button
+                  key={t.label}
+                  onClick={() => selectTab(t.key)}
+                  className={cn(
+                    'flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold font-sans transition-all duration-150 border',
+                    resolvedType === t.key
+                      ? 'bg-gradient-to-r from-accent-indigo to-accent-purple text-white border-transparent'
+                      : 'border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong bg-bg-surface',
+                  )}
+                >
+                  {t.emoji} {t.label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">
-            {headingTitle}{activeType && cityName ? ` · ${cityName}` : ''}
+            {headingTitle}{resolvedType && cityName ? ` · ${cityName}` : ''}
           </p>
           <h1 className="font-display font-semibold text-3xl md:text-4xl tracking-tight">
             {headingTitle === 'All' ? 'Events & Shows' : headingTitle}
@@ -98,7 +102,7 @@ export default function EventsPage({ defaultType, title, noCityFilter }: EventsP
           {!isLoading && (
             <p className="text-text-secondary text-sm mt-2 font-sans">
               {total} event{total === 1 ? '' : 's'}
-              {activeType && cityName ? ` in ${cityName}` : ''}
+              {resolvedType && cityName ? ` in ${cityName}` : ''}
             </p>
           )}
         </div>
@@ -120,7 +124,7 @@ export default function EventsPage({ defaultType, title, noCityFilter }: EventsP
               No {headingTitle === 'All' ? 'events' : headingTitle.toLowerCase()} right now
             </h3>
             <p className="text-text-muted text-sm font-sans">
-              {activeType && cityName ? `Try changing your city or c` : 'C'}heck back soon — events are added regularly.
+              {resolvedType && cityName ? `Try changing your city or c` : 'C'}heck back soon — events are added regularly.
             </p>
           </div>
         ) : (
