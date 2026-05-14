@@ -148,9 +148,11 @@ export interface BookingListItem {
   venueAddress:    string;
   screenName:      string;
   seats:           BookingSeatItem[];
-  ticketQty:       number;
-  amountPaid:      number;
-  discount:        number;
+  ticketQty:           number;
+  ticketAmount:        number;
+  amountPaid:          number;
+  discount:            number;
+  nonRefundableAmount: number;
   paymentMethod:   string | null;
   invoiceUrl:      string | null;
   qrUrl:           string | null;

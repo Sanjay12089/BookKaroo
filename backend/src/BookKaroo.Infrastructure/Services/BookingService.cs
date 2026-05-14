@@ -315,8 +315,11 @@ public class BookingService : IBookingService
                 ScreenName:     b.TierName ?? screen?.Name ?? "Screen",
                 Seats:          seats,
                 TicketQty:      b.TicketQty,
+                TicketAmount:   b.TicketAmount,
                 AmountPaid:     b.AmountPaid,
                 Discount:       b.Discount,
+                NonRefundableAmount: b.ConvenienceFee + b.OfferProcessingFee
+                    + b.Cgst + b.Sgst + b.Igst,
                 PaymentMethod:  payment?.Method ?? b.PaymentMethodLabel,
                 InvoiceUrl:     b.InvoiceUrl,
                 QrUrl:          b.QrUrl,
