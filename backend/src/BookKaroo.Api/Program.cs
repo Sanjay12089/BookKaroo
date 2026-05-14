@@ -139,17 +139,18 @@ try
     builder.Services.AddInMemoryRateLimiting();
 
     // 7. CORS
-    // For local dev: set CORS_ALLOWED_ORIGINS in launchSettings.json
-    // For Render:    add CORS_ALLOWED_ORIGINS env var with your Vercel URL
-    var allowedOrigins = (builder.Configuration["CORS_ALLOWED_ORIGINS"] ?? "http://localhost:5173")
-        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-    builder.Services.AddCors(opt =>
-        opt.AddDefaultPolicy(policy =>
-            policy.WithOrigins(allowedOrigins)
+    // SetIsOriginAllowed(_ => true) + AllowCredentials() is the correct
+    // combination when withCredentials:true is used on the frontend (required
+    // for the httpOnly refresh-token cookie).  AllowAnyOrigin() is incompatible
+    // with AllowCredentials() per the CORS spec — browsers reject such responses.
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+            policy.SetIsOriginAllowed(_ => true)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials()));
+                  .AllowCredentials());
+    });
 
     // 8. Swagger with JWT
     builder.Services.AddEndpointsApiExplorer();
