@@ -34,27 +34,47 @@ public class SeatLockService : ISeatLockService
         var lockMinutes  = double.TryParse(minutesStr, out var min) ? min : 8;
         var lockDuration = TimeSpan.FromMinutes(lockMinutes);
 
-        // Release ALL existing locks for this user+show before creating the new set.
-        // If the user has deselected seats (e.g. had A1–A5 locked, now wants A1–A3),
-        // the old A4/A5 locks must be removed so other users see them as available.
-        await _lockRepo.DeleteByUserAndShowAsync(userId, showId, ct);
+        // Load all active locks for this show in one round-trip
+        var allShowLocks = (await _lockRepo.GetActiveLocksAsync(showId, ct)).ToList();
+        var userLocks    = allShowLocks.Where(l => l.UserId == userId).ToList();
+        var newSeatSet   = new HashSet<string>(seats);
+        var userSeatSet  = new HashSet<string>(userLocks.Select(l => l.SeatLabel));
 
-        // Single expiry for the whole batch (consistent countdown for all seats)
+        // ── Delete ONLY the locks for seats the user just deselected ──────────
+        // Each individual DELETE fires a Supabase Realtime DELETE event for that
+        // specific row, so other users see exactly those seats unlock immediately
+        // with no flicker on the seats that are still selected.
+        foreach (var removed in userLocks.Where(l => !newSeatSet.Contains(l.SeatLabel)))
+        {
+            await _lockRepo.DeleteAsync(removed.Id, ct);
+            _logger.LogInformation("Seat deselected {Seat}/{ShowId}/{UserId}",
+                removed.SeatLabel, showId, userId);
+        }
+
+        // Single expiry timestamp for the whole batch (consistent countdown)
         var expiresAt = DateTime.UtcNow.Add(lockDuration);
         var newLocks  = new List<SeatLock>();
 
         foreach (var seat in seats)
         {
-            // Reject if already booked by anyone
+            // Seat still held by this user — reuse the existing lock row
+            if (userSeatSet.Contains(seat))
+            {
+                newLocks.Add(userLocks.First(l => l.SeatLabel == seat));
+                continue;
+            }
+
+            // Reject if already confirmed-booked
             var isBooked = await _bookingRepo.IsSeatBookedAsync(showId, seat, ct);
             if (isBooked)
                 throw new ConflictException($"Seat {seat} is already booked.");
 
-            // Reject if another user holds this seat
-            var existing = await _lockRepo.GetActiveLockForSeatAsync(showId, seat, ct);
-            if (existing is not null && existing.UserId != userId)
+            // Reject if held by a different user
+            var otherLock = allShowLocks.FirstOrDefault(l => l.SeatLabel == seat && l.UserId != userId);
+            if (otherLock is not null)
                 throw new ConflictException($"Seat {seat} is currently held by another user.");
 
+            // Create fresh lock for this newly selected seat
             var seatLock = new SeatLock
             {
                 Id        = Guid.NewGuid(),
@@ -65,8 +85,7 @@ public class SeatLockService : ISeatLockService
                 CreatedAt = DateTime.UtcNow,
             };
 
-            var added = await _lockRepo.AddAsync(seatLock, ct);
-            newLocks.Add(added);
+            newLocks.Add(await _lockRepo.AddAsync(seatLock, ct));
             _logger.LogInformation("Seat locked {Seat}/{ShowId}/{UserId}", seat, showId, userId);
         }
 
