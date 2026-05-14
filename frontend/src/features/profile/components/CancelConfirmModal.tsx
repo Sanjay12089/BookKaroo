@@ -12,11 +12,13 @@ interface CancelConfirmModalProps {
 }
 
 export function CancelConfirmModal({ booking, isPending, onConfirm, onClose }: CancelConfirmModalProps) {
-  // Convenience fee estimate: base + 18% GST per seat
-  const convFeeBase = booking.seats.length * 59;
-  const convFeeGst  = Math.round(convFeeBase * 0.18 * 100) / 100;
-  const convFee     = Math.round((convFeeBase + convFeeGst) * 100) / 100;
-  const refundAmount = Math.max(0, Math.round((booking.amountPaid - convFee) * 100) / 100);
+  // Use exact values from backend — no estimation needed
+  const nonRefundable = booking.nonRefundableAmount;
+  const ticketAmount  = booking.ticketAmount;
+  const discount      = booking.discount;
+  const refundAmount  = Math.max(0, ticketAmount - discount);
+
+  const seatLabels = booking.seats.map(s => s.label).join(', ');
 
   return (
     <Modal
@@ -30,27 +32,33 @@ export function CancelConfirmModal({ booking, isPending, onConfirm, onClose }: C
         </span>
       }
     >
-      {/* Show summary */}
+      {/* Booking summary */}
       <div className="p-3 rounded-lg bg-bg-surface2 border border-border-default mb-4">
         <p className="font-semibold text-sm text-text-primary font-sans line-clamp-1">{booking.title}</p>
         <p className="text-xs text-text-muted font-sans mt-0.5">
           {booking.showDate} · {booking.showTime}
         </p>
         <p className="text-xs text-text-muted font-sans">{booking.venueName}</p>
-        <p className="text-xs font-mono text-text-muted mt-1">
-          {booking.seats.map(s => s.label).join(', ')}
-        </p>
+        {seatLabels && (
+          <p className="text-xs font-mono text-text-muted mt-1">{seatLabels}</p>
+        )}
       </div>
 
       {/* Refund breakdown */}
       <div className="space-y-2 mb-4">
         <div className="flex justify-between text-sm font-sans">
-          <span className="text-text-secondary">Amount paid</span>
-          <span className="text-text-primary">{formatCurrency(booking.amountPaid)}</span>
+          <span className="text-text-secondary">Ticket amount</span>
+          <span className="text-text-primary">{formatCurrency(ticketAmount)}</span>
         </div>
+        {discount > 0 && (
+          <div className="flex justify-between text-sm font-sans">
+            <span className="text-text-secondary">Coupon discount</span>
+            <span className="text-semantic-success">- {formatCurrency(discount)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm font-sans">
-          <span className="text-text-secondary">Convenience fee (non-refundable)</span>
-          <span className="text-semantic-error">- {formatCurrency(convFee)}</span>
+          <span className="text-text-secondary">Convenience fee + GST (non-refundable)</span>
+          <span className="text-semantic-error">- {formatCurrency(nonRefundable)}</span>
         </div>
         <div className="border-t border-border-default my-1" />
         <div className="flex justify-between font-sans">
