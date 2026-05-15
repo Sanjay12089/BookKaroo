@@ -32,6 +32,16 @@ export function useUpdateProfile() {
   });
 }
 
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: (data: { currentPassword: string; newPassword: string }) =>
+      api.patch('/api/users/me/password', {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+      }).then((r) => r.data),
+  });
+}
+
 export function useDeleteAccount() {
   const { clearAuth } = useAuthStore();
   const navigate = useNavigate();

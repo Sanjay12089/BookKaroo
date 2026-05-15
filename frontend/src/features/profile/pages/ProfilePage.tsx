@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useProfile, useUpdateProfile, useDeleteAccount } from '../api/useProfile';
+import { ChangePasswordModal } from '../components/ChangePasswordModal';
 import { useCities } from '@/features/cities/api/useCities';
 import { toast } from '@/shared/components/ui/Toast';
 
@@ -26,6 +27,7 @@ export default function ProfilePage() {
 
   const { mutate: update, isPending } = useUpdateProfile();
   const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const { data: cities = [] } = useCities();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
@@ -135,12 +137,26 @@ export default function ProfilePage() {
         <div className="p-5 rounded-xl bg-bg-surface border border-border-default mt-4 flex items-center justify-between">
           <div>
             <p className="font-semibold text-sm text-text-primary font-sans">Password</p>
-            <p className="text-xs text-text-muted font-sans mt-0.5">Last changed: never</p>
+            <p className="text-xs text-text-muted font-sans mt-0.5">
+              Last changed:{' '}
+              {user?.passwordChangedAt
+                ? new Date(user.passwordChangedAt).toLocaleDateString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                  })
+                : 'Never'}
+            </p>
           </div>
-          <button className="px-4 py-2 rounded-full bg-bg-surface2 border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans">
+          <button
+            onClick={() => setShowChangePassword(true)}
+            className="px-4 py-2 rounded-full bg-bg-surface2 border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans"
+          >
             Change Password
           </button>
         </div>
+
+        {showChangePassword && (
+          <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
+        )}
 
         {/* Danger zone */}
         <div className="p-5 rounded-xl bg-semantic-error/05 border border-semantic-error/20 mt-4">

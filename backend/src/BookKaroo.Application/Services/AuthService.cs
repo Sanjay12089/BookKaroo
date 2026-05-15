@@ -169,6 +169,7 @@ public class AuthService : IAuthService
         if (user == null) throw new NotFoundException("User not found.");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
+        user.PasswordChangedAt = DateTime.UtcNow;
         user.RefreshToken = null;
         user.RefreshTokenExpiresAt = null;
         await _users.UpdateAsync(user, ct);
@@ -216,5 +217,5 @@ public class AuthService : IAuthService
         int.TryParse(_config["JWT_REFRESH_TTL_DAYS"], out var d) ? d : 30;
 
     private static UserResponse MapUser(User u) => new(
-        u.Id, u.Email, u.Mobile, u.Name, u.Role, u.EmailVerified, u.CityId, u.StateCode, u.ProfilePicUrl, u.Gender, u.Dob);
+        u.Id, u.Email, u.Mobile, u.Name, u.Role, u.EmailVerified, u.CityId, u.StateCode, u.ProfilePicUrl, u.Gender, u.Dob, u.PasswordChangedAt);
 }

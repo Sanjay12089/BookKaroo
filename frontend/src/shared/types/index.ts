@@ -27,6 +27,7 @@ export interface User {
   profilePicUrl?: string;
   dob?: string;
   gender?: string;
+  passwordChangedAt?: string;
 }
 
 export interface City {

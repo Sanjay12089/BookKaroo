@@ -8,7 +8,6 @@ import { toast } from '@/shared/components/ui/Toast';
 
 export function useSignup() {
   const { setAuth } = useAuthStore();
-  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (data: SignupRequest) =>
@@ -16,21 +15,20 @@ export function useSignup() {
     onSuccess: ({ accessToken, user }) => {
       setAuth(user, accessToken);
       toast('Welcome to BookKaroo!', 'success');
-      navigate(ROUTES.HOME);
+      // navigation handled by SignupPage (no returnTo flow for new accounts)
     },
   });
 }
 
 export function useLogin() {
   const { setAuth } = useAuthStore();
-  const navigate = useNavigate();
 
   return useMutation({
     mutationFn: (data: LoginRequest) =>
       api.post<AuthResponse>('/api/auth/login', data).then((r) => r.data),
     onSuccess: ({ accessToken, user }) => {
       setAuth(user, accessToken);
-      navigate(ROUTES.HOME);
+      // navigation handled by LoginForm so it can redirect to returnTo
     },
   });
 }

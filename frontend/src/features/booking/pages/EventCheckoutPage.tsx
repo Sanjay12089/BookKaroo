@@ -292,6 +292,7 @@ export default function EventCheckoutPage() {
         {/* ── RIGHT PANEL ── */}
         <OrderSummaryPanel
           breakdown={localBreakdown}
+          ticketQty={ticketQty}
           coupon={appliedCoupon}
           couponInput={couponInput}
           couponError={couponError}

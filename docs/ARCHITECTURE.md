@@ -171,7 +171,7 @@ PAYMENT_PROVIDER=mock
 
 # Email
 RESEND_API_KEY=re_...
-RESEND_FROM=BookKaroo <onboarding@resend.dev>
+RESEND_FROM=BookKaroo <onboarding@bookkaroo.com>
 
 # TMDB
 TMDB_API_KEY=...

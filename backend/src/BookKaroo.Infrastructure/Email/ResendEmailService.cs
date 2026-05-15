@@ -259,6 +259,109 @@ public class ResendEmailService : IEmailService
             ct: ct);
     }
 
+    public async Task SendMovieNowShowingAsync(User user, Movie movie, CancellationToken ct = default)
+    {
+        var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+        var movieUrl    = $"{frontendUrl}/movies/{movie.Slug}";
+        var posterSrc   = movie.PosterUrl is not null
+            ? $"https://image.tmdb.org/t/p/w300{movie.PosterUrl}"
+            : string.Empty;
+
+        var html = $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8"/>
+              <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+              <title>{movie.Title} is Now Showing — BookKaroo</title>
+            </head>
+            <body style="margin:0;padding:0;background:#F4F4F5;font-family:'Inter','Segoe UI',Helvetica,Arial,sans-serif">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#F4F4F5">
+                <tr><td align="center" style="padding:24px 16px">
+                  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0"
+                    style="background:#FFFFFF;border-radius:16px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.06)">
+
+                    <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
+                      <span style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:700;color:#FFF">
+                        Book<span style="color:#E50914">Karoo</span>
+                      </span>
+                    </td></tr>
+
+                    <tr><td style="padding:36px 32px">
+                      <p style="color:#6366F1;font-size:13px;font-weight:600;letter-spacing:0.08em;margin:0 0 8px;text-transform:uppercase">
+                        Now Showing
+                      </p>
+                      <h2 style="color:#18181B;margin:0 0 16px;font-size:24px;line-height:1.3">
+                        🎬 {movie.Title} is now playing in theatres!
+                      </h2>
+
+                      {(posterSrc.Length > 0 ? $"""
+                      <div style="text-align:center;margin-bottom:20px">
+                        <img src="{posterSrc}" alt="{movie.Title}" width="140"
+                          style="border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:inline-block"/>
+                      </div>
+                      """ : "")}
+
+                      <p style="color:#52525B;line-height:1.7;margin:0 0 8px">
+                        Hi <strong>{user.Name}</strong>, great news! You asked us to remind you about
+                        <strong>{movie.Title}</strong> — it's now available to book.
+                      </p>
+                      {(movie.Description is not null ? $"""
+                      <p style="color:#71717A;font-size:14px;line-height:1.6;margin:0 0 20px;font-style:italic">
+                        {movie.Description}
+                      </p>
+                      """ : "")}
+
+                      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                        style="background:#F9F9FB;border-radius:10px;margin-bottom:24px">
+                        <tr>
+                          <td style="padding:14px 16px;font-size:13px;color:#71717A">Duration</td>
+                          <td style="padding:14px 16px;font-size:13px;font-weight:600;color:#18181B">{movie.DurationMin} min</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:14px 16px;font-size:13px;color:#71717A;border-top:1px solid #F0F0F0">Languages</td>
+                          <td style="padding:14px 16px;font-size:13px;font-weight:600;color:#18181B;border-top:1px solid #F0F0F0">{string.Join(", ", movie.Languages)}</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:14px 16px;font-size:13px;color:#71717A;border-top:1px solid #F0F0F0">Formats</td>
+                          <td style="padding:14px 16px;font-size:13px;font-weight:600;color:#18181B;border-top:1px solid #F0F0F0">{string.Join(", ", movie.Formats)}</td>
+                        </tr>
+                        {(movie.ImdbRating.HasValue ? $"""
+                        <tr>
+                          <td style="padding:14px 16px;font-size:13px;color:#71717A;border-top:1px solid #F0F0F0">IMDb Rating</td>
+                          <td style="padding:14px 16px;font-size:13px;font-weight:600;color:#18181B;border-top:1px solid #F0F0F0">⭐ {movie.ImdbRating:F1}</td>
+                        </tr>
+                        """ : "")}
+                      </table>
+
+                      <div style="text-align:center">
+                        <a href="{movieUrl}"
+                          style="display:inline-block;background:linear-gradient(135deg,#E50914,#A855F7);color:#FFF;
+                                 padding:16px 40px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px">
+                          🎟 Book Tickets Now
+                        </a>
+                      </div>
+                    </td></tr>
+
+                    <tr><td align="center" style="background:#FAFAFA;padding:20px;color:#A1A1AA;font-size:12px;line-height:1.5">
+                      You're receiving this because you clicked "Remind Me" on BookKaroo.<br/>
+                      © 2026 BookKaroo Pvt Ltd. All rights reserved.
+                    </td></tr>
+
+                  </table>
+                </td></tr>
+              </table>
+            </body>
+            </html>
+            """;
+
+        await SendAsync(
+            to:      user.Email,
+            subject: $"🎬 {movie.Title} is Now Showing — Book Your Tickets!",
+            html:    html,
+            ct:      ct);
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private async Task SendAsync(
@@ -267,8 +370,14 @@ public class ResendEmailService : IEmailService
         IEnumerable<EmailAttachment>? attachments = null,
         CancellationToken ct = default)
     {
-        var apiKey = _config["RESEND_API_KEY"];
-        var from   = _config["RESEND_FROM"] ?? "BookKaroo <onboarding@resend.dev>";
+        var apiKey      = _config["RESEND_API_KEY"];
+        var from        = _config["RESEND_FROM"] ?? "BookKaroo <onboarding@resend.dev>";
+        var devOverride = _config["RESEND_DEV_OVERRIDE_TO"];
+        if (!string.IsNullOrWhiteSpace(devOverride))
+        {
+            _logger.LogWarning("RESEND_DEV_OVERRIDE_TO set — redirecting email from {Original} to {Override}", to, devOverride);
+            to = devOverride;
+        }
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {

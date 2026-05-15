@@ -13,5 +13,6 @@ public record UserResponse(
     string? StateCode,
     string? ProfilePicUrl,
     string? Gender,
-    DateOnly? Dob
+    DateOnly? Dob,
+    DateTime? PasswordChangedAt
 );

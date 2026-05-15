@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
@@ -197,16 +197,10 @@ export default function MoviesPage() {
             )}
           </div>
 
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface2 border border-border-strong text-sm font-sans shrink-0">
-            <span className="text-text-muted">↕</span>
-            <select
-              value={sort ?? ''}
-              onChange={(e) => update('sort', e.target.value || null)}
-              className="[color-scheme:dark] bg-transparent text-text-primary outline-none cursor-pointer font-sans"
-            >
-              {SORTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-            </select>
-          </div>
+          <SortDropdown
+            value={sort ?? ''}
+            onChange={(v) => update('sort', v || null)}
+          />
         </div>
 
         {/* Grid */}
@@ -276,6 +270,51 @@ export default function MoviesPage() {
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
+
+function SortDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const activeLabel = SORTS.find((s) => s.value === value)?.label ?? 'Popularity';
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative shrink-0">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface2 border border-border-strong text-sm font-sans text-text-primary hover:border-accent-indigo/60 transition-colors"
+      >
+        <span className="text-text-muted">↕</span>
+        <span className="font-semibold">{activeLabel}</span>
+        <span className={`text-text-muted text-xs transition-transform duration-150 ${open ? 'rotate-180' : ''}`}>▾</span>
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full mt-1.5 w-40 rounded-xl bg-bg-surface border border-border-strong shadow-[0_8px_32px_rgba(0,0,0,0.5)] z-50 overflow-hidden py-1">
+          {SORTS.map((s) => (
+            <button
+              key={s.value}
+              onClick={() => { onChange(s.value); setOpen(false); }}
+              className={`w-full text-left px-4 py-2.5 text-sm font-sans transition-colors ${
+                s.value === value
+                  ? 'text-accent-indigo bg-accent-indigo/10 font-semibold'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface2'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 interface PBtnProps { label: string; active?: boolean; disabled?: boolean; onClick: () => void }
 function PaginationBtn({ label, active, disabled, onClick }: PBtnProps) {
