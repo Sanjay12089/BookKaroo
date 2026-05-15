@@ -39,7 +39,7 @@ Phase 1 delivers a complete end-to-end MVP: discover → select seats → mock p
 | ORM | EF Core 8 + Npgsql |
 | Validation | FluentValidation |
 | Logging | Serilog |
-| Auth | JWT (access 15min, httpOnly refresh cookie 30d) + BCrypt cost 12 |
+| Auth | JWT (access 2hours, httpOnly refresh cookie 30d) + BCrypt cost 12 |
 | Database | Supabase (PostgreSQL hosted, free tier) |
 | Realtime | Supabase Realtime (WebSocket seat updates) |
 | Payments | Mock provider (Phase 1) → Razorpay (Phase 1.5 after Vercel deploy) |
@@ -67,12 +67,10 @@ Phase 1 delivers a complete end-to-end MVP: discover → select seats → mock p
 #### Sign Up
 - Fields: email, password, name, DOB, gender, city, mobile, profile pic
 - Password rules: min 8 chars, ≥1 uppercase, ≥1 number, ≥1 special character
-- Email verification (send confirmation link via Resend)
-- On signup: auto-fill `state_code` from selected city (for GST routing)
 
 #### Login
 - Identifier: email OR mobile + password
-- JWT access token (15 min) returned in response body
+- JWT access token (2 hours) returned in response body
 - Refresh token (30 days) in httpOnly cookie
 - Token rotation on every refresh
 
