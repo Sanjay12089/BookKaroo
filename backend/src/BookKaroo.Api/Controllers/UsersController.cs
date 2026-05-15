@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using BCrypt.Net;
 using BookKaroo.Application.Interfaces.Repositories;
+using BookKaroo.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BookKaroo.Api.Controllers;
 
@@ -12,9 +14,14 @@ namespace BookKaroo.Api.Controllers;
 [Authorize]
 public class UsersController : ControllerBase
 {
-    private readonly IUserRepository _users;
+    private readonly IUserRepository    _users;
+    private readonly IServiceScopeFactory _scopeFactory;
 
-    public UsersController(IUserRepository users) => _users = users;
+    public UsersController(IUserRepository users, IServiceScopeFactory scopeFactory)
+    {
+        _users        = users;
+        _scopeFactory = scopeFactory;
+    }
 
     /// <summary>Update the authenticated user's profile.</summary>
     [HttpPut("me")]
@@ -47,6 +54,7 @@ public class UsersController : ControllerBase
             user.EmailVerified,
             user.ProfilePicUrl,
             user.StateCode,
+            user.PasswordChangedAt,
         });
     }
 
@@ -68,9 +76,39 @@ public class UsersController : ControllerBase
             return BadRequest(new { message = "New password must be at least 8 characters." });
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
+        user.PasswordChangedAt = DateTime.UtcNow;
         await _users.UpdateAsync(user, ct);
 
         return Ok(new { message = "Password updated successfully." });
+    }
+
+    /// <summary>Soft-delete (deactivate) the authenticated user's account and notify via email.</summary>
+    [HttpDelete("me")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> DeleteMe(CancellationToken ct)
+    {
+        var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var user   = await _users.GetByIdAsync(userId, ct);
+        if (user == null) return NotFound();
+
+        user.DeletedAt = DateTime.UtcNow;
+        user.RefreshToken = null;
+        user.RefreshTokenExpiresAt = null;
+        await _users.UpdateAsync(user, ct);
+
+        var capturedName  = user.Name;
+        var capturedEmail = user.Email;
+        _ = Task.Run(async () =>
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var email = scope.ServiceProvider.GetRequiredService<IEmailService>();
+            await email.SendAccountDeletedAsync(
+                new BookKaroo.Domain.Entities.User { Name = capturedName, Email = capturedEmail },
+                CancellationToken.None);
+        });
+
+        return Ok(new { message = "Your account has been deactivated. We're sorry to see you go." });
     }
 }
 

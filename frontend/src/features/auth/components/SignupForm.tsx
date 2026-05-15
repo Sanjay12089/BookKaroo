@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { Input } from '@/shared/components/ui/Input';
@@ -46,6 +46,7 @@ function getPasswordStrength(pwd: string): number {
 
 export function SignupForm() {
   const { mutate: signup, isPending } = useSignup();
+  const navigate = useNavigate();
   const { data: cities = [], isLoading: citiesLoading } = useCities();
   const [showPwd, setShowPwd] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
@@ -54,6 +55,7 @@ export function SignupForm() {
     register,
     handleSubmit,
     watch,
+    setError,
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
@@ -73,9 +75,15 @@ export function SignupForm() {
   function onSubmit(data: FormValues) {
     setApiError(null);
     signup(data, {
+      onSuccess: () => navigate(ROUTES.HOME, { replace: true }),
       onError: (err: unknown) => {
         const e = err as ApiError;
-        setApiError(e?.message ?? 'Signup failed. Please try again.');
+        const msg = e?.message ?? 'Signup failed. Please try again.';
+        if (e?.statusCode === 409) {
+          setError('email', { message: msg });
+        } else {
+          setApiError(msg);
+        }
       },
     });
   }
@@ -92,6 +100,7 @@ export function SignupForm() {
           label="Password"
           type={showPwd ? 'text' : 'password'}
           autoComplete="new-password"
+          placeholder="Min 8 chars, uppercase, number, symbol"
           error={errors.password?.message}
           rightElement={
             <button
@@ -159,7 +168,7 @@ export function SignupForm() {
         <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">City</p>
         <select
           {...register('cityId')}
-          className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15 transition-all"
+          className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15 transition-all [color-scheme:dark]"
         >
           <option value="">{citiesLoading ? 'Loading…' : 'Select your city'}</option>
           {cities.map((c) => (

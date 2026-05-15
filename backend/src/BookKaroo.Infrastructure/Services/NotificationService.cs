@@ -57,19 +57,36 @@ public class NotificationService : INotificationService
             return;
         }
 
-        var user    = await _users.GetByIdAsync(booking.UserId, ct);
-        var show    = await _shows.GetByIdAsync(booking.ShowId, ct);
-        var movie   = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
+        var user      = await _users.GetByIdAsync(booking.UserId, ct);
+        var show      = booking.ShowId.HasValue ? await _shows.GetByIdAsync(booking.ShowId.Value, ct) : null;
+        var movie     = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
         var allVenues = await _venues.GetAllAsync(ct);
-        var venue   = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
-        var payment = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
+        var venue     = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+        var payment   = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
+
+        // For event bookings: load event to get actual date + time + title + venue
+        DateTime? eventDate  = null;
+        string?   eventTitle = null;
+        if (booking.EventId.HasValue)
+        {
+            var ev = await _db.Events.FirstOrDefaultAsync(e => e.Id == booking.EventId.Value, ct);
+            if (ev is not null)
+            {
+                eventDate  = ev.EventDate;
+                eventTitle = ev.Title;
+                // Use event venue for the invoice if no show venue
+                if (venue is null && ev.VenueId.HasValue)
+                    venue = allVenues.FirstOrDefault(v => v.Id == ev.VenueId.Value);
+            }
+        }
 
         if (user is null)
         {
             _logger.LogWarning("User not found for booking {Ref}", booking.BookingRef);
             return;
         }
-        if (show is null)
+        // For event bookings, show may be null — allow proceeding without show
+        if (show is null && booking.ShowId.HasValue)
         {
             _logger.LogWarning("Show not found for booking {Ref}", booking.BookingRef);
             return;
@@ -77,8 +94,9 @@ public class NotificationService : INotificationService
 
         try
         {
-            // Build GST invoice
-            var invoiceModel = await _invoiceBuilder.BuildAsync(booking, show, movie, venue, payment, user, ct);
+            // Build GST invoice — pass event details so event bookings show real title/date
+            var invoiceModel = await _invoiceBuilder.BuildAsync(booking, show, movie, venue, payment, user, ct,
+                eventTitle, eventDate);
             var pdfBytes     = _pdfGenerator.Generate(invoiceModel);
 
             // QR URL for email — use Supabase URL if available, otherwise public QR API
@@ -107,7 +125,7 @@ public class NotificationService : INotificationService
             }
 
             // Send email with PDF attached and QR as a real HTTPS URL
-            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, qrUrl, ct);
+            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, qrUrl, ct, eventDate, eventTitle);
             _logger.LogInformation("Booking confirmation email sent for {Ref} to {Email}", booking.BookingRef, user.Email);
         }
         catch (Exception ex)
@@ -126,9 +144,45 @@ public class NotificationService : INotificationService
 
         _logger.LogInformation("Sending cancellation notification for {Ref}", booking.BookingRef);
 
+        // Enrich with show / event details for the email template
+        string?   contentTitle = null;
+        string?   venueAndCity = null;
+        DateTime? showDateTime = null;
+
+        if (booking.ShowId.HasValue)
+        {
+            var show  = await _shows.GetByIdAsync(booking.ShowId.Value, ct);
+            var movie = show?.MovieId.HasValue == true
+                ? await _movies.GetByIdAsync(show.MovieId!.Value, ct)
+                : null;
+            var allVenues = await _db.Venues.ToListAsync(ct);
+            var venue     = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+
+            contentTitle = movie?.Title;
+            if (venue is not null)
+                venueAndCity = venue.Name;
+            if (show is not null)
+                showDateTime = show.ShowDatetime;
+        }
+        else if (booking.EventId.HasValue)
+        {
+            var ev = await _db.Events.FirstOrDefaultAsync(e => e.Id == booking.EventId.Value, ct);
+            if (ev is not null)
+            {
+                contentTitle = ev.Title;
+                showDateTime = ev.EventDate;
+                if (ev.VenueId.HasValue)
+                {
+                    var evVenue = await _db.Venues.FirstOrDefaultAsync(v => v.Id == ev.VenueId.Value, ct);
+                    venueAndCity = evVenue?.Name;
+                }
+            }
+        }
+
         try
         {
-            await _email.SendBookingCancelledAsync(booking, user, refundAmount, ct);
+            await _email.SendBookingCancelledAsync(booking, user, refundAmount, ct,
+                contentTitle, venueAndCity, showDateTime);
         }
         catch (Exception ex)
         {

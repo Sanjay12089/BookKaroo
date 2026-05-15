@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { GlassCard } from '@/shared/components/ui/Card';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
@@ -20,8 +21,8 @@ export default function MyBookingsPage() {
   const [page, setPage] = useState(1);
   const [cancellingBooking, setCancellingBooking] = useState<BookingListItem | null>(null);
 
-  const { data: upcomingData } = useMyBookings('upcoming', 1);
-  const { data: pastData }     = useMyBookings('past', 1);
+  const { data: upcomingData, isLoading: upcomingCountLoading } = useMyBookings('upcoming', 1);
+  const { data: pastData,     isLoading: pastCountLoading     } = useMyBookings('past', 1);
   const { data: currentData, isLoading: currentLoading } = useMyBookings(tab, page);
 
   const { mutate: cancelBooking, isPending: cancelling } = useCancelBooking();
@@ -54,6 +55,7 @@ export default function MyBookingsPage() {
 
   return (
     <PublicLayout>
+      <Helmet><title>My Bookings | BookKaroo</title></Helmet>
       {/* Profile header */}
       <div className="bg-gradient-to-b from-bg-surface2 to-bg-base border-b border-border-default">
         <div className="max-w-3xl mx-auto px-6 py-8">
@@ -96,6 +98,7 @@ export default function MyBookingsPage() {
         <div className="flex gap-1 border-b border-border-default mb-6">
           {(['upcoming', 'past'] as const).map((t) => {
             const count = t === 'upcoming' ? upcomingCount : pastCount;
+            const isCountLoading = t === 'upcoming' ? upcomingCountLoading : pastCountLoading;
             return (
               <button
                 key={t}
@@ -106,7 +109,7 @@ export default function MyBookingsPage() {
               >
                 {t}
                 <span className="ml-2 text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-bg-surface2 text-text-muted">
-                  {count}
+                  {isCountLoading ? '…' : count}
                 </span>
                 {tab === t && (
                   <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-accent-crimson rounded-full" />

@@ -104,6 +104,9 @@ namespace BookKaroo.Infrastructure.Data.Migrations
                     b.Property<decimal>("Discount")
                         .HasColumnType("numeric(10,2)");
 
+                    b.Property<Guid?>("EventId")
+                        .HasColumnType("uuid");
+
                     b.Property<decimal>("Igst")
                         .HasColumnType("numeric(10,2)");
 
@@ -125,7 +128,7 @@ namespace BookKaroo.Infrastructure.Data.Migrations
                     b.Property<decimal>("Sgst")
                         .HasColumnType("numeric(10,2)");
 
-                    b.Property<Guid>("ShowId")
+                    b.Property<Guid?>("ShowId")
                         .HasColumnType("uuid");
 
                     b.Property<int>("Status")
@@ -140,6 +143,9 @@ namespace BookKaroo.Infrastructure.Data.Migrations
                     b.Property<int>("TicketQty")
                         .HasColumnType("integer");
 
+                    b.Property<string>("TierName")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -152,6 +158,8 @@ namespace BookKaroo.Infrastructure.Data.Migrations
                         .IsUnique();
 
                     b.HasIndex("CouponId");
+
+                    b.HasIndex("EventId");
 
                     b.HasIndex("ShowId");
 
@@ -461,6 +469,45 @@ namespace BookKaroo.Infrastructure.Data.Migrations
                     b.HasIndex("VenueId");
 
                     b.ToTable("Events");
+                });
+
+            modelBuilder.Entity("BookKaroo.Domain.Entities.EventTicketLock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SessionId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TierName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("EventId", "TierName");
+
+                    b.ToTable("EventTicketLocks", (string)null);
                 });
 
             modelBuilder.Entity("BookKaroo.Domain.Entities.IdempotencyKey", b =>
@@ -1012,6 +1059,9 @@ namespace BookKaroo.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("PasswordChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
@@ -1042,7 +1092,8 @@ namespace BookKaroo.Infrastructure.Data.Migrations
                     b.HasIndex("CityId");
 
                     b.HasIndex("Email")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"deleted_at\" IS NULL");
 
                     b.HasIndex("Mobile");
 
@@ -1067,6 +1118,12 @@ namespace BookKaroo.Infrastructure.Data.Migrations
 
                     b.Property<Guid>("CityId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("ContactEmail")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ContactPhone")
+                        .HasColumnType("text");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

@@ -139,17 +139,18 @@ try
     builder.Services.AddInMemoryRateLimiting();
 
     // 7. CORS
-    // For local dev: set CORS_ALLOWED_ORIGINS in launchSettings.json
-    // For Render:    add CORS_ALLOWED_ORIGINS env var with your Vercel URL
-    var allowedOrigins = (builder.Configuration["CORS_ALLOWED_ORIGINS"] ?? "http://localhost:5173")
-        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-    builder.Services.AddCors(opt =>
-        opt.AddDefaultPolicy(policy =>
-            policy.WithOrigins(allowedOrigins)
+    // SetIsOriginAllowed(_ => true) + AllowCredentials() is the correct
+    // combination when withCredentials:true is used on the frontend (required
+    // for the httpOnly refresh-token cookie).  AllowAnyOrigin() is incompatible
+    // with AllowCredentials() per the CORS spec — browsers reject such responses.
+    builder.Services.AddCors(options =>
+    {
+        options.AddDefaultPolicy(policy =>
+            policy.SetIsOriginAllowed(_ => true)
                   .AllowAnyHeader()
                   .AllowAnyMethod()
-                  .AllowCredentials()));
+                  .AllowCredentials());
+    });
 
     // 8. Swagger with JWT
     builder.Services.AddEndpointsApiExplorer();
@@ -194,9 +195,17 @@ try
 
     // 11. IPaymentProvider — select based on PAYMENT_PROVIDER env var
     var paymentProvider = builder.Configuration["PAYMENT_PROVIDER"] ?? "mock";
-    if (paymentProvider == "mock")
-        builder.Services.AddScoped<IPaymentProvider, MockPaymentProvider>();
-    // Phase 1.5: add Razorpay/PayPal providers here
+    switch (paymentProvider.ToLowerInvariant())
+    {
+        case "razorpay":
+            builder.Services.AddScoped<IPaymentProvider, RazorpayPaymentProvider>();
+            break;
+        default:
+            if (builder.Environment.IsProduction())
+                throw new InvalidOperationException("MockPaymentProvider cannot be used in Production.");
+            builder.Services.AddScoped<IPaymentProvider, MockPaymentProvider>();
+            break;
+    }
 
     // 12. HttpClient
     builder.Services.AddHttpClient();
@@ -207,8 +216,10 @@ try
     builder.Services.AddScoped<IMovieRepository, MovieRepository>();
     builder.Services.AddScoped<IShowRepository, ShowRepository>();
     builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Venue>, VenueRepository>();
-    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Screen>, Repository<BookKaroo.Domain.Entities.Screen>>();
+    builder.Services.AddScoped<IVenueRepository, VenueRepository>();
+    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Venue>>(sp => sp.GetRequiredService<IVenueRepository>());
+    builder.Services.AddScoped<IScreenRepository, ScreenRepository>();
+    builder.Services.AddScoped<IRepository<BookKaroo.Domain.Entities.Screen>>(sp => sp.GetRequiredService<IScreenRepository>());
     builder.Services.AddScoped<ISeatLockRepository, SeatLockRepository>();
     builder.Services.AddScoped<ICouponRepository, CouponRepository>();
     builder.Services.AddScoped<ISettingRepository, SettingRepository>();
@@ -216,6 +227,7 @@ try
     builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
     builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
     builder.Services.AddScoped<IEventRepository, EventRepository>();
+    builder.Services.AddScoped<IEventTicketLockRepository, EventTicketLockRepository>();
     builder.Services.AddScoped<ICmsBannerRepository, CmsBannerRepository>();
     builder.Services.AddScoped<IAdminRepository, AdminRepository>();
 
@@ -248,20 +260,34 @@ try
         .AddJsonOptions(o =>
             o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
+    // ── Listen on PORT (Render / Railway / Fly inject this at runtime) ───────
+    // ASP.NET Core does NOT automatically read $PORT — it needs ASPNETCORE_URLS
+    // or explicit Kestrel config. Without this the app defaults to port 5000
+    // while Render health-checks $PORT → mismatch → "Application exited early".
+    // Skip if ASPNETCORE_URLS is already set so manual overrides still work.
+    if (string.IsNullOrEmpty(builder.Configuration["ASPNETCORE_URLS"]))
+    {
+        var listenPort = builder.Configuration["PORT"] ?? "10000";
+        builder.WebHost.UseUrls($"http://0.0.0.0:{listenPort}");
+        Log.Information("Listening on http://0.0.0.0:{Port}", listenPort);
+    }
+
     // ── Build app ─────────────────────────────────────────────────────────────
     var app = builder.Build();
 
     // 16. Correlation ID (before everything else for full tracing)
     app.UseCorrelationId();
 
-    // 17. Global exception handler (before routing)
+    // 17. CORS must run BEFORE exception handler so error responses include
+    //     Access-Control-Allow-Origin headers — without this the browser blocks
+    //     5xx responses and Axios sees them as network errors (no response object).
+    app.UseCors();
+
+    // 18. Global exception handler (after CORS so error responses have CORS headers)
     app.UseGlobalExceptionHandler();
 
-    // 18. Rate limiting
+    // 19. Rate limiting
     app.UseIpRateLimiting();
-
-    // 19. CORS
-    app.UseCors();
 
     // 20. Auth
     app.UseAuthentication();
@@ -273,8 +299,9 @@ try
     // 22. Controllers
     app.MapControllers();
 
-    // 23. Health checks
-    app.MapHealthChecks("/health");
+    // 23. Health checks — enhanced response via HealthController at GET /health
+    //     The built-in health check middleware is registered for internal tooling only.
+    app.MapHealthChecks("/healthz");
 
     // 24. Swagger (always available in non-production; can be gated by env)
     if (!app.Environment.IsProduction())

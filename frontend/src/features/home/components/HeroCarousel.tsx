@@ -116,6 +116,7 @@ export function HeroCarousel({ movies, isLoading }: HeroCarouselProps) {
               <img
                 src={posterUrl} alt={movie.title}
                 className="w-full h-full object-cover"
+                loading="eager"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
               <div className="absolute inset-0 bg-gradient-to-br from-bg-surface2 to-bg-surface3 flex items-center justify-center -z-10">

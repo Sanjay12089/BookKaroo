@@ -29,6 +29,7 @@ public class BookKarooDbContext : DbContext
     public DbSet<CouponUsage> CouponUsages => Set<CouponUsage>();
     public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<EventTicketLock> EventTicketLocks => Set<EventTicketLock>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -91,7 +92,8 @@ public class BookKarooDbContext : DbContext
         modelBuilder.Entity<User>(e =>
         {
             e.HasKey(u => u.Id);
-            e.HasIndex(u => u.Email).IsUnique();
+            // Partial unique index: allow re-signup with a soft-deleted user's email
+            e.HasIndex(u => u.Email).IsUnique().HasFilter("\"deleted_at\" IS NULL");
             e.HasIndex(u => u.Mobile);
             e.HasIndex(u => u.CityId);
             e.HasQueryFilter(u => u.DeletedAt == null);
@@ -179,6 +181,16 @@ public class BookKarooDbContext : DbContext
             e.Property(c => c.ApplicableVenues).HasColumnType("uuid[]");
         });
 
+        // ── EventTicketLock — no soft-delete (no DeletedAt) ──────────────────
+        modelBuilder.Entity<EventTicketLock>(e =>
+        {
+            e.HasKey(etl => etl.Id);
+            e.ToTable("EventTicketLocks");
+            e.HasIndex(etl => etl.EventId);
+            e.HasIndex(etl => new { etl.EventId, etl.TierName });
+            e.HasIndex(etl => etl.UserId);
+        });
+
         // ── Booking ───────────────────────────────────────────────────────────
         modelBuilder.Entity<Booking>(e =>
         {
@@ -186,6 +198,7 @@ public class BookKarooDbContext : DbContext
             e.HasIndex(b => b.BookingRef).IsUnique();
             e.HasIndex(b => b.UserId);
             e.HasIndex(b => b.ShowId);
+            e.HasIndex(b => b.EventId);
             e.HasIndex(b => b.CouponId);
             e.HasQueryFilter(b => b.DeletedAt == null);
             e.Property(b => b.TicketAmount).HasColumnType("numeric(10,2)");

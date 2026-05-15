@@ -103,7 +103,7 @@ public class MovieService : IMovieService
                         : null;
                     var price = overrides?.GetValueOrDefault("normal", 180m) ?? 180m;
                     return new ShowtimeSlotResponse(
-                        s.Id, s.ShowTime.ToString(@"hh\:mm"),
+                        s.Id, s.ShowTime.ToString(@"hh\:mm tt"),
                         s.Format ?? "2D", s.Language ?? "Hindi", SeatsLeft: 100, Price: price);
                 }).OrderBy(s => s.ShowTime).ToArray();
 

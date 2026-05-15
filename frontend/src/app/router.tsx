@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 
@@ -47,9 +47,11 @@ const SignupPage          = lazy(() => import('@/features/auth/pages/SignupPage'
 const ForgotPasswordPage  = lazy(() => import('@/features/auth/pages/ForgotPasswordPage'));
 const ResetPasswordPage   = lazy(() => import('@/features/auth/pages/ResetPasswordPage'));
 const HelpPage           = lazy(() => import('@/features/help/pages/HelpPage'));
+const FaqPage            = lazy(() => import('@/features/help/pages/FaqPage'));
 // Protected
 const SeatSelectionPage  = lazy(() => import('@/features/booking/pages/SeatSelectionPage'));
 const CheckoutPage       = lazy(() => import('@/features/booking/pages/CheckoutPage'));
+const EventCheckoutPage  = lazy(() => import('@/features/booking/pages/EventCheckoutPage'));
 const ConfirmationPage   = lazy(() => import('@/features/booking/pages/ConfirmationPage'));
 const ProfilePage        = lazy(() => import('@/features/profile/pages/ProfilePage'));
 const MyBookingsPage     = lazy(() => import('@/features/profile/pages/MyBookingsPage'));
@@ -69,14 +71,19 @@ const StaticPage         = lazy(() => import('@/features/static/pages/StaticPage
 // ── Guards ────────────────────────────────────────────────────────────────────
 function ProtectedRoute() {
   const { isAuthenticated, isInitialized } = useAuthStore();
+  const location = useLocation();
   if (!isInitialized) return null;
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  return isAuthenticated
+    ? <Outlet />
+    : <Navigate to="/login" state={{ returnTo: location.pathname + location.search }} replace />;
 }
 
 function AdminRoute() {
   const { user, isAuthenticated, isInitialized } = useAuthStore();
+  const location = useLocation();
   if (!isInitialized) return null;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated)
+    return <Navigate to="/login" state={{ returnTo: location.pathname + location.search }} replace />;
   if (user?.role !== 'Admin') return <Navigate to="/" replace />;
   return <Outlet />;
 }
@@ -101,14 +108,16 @@ export const router = createBrowserRouter([
   { path: '/forgot-password',     element: S(ForgotPasswordPage) },
   { path: '/reset-password',      element: S(ResetPasswordPage) },
   { path: '/help',                element: S(HelpPage) },
+  { path: '/help/faq',           element: S(FaqPage) },
 
   // Protected
   {
     element: <ProtectedRoute />,
     children: [
-      { path: '/booking/:showId/seats', element: S(SeatSelectionPage) },
-      { path: '/booking/checkout',      element: S(CheckoutPage) },
-      { path: '/booking/confirmed',     element: S(ConfirmationPage) },
+      { path: '/booking/:showId/seats',   element: S(SeatSelectionPage) },
+      { path: '/booking/checkout',        element: S(CheckoutPage) },
+      { path: '/booking/event-checkout',  element: S(EventCheckoutPage) },
+      { path: '/booking/confirmed',       element: S(ConfirmationPage) },
       { path: '/profile',               element: S(ProfilePage) },
       { path: '/profile/bookings',      element: S(MyBookingsPage) },
     ],

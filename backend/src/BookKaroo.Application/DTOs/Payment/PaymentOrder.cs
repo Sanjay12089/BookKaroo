@@ -7,5 +7,6 @@ public record PaymentOrder(
     decimal Amount,
     string Currency,
     string? CheckoutUrl,
-    string? ProviderKey
+    string? ProviderKey,
+    string? RazorpayKeyId = null
 );

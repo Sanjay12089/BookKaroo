@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react';
+import { forwardRef, useCallback, useId, useLayoutEffect, useRef, useState } from 'react';
 import { cn } from '@/shared/lib/utils';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -11,15 +11,40 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ label, error, hint, id, className, value, defaultValue, onChange, onFocus, onBlur, rightElement, ...rest }, ref) => {
     const [focused, setFocused] = useState(false);
-    const [internalValue, setInternalValue] = useState(defaultValue ?? '');
-    const inputId = id ?? `bk-input-${Math.random().toString(36).slice(2)}`;
+    const [internalValue, setInternalValue] = useState<string>(
+      typeof defaultValue === 'string' ? defaultValue : String(defaultValue ?? ''),
+    );
+    const localRef = useRef<HTMLInputElement>(null);
+    const generatedId = useId();
+    const inputId = id ?? generatedId;
     const isControlled = value !== undefined;
-    const currentValue = isControlled ? value : internalValue;
-    const hasValue = String(currentValue).length > 0;
+    const hasValue = isControlled
+      ? String(value ?? '').length > 0
+      : internalValue.length > 0;
     // date inputs always show browser format hint (mm/dd/yyyy) so keep label floated
     const { placeholder, type, ...inputRest } = rest;
     const isDate = type === 'date';
     const floated = focused || hasValue || isDate;
+
+    // Merge forwarded ref (used by react-hook-form) with our local ref for DOM reads
+    const setRef = useCallback(
+      (el: HTMLInputElement | null) => {
+        (localRef as React.MutableRefObject<HTMLInputElement | null>).current = el;
+        if (typeof ref === 'function') ref(el);
+        else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = el;
+      },
+      [ref],
+    );
+
+    // When uncontrolled, sync internalValue with the actual DOM value after every commit.
+    // react-hook-form's reset() sets the DOM value directly via ref without firing onChange,
+    // so we detect the change here to keep the floating label accurate and prevent React
+    // from forcing the input back to '' on the next render.
+    useLayoutEffect(() => {
+      if (!isControlled && localRef.current && localRef.current.value !== internalValue) {
+        setInternalValue(localRef.current.value);
+      }
+    });
 
     return (
       <div className={cn('flex flex-col gap-1', className)}>
@@ -43,10 +68,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </label>
           )}
           <input
-            ref={ref}
+            ref={setRef}
             id={inputId}
             type={type}
-            value={isControlled ? value : internalValue}
+            {...(isControlled
+              ? { value }
+              : { defaultValue: typeof defaultValue === 'string' ? defaultValue : '' }
+            )}
             placeholder={floated ? placeholder : ''}
             onChange={(e) => {
               if (!isControlled) setInternalValue(e.target.value);

@@ -1,24 +1,122 @@
-import { useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useCallback, useRef, useState } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Bell, MapPin } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Button } from '@/shared/components/ui/Button';
 import { Badge } from '@/shared/components/ui/Badge';
-import { useEventDetail, useRemindMeEvent } from '../api/useEvents';
+import { useEventDetail, useRemindMeEvent, useEventAvailability, useCreateEventOrder } from '../api/useEvents';
+import { useEventRealtime } from '../api/useEventRealtime';
 import { usePassedViewport } from '@/shared/hooks/useScrollPosition';
 import { TMDB_BACKDROP, TMDB_POSTER } from '@/shared/constants';
 import { cn } from '@/shared/lib/utils';
-import type { EventDetail, PriceTier } from '../types';
+import { toast } from '@/shared/components/ui/Toast';
+import { useAuthStore } from '@/features/auth/store/authStore';
+import { useCheckoutStore } from '@/shared/store/checkoutStore';
+import { TierSelector } from '../components/TierSelector';
+import type { EventDetail, PriceTier, TierAvailability } from '../types';
+import type { ApiError } from '@/shared/types';
 
 type Tab = 'about' | 'artists' | 'venue';
 
 export default function EventDetailPage() {
   const { slug = '' } = useParams();
+  const navigate       = useNavigate();
+  const location       = useLocation();
   const { data: event, isLoading } = useEventDetail(slug);
   const heroCTARef    = useRef<HTMLDivElement>(null);
   const stickyVisible = usePassedViewport(heroCTARef);
   const [activeTab, setActiveTab] = useState<Tab>('about');
+
+  // Auth + checkout
+  const { isAuthenticated } = useAuthStore();
+  const checkoutStore        = useCheckoutStore();
+
+  // Tier selection state
+  const [selectedTier, setSelectedTier] = useState<TierAvailability | null>(null);
+  const [selectedQty,  setSelectedQty]  = useState(1);
+  const [idempotencyKey] = useState(() => crypto.randomUUID());
+
+  // Availability
+  const { data: availabilityData, isLoading: availLoading } = useEventAvailability(event?.id ?? '');
+
+  // Build displayTiers — use real availability data when present, otherwise derive
+  // clickable tiers from event.allPriceTiers so booking is always accessible even
+  // if the availability API hasn't responded yet or returns empty.
+  const displayTiers: TierAvailability[] = (() => {
+    if (availabilityData?.tiers && availabilityData.tiers.length > 0) {
+      return availabilityData.tiers;
+    }
+    if (!event) return [];
+    return event.allPriceTiers.map((t) => ({
+      tierName:        t.name,
+      capacity:        t.capacity ?? 999,
+      booked:          0,
+      locked:          0,
+      available:       t.capacity ?? 999,
+      availabilityPct: 100,
+      color:           t.color,
+    }));
+  })();
+
+  // Realtime capacity updates
+  const qc = useQueryClient();
+  const handleCapacityChange = useCallback(() => {
+    void qc.invalidateQueries({ queryKey: ['event-availability', event?.id] });
+  }, [qc, event?.id]);
+  useEventRealtime(event?.id ?? '', handleCapacityChange);
+
+  // Create event order
+  const createEventOrder = useCreateEventOrder();
+
+  // Price lookup per tier (used by TierSelector to show each tier's price)
+  const tierPrices: Record<string, number> = Object.fromEntries(
+    (event?.allPriceTiers ?? []).map((t) => [t.name.toLowerCase(), t.price])
+  );
+
+  // Unit price for the currently selected tier (for pricing preview)
+  const unitPrice = selectedTier
+    ? (tierPrices[selectedTier.tierName.toLowerCase()] ?? 0)
+    : 0;
+
+  async function handleProceedToCheckout() {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: location } });
+      return;
+    }
+    if (!selectedTier || !event) return;
+
+    try {
+      const result = await createEventOrder.mutateAsync({
+        eventId:        event.id,
+        tierName:       selectedTier.tierName,
+        quantity:       selectedQty,
+        idempotencyKey,
+      });
+      checkoutStore.setOrder(result);
+      checkoutStore.setEventContext({
+        eventId:    event.id,
+        eventTitle: event.title,
+        tierName:   selectedTier.tierName,
+        quantity:   selectedQty,
+        unitPrice,
+        posterUrl:  event.posterUrl ?? null,
+        eventDate:  event.eventDate ?? null,
+        venueName:  event.venueName,
+        cityName:   event.cityName,
+      });
+      navigate('/booking/event-checkout');
+    } catch (err: unknown) {
+      const apiErr = err as ApiError;
+      if (apiErr?.statusCode === 409) {
+        toast('Not enough tickets available. Please select fewer.', 'error');
+        void qc.invalidateQueries({ queryKey: ['event-availability', event.id] });
+      } else {
+        toast(apiErr?.message ?? 'Failed to create order. Please try again.', 'error');
+      }
+    }
+  }
 
   if (isLoading) return (
     <PublicLayout>
@@ -40,6 +138,7 @@ export default function EventDetailPage() {
 
   const backdropUrl = event.backdropUrl ? TMDB_BACKDROP(event.backdropUrl) : null;
   const posterUrl   = event.posterUrl   ? TMDB_POSTER(event.posterUrl)     : null;
+  const hasTickets  = event.priceTiers.length > 0;
 
   return (
     <PublicLayout>
@@ -97,8 +196,15 @@ export default function EventDetailPage() {
 
             {/* CTAs */}
             <div ref={heroCTARef} className="flex gap-3 flex-wrap">
-              {event.priceTiers.length > 0 ? (
-                <Button size="lg">🎟 Book Tickets</Button>
+              {hasTickets ? (
+                <Button
+                  size="lg"
+                  onClick={() => {
+                    document.getElementById('tier-selector')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  🎟 Book Tickets
+                </Button>
               ) : (
                 <RemindMeButton eventId={event.id} />
               )}
@@ -106,8 +212,49 @@ export default function EventDetailPage() {
           </section>
         </div>
 
-        {/* ── PRICE TIERS CARD */}
-        {event.allPriceTiers.length > 0 && (
+        {/* ── TIER SELECTOR / BOOKING SECTION */}
+        {hasTickets && (
+          <div id="tier-selector" className="mt-10 p-6 rounded-xl bg-bg-surface border border-border-default">
+            <h2 className="font-display font-semibold text-xl mb-5">Select Tickets</h2>
+
+            {availLoading && displayTiers.length === 0 ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton key={i} height={80} className="rounded-xl" />
+                ))}
+              </div>
+            ) : (
+              <>
+                <TierSelector
+                  tiers={displayTiers}
+                  selectedTier={selectedTier}
+                  selectedQty={selectedQty}
+                  tierPrices={tierPrices}
+                  onSelectTier={(tier) => {
+                    setSelectedTier(tier);
+                    setSelectedQty(1);
+                  }}
+                  onSelectQty={setSelectedQty}
+                  unitPrice={unitPrice}
+                />
+
+                {selectedTier && selectedQty > 0 && (
+                  <button
+                    type="button"
+                    disabled={createEventOrder.isPending}
+                    onClick={() => void handleProceedToCheckout()}
+                    className="w-full mt-5 py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold font-sans text-base hover:-translate-y-0.5 transition-all disabled:opacity-50 shadow-[0_10px_40px_-10px_rgba(229,9,20,0.5)]"
+                  >
+                    {createEventOrder.isPending ? 'Processing…' : `Proceed to Checkout — ₹${(unitPrice * selectedQty).toLocaleString('en-IN')} →`}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* ── PRICE TIERS CARD (shown when no availability data but has priceTiers) */}
+        {!hasTickets && event.allPriceTiers.length > 0 && (
           <div className="mt-10 p-6 rounded-xl bg-bg-surface border border-border-default">
             <h2 className="font-display font-semibold text-xl mb-4">Ticket Prices</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -115,11 +262,9 @@ export default function EventDetailPage() {
                 <TierCard key={tier.name} tier={tier} />
               ))}
             </div>
-            {event.priceTiers.length === 0 && (
-              <p className="text-sm text-text-muted font-sans mt-3">
-                Booking opens soon — set a reminder to be notified.
-              </p>
-            )}
+            <p className="text-sm text-text-muted font-sans mt-3">
+              Booking opens soon — set a reminder to be notified.
+            </p>
           </div>
         )}
 
@@ -151,7 +296,7 @@ export default function EventDetailPage() {
       </main>
 
       {/* ── STICKY BAR */}
-      {stickyVisible && event.priceTiers.length > 0 && (
+      {stickyVisible && hasTickets && (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-4 px-6 py-3
           bg-bg-surface/95 backdrop-blur-xl border-t border-border-default shadow-lg mb-[56px] md:mb-0">
           <div className="flex-1 min-w-0">
@@ -160,7 +305,14 @@ export default function EventDetailPage() {
               from ₹{event.lowestPrice.toLocaleString('en-IN')}
             </p>
           </div>
-          <Button size="md">Book Tickets →</Button>
+          <Button
+            size="md"
+            onClick={() => {
+              document.getElementById('tier-selector')?.scrollIntoView({ behavior: 'smooth' });
+            }}
+          >
+            Book Tickets →
+          </Button>
         </div>
       )}
     </PublicLayout>
@@ -178,9 +330,6 @@ function TierCard({ tier }: { tier: PriceTier }) {
         ₹{tier.price.toLocaleString('en-IN')}
       </p>
       <p className="text-[11px] text-text-muted font-sans mt-1">{tier.capacity} seats</p>
-      <button className="mt-2 w-full py-1.5 rounded-full border border-accent-indigo text-accent-indigo text-xs font-semibold font-sans hover:bg-accent-indigo/10 transition-colors">
-        Select
-      </button>
     </div>
   );
 }

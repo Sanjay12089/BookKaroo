@@ -9,14 +9,14 @@ interface SeatStoreState {
 }
 
 interface SeatStoreActions {
-  selectSeat:   (seat: string) => void;
+  selectSeat:   (seat: string, maxSeats?: number) => void;
   deselectSeat: (seat: string) => void;
   clearSeats:   (newShowId?: string) => void;
   setLock:      (lockId: string, expiresAt: string) => void;
   setShowId:    (showId: string) => void;
 }
 
-const MAX_SEATS = 10;
+const DEFAULT_MAX_SEATS = 10;
 
 export const useSeatStore = create<SeatStoreState & SeatStoreActions>()(
   persist(
@@ -26,9 +26,9 @@ export const useSeatStore = create<SeatStoreState & SeatStoreActions>()(
       lockId:        null,
       lockExpiresAt: null,
 
-      selectSeat: (seat) =>
+      selectSeat: (seat, maxSeats = DEFAULT_MAX_SEATS) =>
         set((s) => {
-          if (s.selectedSeats.includes(seat) || s.selectedSeats.length >= MAX_SEATS) return s;
+          if (s.selectedSeats.includes(seat) || s.selectedSeats.length >= maxSeats) return s;
           return { selectedSeats: [...s.selectedSeats, seat] };
         }),
 

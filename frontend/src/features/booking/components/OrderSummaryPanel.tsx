@@ -4,6 +4,7 @@ import type { CouponValidation } from '../types';
 
 interface Props {
   breakdown:         PricingBreakdown;
+  ticketQty:         number;
   coupon:            CouponValidation | null;
   couponInput:       string;
   couponError:       string | null;
@@ -20,7 +21,7 @@ interface Props {
 const isDev = import.meta.env.DEV;
 
 export function OrderSummaryPanel({
-  breakdown, coupon, couponInput, couponError, couponLoading,
+  breakdown, ticketQty, coupon, couponInput, couponError, couponLoading,
   agreedToTerms, payLoading, onCouponChange, onApplyCoupon,
   onRemoveCoupon, onTermsChange, onPay,
 }: Props) {
@@ -35,43 +36,70 @@ export function OrderSummaryPanel({
 
         {/* Line items */}
         <div className="space-y-3 text-sm font-sans">
-          <div className="flex justify-between">
-            <div>
-              <p className="text-text-primary font-semibold">Ticket Amount</p>
-              <p className="text-[11px] text-text-muted">{Math.round(breakdown.ticketAmount / Math.max(1, breakdown.taxableAmount / 59 + 1))} seat(s)</p>
+          {/* Ticket Amount */}
+          <div>
+            <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+              <span>Ticket Amount</span>
+              <span>₹{breakdown.ticketAmount}</span>
             </div>
-            <span className="font-semibold">₹{breakdown.ticketAmount}</span>
+            <p className="text-[11px] text-text-muted mt-0.5">
+              Quantity: {ticketQty} ticket{ticketQty !== 1 ? 's' : ''}
+            </p>
           </div>
 
-          <div className="flex justify-between">
-            <div>
-              <p className="text-text-secondary">Convenience Fee + GST</p>
-              <p className="text-[11px] text-text-muted">
-                ₹{breakdown.convenienceFee} + GST ₹{breakdown.convenienceFeeGst}
-                {breakdown.isIntraState
-                  ? ` (CGST ₹${breakdown.cgst} + SGST ₹${breakdown.sgst})`
-                  : ` (IGST ₹${breakdown.igst})`}
-              </p>
+          {/* Convenience Fees */}
+          <div>
+            <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+              <span>Convenience Fees</span>
+              <span>₹{breakdown.convenienceFee + gst}</span>
             </div>
-            <span className="text-text-secondary">₹{breakdown.convenienceFee + gst}</span>
-          </div>
-
-          {breakdown.offerProcessingFee > 0 && (
-            <div className="flex justify-between">
-              <div>
-                <p className="text-text-secondary">Offer Processing Fee</p>
-                <p className="text-[11px] text-text-muted">
-                  ₹{breakdown.offerProcessingFee} + GST ₹{breakdown.offerProcessingFeeGst}
-                </p>
+            <div className="mt-1 space-y-0.5">
+              <div className="flex justify-between text-[11px] text-text-muted">
+                <span>Base Amount</span>
+                <span>₹{breakdown.convenienceFee}</span>
               </div>
-              <span className="text-text-secondary">
-                ₹{breakdown.offerProcessingFee + breakdown.offerProcessingFeeGst}
-              </span>
+              {breakdown.isIntraState ? (
+                <>
+                  <div className="flex justify-between text-[11px] text-text-muted">
+                    <span>CGST @ 9%</span>
+                    <span>₹{breakdown.cgst}</span>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-text-muted">
+                    <span>SGST @ 9%</span>
+                    <span>₹{breakdown.sgst}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="flex justify-between text-[11px] text-text-muted">
+                  <span>Integrated GST (IGST) @ 18%</span>
+                  <span>₹{breakdown.igst}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Offer Processing Fee (when coupon applied) */}
+          {breakdown.offerProcessingFee > 0 && (
+            <div>
+              <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+                <span>Offer Processing Fee</span>
+                <span>₹{breakdown.offerProcessingFee + breakdown.offerProcessingFeeGst}</span>
+              </div>
+              <div className="mt-1 space-y-0.5">
+                <div className="flex justify-between text-[11px] text-text-muted">
+                  <span>Base Amount</span>
+                  <span>₹{breakdown.offerProcessingFee}</span>
+                </div>
+                <div className="flex justify-between text-[11px] text-text-muted">
+                  <span>{breakdown.isIntraState ? 'CGST + SGST @ 18%' : 'IGST @ 18%'}</span>
+                  <span>₹{breakdown.offerProcessingFeeGst}</span>
+                </div>
+              </div>
             </div>
           )}
 
           {breakdown.discount > 0 && (
-            <div className="flex justify-between text-semantic-success">
+            <div className="flex justify-between text-semantic-success font-semibold text-[11px] uppercase tracking-wider">
               <span>Discount ({coupon?.code})</span>
               <span>−₹{breakdown.discount}</span>
             </div>
@@ -94,9 +122,9 @@ export function OrderSummaryPanel({
               </span>
               <button
                 onClick={onRemoveCoupon}
-                className="text-xs text-text-muted hover:text-semantic-error underline font-sans"
+                className="px-2.5 py-1 rounded-full text-xs font-sans border border-border-default text-text-muted hover:border-semantic-error hover:text-semantic-error transition-colors"
               >
-                Remove
+                ✕ Remove
               </button>
             </div>
           ) : (
@@ -126,7 +154,7 @@ export function OrderSummaryPanel({
           )}
           {isDev && !coupon && (
             <p className="mt-2 text-[10px] text-text-muted font-sans">
-              Test coupons: FIRSTBOOK · KGF450 · CHEAPTUE · MOVIE20 · AHMDVIBE
+              Test coupons: FIRSTBOOK · CHEAPTUE · MOVIE20
             </p>
           )}
         </div>
@@ -163,8 +191,7 @@ export function OrderSummaryPanel({
 
         {/* Payment icons */}
         <div className="mt-3 text-center">
-          <p className="text-xs text-text-muted font-sans mb-1">Visa · Mastercard · RuPay · UPI · NetBanking</p>
-          <p className="text-[10px] text-text-muted font-sans">(Test Mode — No real payment)</p>
+          <p className="text-xs text-text-muted font-sans">Visa · Mastercard · RuPay · UPI · NetBanking</p>
         </div>
       </div>
     </div>

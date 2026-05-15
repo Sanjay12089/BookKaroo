@@ -1,115 +1,461 @@
+import { useState, useCallback } from 'react';
 import { AdminLayout } from '@/shared/components/layout/AdminLayout';
+import { ReportChart } from '../components/ReportChart';
+import {
+  useBookingReport, useUserReport, exportReport,
+  type BookingReportParams, type UserReportParams,
+} from '../api/useAdmin';
+import type { ReportRow } from '../types';
 
-interface StatCard {
-  label: string;
-  value: string;
-  icon: string;
-  trend: string;
-  trendUp: boolean;
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function formatCurrency(v: number) {
+  return `₹${v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-const STATS: StatCard[] = [
-  { label: 'Total Revenue', value: '₹0', icon: '💰', trend: '+0% this month', trendUp: true },
-  { label: 'Total Bookings', value: '0', icon: '🎟', trend: '+0% this month', trendUp: true },
-  { label: 'Avg Ticket Price', value: '₹0', icon: '🏷', trend: 'vs last month', trendUp: false },
-  { label: 'Active Users', value: '0', icon: '👥', trend: '+0% this week', trendUp: true },
-];
+function today() { return new Date().toISOString().split('T')[0]; }
+function daysAgo(n: number) {
+  const d = new Date(); d.setDate(d.getDate() - n);
+  return d.toISOString().split('T')[0];
+}
+function startOfMonth() {
+  const d = new Date(); d.setDate(1);
+  return d.toISOString().split('T')[0];
+}
 
-// Heights as Tailwind classes (mapped from 0–100 scale to h-* steps)
-const MONTHLY_DATA = [
-  { month: 'Jan', heightClass: 'h-[40px]' },
-  { month: 'Feb', heightClass: 'h-[65px]' },
-  { month: 'Mar', heightClass: 'h-[55px]' },
-  { month: 'Apr', heightClass: 'h-[80px]' },
-  { month: 'May', heightClass: 'h-[72px]' },
-  { month: 'Jun', heightClass: 'h-[90px]' },
-  { month: 'Jul', heightClass: 'h-[60px]' },
-  { month: 'Aug', heightClass: 'h-[85px]' },
-  { month: 'Sep', heightClass: 'h-[70px]' },
-  { month: 'Oct', heightClass: 'h-[95px]' },
-  { month: 'Nov', heightClass: 'h-[88px]' },
-  { month: 'Dec', heightClass: 'h-[100px]' },
-];
+const GROUP_BY_OPTIONS = ['day', 'week', 'month', 'movie', 'venue', 'city'] as const;
 
-const TOP_MOVIES = [
-  { title: 'Pushpa 2: The Rule', bookings: 0, revenue: '₹0', rating: '8.2' },
-  { title: 'Devara', bookings: 0, revenue: '₹0', rating: '7.1' },
-  { title: 'Kalki 2898 AD', bookings: 0, revenue: '₹0', rating: '7.8' },
-  { title: 'Stree 2', bookings: 0, revenue: '₹0', rating: '8.0' },
-  { title: 'Singham Returns', bookings: 0, revenue: '₹0', rating: '6.5' },
-];
+// ── Skeleton ──────────────────────────────────────────────────────────────────
+
+function CardSkeleton() {
+  return <div className="h-24 rounded-xl bg-bg-surface2 animate-pulse" />;
+}
+
+// ── KPI Card ──────────────────────────────────────────────────────────────────
+
+interface KpiProps { label: string; value: string; color?: string }
+function KpiCard({ label, value, color = 'text-text-primary' }: KpiProps) {
+  return (
+    <div className="p-4 rounded-xl bg-bg-surface border border-border-default">
+      <div className={`font-display font-bold text-xl ${color}`}>{value}</div>
+      <div className="text-xs text-text-muted font-sans mt-1 uppercase tracking-wider">{label}</div>
+    </div>
+  );
+}
+
+// ── Booking Table ─────────────────────────────────────────────────────────────
+
+function BookingDataTable({ rows, groupBy }: { rows: ReportRow[]; groupBy: string }) {
+  const totals = {
+    totalBookings:        rows.reduce((s, r) => s + r.totalBookings, 0),
+    confirmedBookings:    rows.reduce((s, r) => s + r.confirmedBookings, 0),
+    cancelledBookings:    rows.reduce((s, r) => s + r.cancelledBookings, 0),
+    revenue:              rows.reduce((s, r) => s + r.revenue, 0),
+    gstCollected:         rows.reduce((s, r) => s + r.gstCollected, 0),
+    discount:             rows.reduce((s, r) => s + r.discount, 0),
+    convenienceFeeRevenue: rows.reduce((s, r) => s + r.convenienceFeeRevenue, 0),
+  };
+
+  const tdCls = 'px-3 py-2.5 text-sm font-sans text-text-secondary';
+  const thCls = 'px-3 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider text-right first:text-left';
+
+  return (
+    <div className="overflow-x-auto rounded-xl border border-border-default">
+      <table className="w-full text-sm">
+        <thead className="bg-bg-surface2 border-b border-border-default">
+          <tr>
+            <th className={thCls + ' text-left'}>Period</th>
+            <th className={thCls}>Total</th>
+            <th className={thCls}>Confirmed</th>
+            <th className={thCls}>Cancelled</th>
+            <th className={thCls}>Revenue</th>
+            {groupBy === 'day' || groupBy === 'week' || groupBy === 'month' ? (
+              <>
+                <th className={thCls}>GST</th>
+                <th className={thCls}>Discount</th>
+              </>
+            ) : (
+              <th className={thCls}>Conv. Fee</th>
+            )}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.length === 0 && (
+            <tr>
+              <td colSpan={7} className="px-4 py-16 text-center text-text-muted text-sm font-sans">
+                No data for selected period
+              </td>
+            </tr>
+          )}
+          {rows.map((r, i) => (
+            <tr key={i} className="border-b border-border-default hover:bg-bg-surface2/50 transition-colors">
+              <td className={tdCls + ' font-medium text-text-primary'}>{r.period}</td>
+              <td className={tdCls + ' text-right'}>{r.totalBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right text-semantic-success'}>{r.confirmedBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right text-semantic-error'}>{r.cancelledBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right font-mono'}>{formatCurrency(r.revenue)}</td>
+              {groupBy === 'day' || groupBy === 'week' || groupBy === 'month' ? (
+                <>
+                  <td className={tdCls + ' text-right font-mono'}>{formatCurrency(r.gstCollected)}</td>
+                  <td className={tdCls + ' text-right font-mono'}>{formatCurrency(r.discount)}</td>
+                </>
+              ) : (
+                <td className={tdCls + ' text-right font-mono'}>{formatCurrency(r.convenienceFeeRevenue)}</td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+        {rows.length > 0 && (
+          <tfoot className="bg-bg-surface2 border-t-2 border-border-default font-semibold">
+            <tr>
+              <td className={tdCls + ' text-text-primary'}>Total</td>
+              <td className={tdCls + ' text-right'}>{totals.totalBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right text-semantic-success'}>{totals.confirmedBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right text-semantic-error'}>{totals.cancelledBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right font-mono'}>{formatCurrency(totals.revenue)}</td>
+              {groupBy === 'day' || groupBy === 'week' || groupBy === 'month' ? (
+                <>
+                  <td className={tdCls + ' text-right font-mono'}>{formatCurrency(totals.gstCollected)}</td>
+                  <td className={tdCls + ' text-right font-mono'}>{formatCurrency(totals.discount)}</td>
+                </>
+              ) : (
+                <td className={tdCls + ' text-right font-mono'}>{formatCurrency(totals.convenienceFeeRevenue)}</td>
+              )}
+            </tr>
+          </tfoot>
+        )}
+      </table>
+    </div>
+  );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
+
+type ActiveTab = 'bookings' | 'users';
 
 export default function AdminReportsPage() {
+  const [activeTab, setActiveTab] = useState<ActiveTab>('bookings');
+  const [exporting, setExporting] = useState(false);
+
+  const [bookingFilters, setBookingFilters] = useState<BookingReportParams>({
+    fromDate: daysAgo(30),
+    toDate:   today(),
+    groupBy:  'day',
+  });
+
+  const [userFilters, setUserFilters] = useState<UserReportParams>({
+    fromDate: daysAgo(30),
+    toDate:   today(),
+    groupBy:  'day',
+  });
+
+  const { data: bookingReport, isLoading: bookingLoading } = useBookingReport(bookingFilters);
+  const { data: userReport,    isLoading: userLoading }    = useUserReport(userFilters);
+
+  const handleExport = useCallback(async () => {
+    setExporting(true);
+    try {
+      const params = activeTab === 'bookings' ? { ...bookingFilters } : { ...userFilters };
+      await exportReport(activeTab, params as Record<string, string | undefined>);
+    } finally {
+      setExporting(false);
+    }
+  }, [activeTab, bookingFilters, userFilters]);
+
+  const setQuickDate = (tab: ActiveTab, preset: 'last7' | 'last30' | 'thisMonth') => {
+    const range = preset === 'last7'    ? { fromDate: daysAgo(7),  toDate: today() }
+                : preset === 'thisMonth' ? { fromDate: startOfMonth(), toDate: today() }
+                :                          { fromDate: daysAgo(30), toDate: today() };
+    if (tab === 'bookings') setBookingFilters((p) => ({ ...p, ...range }));
+    else                    setUserFilters((p)    => ({ ...p, ...range }));
+  };
+
+  const INPUT = 'px-3 py-1.5 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm font-sans focus:outline-none focus:border-accent-indigo transition-colors';
+
   return (
     <AdminLayout>
-      <div className="p-8">
-        <div className="mb-6">
-          <h1 className="font-display font-bold text-2xl mb-1 tracking-tight">Reports</h1>
-          <p className="text-text-muted text-sm font-sans">Platform analytics and performance overview.</p>
+      <div className="p-6 max-w-7xl">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="font-display font-bold text-2xl tracking-tight">Reports</h1>
+            <p className="text-text-muted text-sm font-sans mt-1">Platform analytics and performance overview.</p>
+          </div>
+          <button
+            onClick={handleExport}
+            disabled={exporting}
+            className="flex items-center gap-2 px-4 py-2 rounded-full border border-border-default text-sm font-semibold font-sans hover:bg-bg-surface2 transition-colors disabled:opacity-50"
+          >
+            {exporting ? 'Exporting…' : '⬇ Export CSV'}
+          </button>
         </div>
 
-        {/* Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          {STATS.map((stat) => (
-            <div key={stat.label} className="p-5 rounded-xl bg-bg-surface border border-border-default">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl">{stat.icon}</span>
-                <span className={`text-xs font-sans font-medium ${stat.trendUp ? 'text-semantic-success' : 'text-text-muted'}`}>
-                  {stat.trend}
-                </span>
-              </div>
-              <div className="font-display font-bold text-2xl text-text-primary">{stat.value}</div>
-              <div className="text-xs text-text-muted font-sans mt-1 uppercase tracking-wider">{stat.label}</div>
-            </div>
+        {/* Tabs */}
+        <div className="flex gap-1 mb-6 border-b border-border-default">
+          {(['bookings', 'users'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 text-sm font-semibold font-sans capitalize border-b-2 transition-colors -mb-px ${
+                activeTab === tab
+                  ? 'border-accent-crimson text-text-primary'
+                  : 'border-transparent text-text-muted hover:text-text-primary'
+              }`}
+            >
+              {tab === 'bookings' ? '📊 Booking Reports' : '👥 User Reports'}
+            </button>
           ))}
         </div>
 
-        {/* Revenue Chart */}
-        <div className="p-6 rounded-xl bg-bg-surface border border-border-default mb-8">
-          <h2 className="font-display font-semibold text-base text-text-primary mb-6">Revenue by Month (Demo)</h2>
-          <div className="flex items-end gap-2 h-40">
-            {MONTHLY_DATA.map((d) => (
-              <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
-                <div
-                  className={`w-full rounded-t bg-gradient-to-t from-accent-indigo to-accent-purple opacity-80 hover:opacity-100 transition-opacity ${d.heightClass}`}
-                />
-                <span className="text-[10px] text-text-muted font-sans">{d.month}</span>
+        {/* ── BOOKING REPORTS ── */}
+        {activeTab === 'bookings' && (
+          <div className="space-y-6">
+            {/* Filters */}
+            <div className="p-4 rounded-xl bg-bg-surface border border-border-default space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-text-muted font-sans">From</label>
+                  <input type="date" value={bookingFilters.fromDate}
+                    onChange={(e) => setBookingFilters((p) => ({ ...p, fromDate: e.target.value }))}
+                    className={INPUT} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-text-muted font-sans">To</label>
+                  <input type="date" value={bookingFilters.toDate}
+                    onChange={(e) => setBookingFilters((p) => ({ ...p, toDate: e.target.value }))}
+                    className={INPUT} />
+                </div>
+                <div className="flex gap-1.5">
+                  {([
+                    { key: 'last7',     label: 'Last 7 days'  },
+                    { key: 'last30',    label: 'Last 30 days' },
+                    { key: 'thisMonth', label: 'This month'   },
+                  ] as const).map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setQuickDate('bookings', key)}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold font-sans bg-bg-surface2 border border-border-default hover:bg-accent-indigo/20 hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
-            ))}
-          </div>
-          <p className="text-xs text-text-muted font-sans mt-4 text-center">
-            Live revenue data will appear here once bookings are processed.
-          </p>
-        </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-text-muted font-sans">Group By</label>
+                  <div className="flex gap-1">
+                    {GROUP_BY_OPTIONS.map((g) => (
+                      <button key={g} onClick={() => setBookingFilters((p) => ({ ...p, groupBy: g }))}
+                        className={`px-2.5 py-1 rounded-full text-xs font-semibold font-sans border transition-colors capitalize ${
+                          bookingFilters.groupBy === g
+                            ? 'bg-accent-crimson text-white border-accent-crimson'
+                            : 'border-border-default hover:bg-bg-surface2'
+                        }`}>
+                        {g}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        {/* Top Movies Table */}
-        <div className="rounded-xl border border-border-default overflow-hidden">
-          <div className="px-5 py-4 bg-bg-surface border-b border-border-default">
-            <h2 className="font-display font-semibold text-base text-text-primary">Top Movies</h2>
+            {/* Summary Cards */}
+            {bookingLoading ? (
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {Array.from({ length: 8 }).map((_, i) => <CardSkeleton key={i} />)}
+              </div>
+            ) : bookingReport && (
+              <>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <KpiCard label="Total Revenue" value={formatCurrency(bookingReport.summary.totalRevenue)} color="text-accent-crimson" />
+                  <KpiCard label="Confirmed Bookings" value={bookingReport.summary.confirmedBookings.toLocaleString()} color="text-semantic-success" />
+                  <KpiCard label="GST Collected" value={formatCurrency(bookingReport.summary.gstCollected)} color="text-accent-indigo" />
+                  <KpiCard label="Total Discount" value={formatCurrency(bookingReport.summary.totalDiscount)} color="text-semantic-warning" />
+                </div>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <KpiCard label="Net Revenue" value={formatCurrency(bookingReport.summary.netRevenue)} color="text-semantic-success" />
+                  <KpiCard label="Conv. Fee Revenue" value={formatCurrency(bookingReport.summary.convenienceFeeRevenue)} color="text-accent-indigo" />
+                  <KpiCard label="Cancelled Bookings" value={bookingReport.summary.cancelledBookings.toLocaleString()} color="text-accent-crimson" />
+                  <KpiCard
+                    label="Cancellation Rate"
+                    value={bookingReport.summary.totalBookings > 0
+                      ? `${((bookingReport.summary.cancelledBookings / bookingReport.summary.totalBookings) * 100).toFixed(1)}%`
+                      : '0%'}
+                    color="text-text-muted"
+                  />
+                </div>
+
+                {/* Chart */}
+                <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
+                  <h2 className="text-sm font-semibold text-text-primary mb-4 capitalize">
+                    Revenue &amp; Bookings — {bookingFilters.groupBy}
+                  </h2>
+                  <ReportChart
+                    data={bookingReport.rows.map((r) => ({
+                      label:          r.period,
+                      value:          r.revenue,
+                      secondaryValue: r.confirmedBookings,
+                    }))}
+                    primaryLabel="Revenue (₹)"
+                    secondaryLabel="Bookings"
+                    formatValue={formatCurrency}
+                    height={200}
+                  />
+                </div>
+
+                {/* Table */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-semibold text-text-primary">Detailed Breakdown</h2>
+                    <span className="text-xs text-text-muted font-sans">{bookingReport.rows.length} row(s)</span>
+                  </div>
+                  <BookingDataTable rows={bookingReport.rows} groupBy={bookingFilters.groupBy} />
+                  <p className="text-xs text-text-muted font-sans mt-2">
+                    💡 Use Export CSV to download the full dataset
+                  </p>
+                </div>
+              </>
+            )}
           </div>
-          <table className="w-full text-sm font-sans">
-            <thead className="bg-bg-surface2 border-b border-border-default">
-              <tr>
-                <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">#</th>
-                <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Movie</th>
-                <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Bookings</th>
-                <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">Revenue</th>
-                <th className="px-4 py-3 text-left text-[11px] font-semibold text-text-muted uppercase tracking-wider">IMDB</th>
-              </tr>
-            </thead>
-            <tbody>
-              {TOP_MOVIES.map((movie, idx) => (
-                <tr key={movie.title} className="border-b border-border-default hover:bg-bg-surface2/50 transition-colors">
-                  <td className="px-4 py-3 text-text-muted font-semibold">{idx + 1}</td>
-                  <td className="px-4 py-3 font-medium text-text-primary">{movie.title}</td>
-                  <td className="px-4 py-3 text-text-secondary">{movie.bookings}</td>
-                  <td className="px-4 py-3 text-text-secondary">{movie.revenue}</td>
-                  <td className="px-4 py-3 text-text-secondary">{movie.rating}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        )}
+
+        {/* ── USER REPORTS ── */}
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            {/* Filters */}
+            <div className="p-4 rounded-xl bg-bg-surface border border-border-default space-y-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-text-muted font-sans">From</label>
+                  <input type="date" value={userFilters.fromDate}
+                    onChange={(e) => setUserFilters((p) => ({ ...p, fromDate: e.target.value }))}
+                    className={INPUT} />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-text-muted font-sans">To</label>
+                  <input type="date" value={userFilters.toDate}
+                    onChange={(e) => setUserFilters((p) => ({ ...p, toDate: e.target.value }))}
+                    className={INPUT} />
+                </div>
+                <div className="flex gap-1.5">
+                  {([
+                    { key: 'last7',     label: 'Last 7 days'  },
+                    { key: 'last30',    label: 'Last 30 days' },
+                    { key: 'thisMonth', label: 'This month'   },
+                  ] as const).map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => setQuickDate('users', key)}
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold font-sans bg-bg-surface2 border border-border-default hover:bg-accent-indigo/20 hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-xs text-text-muted font-sans">Group By</label>
+                <div className="flex gap-1">
+                  {(['day', 'week', 'month'] as const).map((g) => (
+                    <button key={g} onClick={() => setUserFilters((p) => ({ ...p, groupBy: g }))}
+                      className={`px-2.5 py-1 rounded-full text-xs font-semibold font-sans border transition-colors capitalize ${
+                        userFilters.groupBy === g
+                          ? 'bg-accent-indigo text-white border-accent-indigo'
+                          : 'border-border-default hover:bg-bg-surface2'
+                      }`}>
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {userLoading ? (
+              <div className="grid grid-cols-2 gap-4">
+                <CardSkeleton />
+                <CardSkeleton />
+              </div>
+            ) : userReport && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <KpiCard label="New Users" value={userReport.totalNewUsers.toLocaleString()} color="text-accent-indigo" />
+                  <KpiCard
+                    label="Verified"
+                    value={`${userReport.verifiedUsers.toLocaleString()} (${
+                      userReport.totalNewUsers > 0
+                        ? ((userReport.verifiedUsers / userReport.totalNewUsers) * 100).toFixed(1)
+                        : 0
+                    }%)`}
+                    color="text-semantic-success"
+                  />
+                </div>
+
+                <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
+                  <h2 className="text-sm font-semibold text-text-primary mb-4">User Acquisition</h2>
+                  <ReportChart
+                    data={userReport.rows.map((r) => ({
+                      label:          r.period,
+                      value:          r.newUsers,
+                      secondaryValue: r.verifiedUsers,
+                    }))}
+                    primaryColor="#4F46E5"
+                    secondaryColor="#22C55E"
+                    primaryLabel="New Users"
+                    secondaryLabel="Verified"
+                    height={200}
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-semibold text-text-primary">Detailed Breakdown</h2>
+                    <span className="text-xs text-text-muted font-sans">{userReport.rows.length} row(s)</span>
+                  </div>
+                  <div className="overflow-x-auto rounded-xl border border-border-default">
+                    <table className="w-full text-sm">
+                      <thead className="bg-bg-surface2 border-b border-border-default">
+                        <tr>
+                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase tracking-wider">Period</th>
+                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-text-muted uppercase tracking-wider">New Users</th>
+                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-text-muted uppercase tracking-wider">Verified</th>
+                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-text-muted uppercase tracking-wider">Rate (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userReport.rows.map((r, i) => (
+                          <tr key={i} className="border-b border-border-default hover:bg-bg-surface2/50 transition-colors">
+                            <td className="px-3 py-2.5 font-medium text-text-primary font-sans">{r.period}</td>
+                            <td className="px-3 py-2.5 text-right font-sans text-text-secondary">{r.newUsers}</td>
+                            <td className="px-3 py-2.5 text-right font-sans text-semantic-success">{r.verifiedUsers}</td>
+                            <td className="px-3 py-2.5 text-right font-sans text-text-muted">
+                              {r.newUsers > 0 ? ((r.verifiedUsers / r.newUsers) * 100).toFixed(1) : '0.0'}%
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-bg-surface2 border-t-2 border-border-default font-semibold">
+                        <tr>
+                          <td className="px-3 py-2.5 font-sans text-text-primary">Total</td>
+                          <td className="px-3 py-2.5 text-right font-sans">{userReport.totalNewUsers}</td>
+                          <td className="px-3 py-2.5 text-right font-sans text-semantic-success">{userReport.verifiedUsers}</td>
+                          <td className="px-3 py-2.5 text-right font-sans text-text-muted">
+                            {userReport.totalNewUsers > 0
+                              ? ((userReport.verifiedUsers / userReport.totalNewUsers) * 100).toFixed(1)
+                              : '0.0'}%
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <p className="text-xs text-text-muted font-sans mt-2">
+                    💡 Use Export CSV to download the full dataset
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

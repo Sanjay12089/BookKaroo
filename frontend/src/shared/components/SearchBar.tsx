@@ -107,7 +107,7 @@ export function SearchBar({ className }: SearchBarProps) {
             onChange={(e) => { setQuery(e.target.value); setIsOpen(true); }}
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
-            placeholder="Search movies, events, venues…"
+            placeholder="Search movies, events"
             className="flex-1 bg-transparent outline-none text-text-primary placeholder:text-text-muted w-52 lg:w-72"
           />
           {query && (
@@ -150,7 +150,7 @@ export function SearchBar({ className }: SearchBarProps) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Search movies, events, venues…"
+                placeholder="Search movies, events"
                 className="flex-1 bg-transparent outline-none text-text-primary placeholder:text-text-muted font-sans text-sm"
                 autoFocus
               />

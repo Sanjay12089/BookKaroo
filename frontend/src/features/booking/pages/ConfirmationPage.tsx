@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { useCheckoutStore } from '@/shared/store/checkoutStore';
@@ -63,10 +64,15 @@ export default function ConfirmationPage() {
   const detail = bookingDetail ?? fetched ?? null;
 
   useEffect(() => {
-    if (!bookingDetail && !orderResponse && !urlRef) {
-      navigate('/');
-    }
-  }, []);
+    // Delay the guard so the Zustand store (persisted in sessionStorage) has
+    // time to settle after navigation from CheckoutPage.
+    const t = setTimeout(() => {
+      if (!bookingDetail && !orderResponse && !urlRef) {
+        navigate('/');
+      }
+    }, 300);
+    return () => clearTimeout(t);
+  }, [bookingDetail, orderResponse, urlRef]);
 
   useEffect(() => {
     const t = setTimeout(() => setStampDone(true), 1300);
@@ -132,7 +138,9 @@ export default function ConfirmationPage() {
     navigate(ROUTES.HOME);
   }
 
-  const pricing = detail?.pricing;
+  const pricing      = detail?.pricing;
+  // Event booking: seats array is empty and screenName holds tier name
+  const isEventBooking = detail && detail.seats.length === 0 && !!detail.show.screenName;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -157,6 +165,7 @@ export default function ConfirmationPage() {
         }
       `}</style>
 
+      <Helmet><title>Booking Confirmed | BookKaroo</title></Helmet>
       <div className="min-h-screen bg-bg-base text-text-primary font-sans pb-16 overflow-x-hidden">
         <motion.div
           className="max-w-[480px] mx-auto px-4 pt-10 relative"
@@ -230,7 +239,7 @@ export default function ConfirmationPage() {
                   {/* Info */}
                   <div className="flex-1 min-w-0 pr-2">
                     <p className="font-display font-black text-base text-text-primary leading-tight mb-1 line-clamp-2">
-                      {detail?.movie.title ?? 'Movie Ticket'}
+                      {detail?.movie.title ?? (isEventBooking ? 'Event Ticket' : 'Movie Ticket')}
                     </p>
                     <p className="text-[12px] text-text-secondary font-sans">
                       {detail?.show.date} · {detail?.show.time}
@@ -238,16 +247,24 @@ export default function ConfirmationPage() {
                     <p className="text-[12px] text-text-muted font-sans mt-0.5 leading-snug line-clamp-2">
                       {detail?.show.venueName}
                     </p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-default text-[10px] font-mono text-text-secondary uppercase">
-                        {detail?.show.screenName ?? 'SCREEN'}
-                      </span>
-                      {detail?.seats.map(s => (
-                        <span key={s.label} className="px-1.5 py-0.5 rounded bg-accent-indigo/10 border border-accent-indigo/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
-                          {s.label}
+                    {isEventBooking ? (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <span className="px-1.5 py-0.5 rounded bg-accent-indigo/10 border border-accent-indigo/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
+                          {detail?.show.screenName}
                         </span>
-                      ))}
-                    </div>
+                      </div>
+                    ) : (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-default text-[10px] font-mono text-text-secondary uppercase">
+                          {detail?.show.screenName ?? 'SCREEN'}
+                        </span>
+                        {detail?.seats.map(s => (
+                          <span key={s.label} className="px-1.5 py-0.5 rounded bg-accent-indigo/10 border border-accent-indigo/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
+                            {s.label}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -398,20 +415,26 @@ export default function ConfirmationPage() {
               <li>Outside food and beverages not allowed inside the venue.</li>
               <li>Show QR code at the entry counter.</li>
             </ul>
+            <p className="text-sm text-text-muted font-sans mt-4">
+              Need help with this booking?{' '}
+              <Link to="/help#contact-section" className="text-accent-crimson hover:underline">
+                Contact Support →
+              </Link>
+            </p>
           </motion.div>
 
           {/* ── CTAs ── */}
           <motion.div variants={itemVariants} className="flex flex-col gap-3">
             <Link to={ROUTES.MY_BOOKINGS} className="w-full">
-              <button className="w-full py-3.5 rounded-xl border border-border-default text-sm font-semibold font-sans text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors">
+              <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all shadow-[0_8px_24px_-8px_rgba(229,9,20,0.45)]">
                 View My Bookings →
               </button>
             </Link>
             <button
               onClick={handleDone}
-              className="w-full py-3 rounded-xl text-sm font-sans text-text-muted hover:text-text-secondary transition-colors"
+              className="w-full py-3 rounded-xl border border-border-default bg-bg-surface text-sm font-semibold font-sans text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors"
             >
-              Back to Home
+              ← Back to Home
             </button>
           </motion.div>
         </motion.div>

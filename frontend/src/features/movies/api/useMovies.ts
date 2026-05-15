@@ -100,6 +100,15 @@ export function useCreateReview(movieId: string, slug: string) {
   });
 }
 
+export function useRemindMeStatus(movieId: string, enabled: boolean) {
+  return useQuery<{ optedIn: boolean }>({
+    queryKey: ['remind-me-status', movieId],
+    queryFn:  () => api.get(`/api/movies/${movieId}/remind-me`).then((r) => r.data),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export function useRemindMe(movieId: string) {
   return useMutation({
     mutationFn: () => api.post(`/api/movies/${movieId}/remind-me`).then((r) => r.data),

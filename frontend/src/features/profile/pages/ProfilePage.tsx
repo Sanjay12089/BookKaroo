@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -6,7 +6,8 @@ import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Input } from '@/shared/components/ui/Input';
 import { Button } from '@/shared/components/ui/Button';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { useUpdateProfile } from '../api/useProfile';
+import { useProfile, useUpdateProfile, useDeleteAccount } from '../api/useProfile';
+import { ChangePasswordModal } from '../components/ChangePasswordModal';
 import { useCities } from '@/features/cities/api/useCities';
 import { toast } from '@/shared/components/ui/Toast';
 
@@ -19,26 +20,27 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function ProfilePage() {
-  const { user } = useAuthStore();
+  // Prefer fresh server data; fall back to in-memory auth store while loading
+  const { data: profileData, isLoading: profileLoading } = useProfile();
+  const { user: storeUser } = useAuthStore();
+  const user = profileData ?? storeUser;
+
   const { mutate: update, isPending } = useUpdateProfile();
+  const { mutate: deleteAccount, isPending: isDeleting } = useDeleteAccount();
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const { data: cities = [] } = useCities();
 
   const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      name:   user?.name   ?? '',
-      mobile: user?.mobile ?? '',
-      gender: user?.gender ?? '',
-      cityId: user?.cityId ?? '',
-    },
+    defaultValues: { name: '', mobile: '', gender: '', cityId: '' },
   });
 
-  // Re-populate form whenever user data loads/changes
+  // Populate form as soon as user data is available (from API or store)
   useEffect(() => {
     if (user) {
       reset({
-        name:   user.name,
-        mobile: user.mobile,
+        name:   user.name   ?? '',
+        mobile: user.mobile ?? '',
         gender: user.gender ?? '',
         cityId: user.cityId ?? '',
       });
@@ -47,6 +49,16 @@ export default function ProfilePage() {
 
   function onSubmit(data: FormValues) {
     update(data, { onSuccess: () => toast('Profile updated!', 'success') });
+  }
+
+  if (profileLoading && !user) {
+    return (
+      <PublicLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="w-8 h-8 rounded-full border-2 border-accent-indigo/20 border-t-accent-indigo animate-spin" />
+        </div>
+      </PublicLayout>
+    );
   }
 
   return (
@@ -125,21 +137,43 @@ export default function ProfilePage() {
         <div className="p-5 rounded-xl bg-bg-surface border border-border-default mt-4 flex items-center justify-between">
           <div>
             <p className="font-semibold text-sm text-text-primary font-sans">Password</p>
-            <p className="text-xs text-text-muted font-sans mt-0.5">Last changed: never</p>
+            <p className="text-xs text-text-muted font-sans mt-0.5">
+              Last changed:{' '}
+              {user?.passwordChangedAt
+                ? new Date(user.passwordChangedAt).toLocaleDateString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                  })
+                : 'Never'}
+            </p>
           </div>
-          <button className="px-4 py-2 rounded-full bg-bg-surface2 border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans">
+          <button
+            onClick={() => setShowChangePassword(true)}
+            className="px-4 py-2 rounded-full bg-bg-surface2 border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans"
+          >
             Change Password
           </button>
         </div>
+
+        {showChangePassword && (
+          <ChangePasswordModal onClose={() => setShowChangePassword(false)} />
+        )}
 
         {/* Danger zone */}
         <div className="p-5 rounded-xl bg-semantic-error/05 border border-semantic-error/20 mt-4">
           <p className="font-semibold text-sm text-semantic-error font-sans mb-1">Danger Zone</p>
           <p className="text-xs text-text-muted font-sans mb-3">
-            Deleting your account is permanent and cannot be undone.
+            Deleting your account is permanent and cannot be undone. A confirmation email will be sent to {user?.email}.
           </p>
-          <button className="text-xs text-semantic-error underline font-sans">
-            Delete my account
+          <button
+            disabled={isDeleting}
+            onClick={() => {
+              if (window.confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+                deleteAccount();
+              }
+            }}
+            className="text-xs text-semantic-error underline font-sans disabled:opacity-50"
+          >
+            {isDeleting ? 'Deleting…' : 'Delete my account'}
           </button>
         </div>
       </div>

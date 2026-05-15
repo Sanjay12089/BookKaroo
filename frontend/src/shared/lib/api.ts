@@ -14,8 +14,9 @@ export function configureApiInterceptors(opts: {
 }
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:5000',
-  headers: { 'Content-Type': 'application/json' },
+  baseURL:         import.meta.env.VITE_API_URL ?? 'http://localhost:5000',
+  headers:         { 'Content-Type': 'application/json' },
+  withCredentials: true, // required so the httpOnly bk_refresh cookie is sent on refresh calls
 });
 
 // ── Request: attach access token ───────────────────────────────────────────────
@@ -47,10 +48,13 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // Never retry the refresh endpoint itself — that would deadlock the queue.
-    const isRefreshCall = originalRequest.url?.includes('/api/auth/refresh');
+    // Never retry auth endpoints — login/signup 401s are credential errors, not token expiry.
+    const url = originalRequest.url ?? '';
+    const isAuthCall = url.includes('/api/auth/refresh')
+                    || url.includes('/api/auth/login')
+                    || url.includes('/api/auth/signup');
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshCall) {
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthCall) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -84,10 +88,39 @@ api.interceptors.response.use(
     }
 
     // Normalise error shape
+    if (!error.response) {
+      const apiError: ApiError = {
+        message: 'No internet connection. Please check your network.',
+        statusCode: 0,
+      };
+      return Promise.reject(apiError);
+    }
+
+    const { status, data } = error.response as { status: number; data: Record<string, unknown> };
+    let message: string;
+
+    if (status === 500) {
+      message = 'Something went wrong on our end. Please try again.';
+    } else if (status === 503) {
+      message = 'Service temporarily unavailable. Please try again shortly.';
+    } else if (status === 403) {
+      message = "You don't have permission to do this.";
+    } else if (status === 404) {
+      message = 'The requested resource was not found.';
+    } else {
+      message =
+        (data?.message as string | undefined) ??
+        (data?.error as string | undefined) ??
+        (data?.detail as string | undefined) ??   // ProblemDetails: human-readable detail
+        (data?.title as string | undefined) ??    // fallback to status name e.g. "Conflict"
+        error.message ??
+        'An error occurred.';
+    }
+
     const apiError: ApiError = {
-      message: (error.response?.data as { detail?: string })?.detail ?? error.message,
-      statusCode: error.response?.status ?? 0,
-      errors: (error.response?.data as { errors?: Record<string, string[]> })?.errors,
+      message,
+      statusCode: status,
+      errors: data?.errors as Record<string, string[]> | undefined,
     };
 
     return Promise.reject(apiError);

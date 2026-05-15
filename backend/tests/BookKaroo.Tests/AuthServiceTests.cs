@@ -7,6 +7,7 @@ using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace BookKaroo.Tests;
@@ -33,7 +34,9 @@ public class AuthServiceTests
             })
             .Build();
 
-        return new AuthService(userRepo.Object, tokenRepo.Object, email.Object, config);
+        var scopeFactory = new Mock<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
+        var logger       = new Mock<ILogger<AuthService>>();
+        return new AuthService(userRepo.Object, tokenRepo.Object, email.Object, config, scopeFactory.Object, logger.Object);
     }
 
     // ── Signup ────────────────────────────────────────────────────────────────

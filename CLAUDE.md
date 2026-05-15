@@ -44,12 +44,12 @@ BookKaroo is an entertainment ticket booking platform (BookMyShow-style) for the
 
 ## Key Documents
 - `/docs/PRD.md` — full product requirements (Phase 1 + 2)
-- `/docs/ARCHITECTURE.md` — system design + diagrams
+- `/docs/ARCHITECTURE_v2.md` — system design + diagrams
 - `/docs/DATABASE.md` — schema + ERD
 - `/docs/API.md` — REST endpoint contracts
 - `/docs/DESIGN-SYSTEM.md` — colors, typography, spacing, components
 - `/docs/GIT-WORKFLOW.md` — branching strategy
-- `/SKILLS.md` — coding standards Claude should follow
+- `/SKILL.md` — coding standards Claude should follow
 
 ## Don'ts
 - ❌ No Angular, no Redis, no Cloudinary, no MongoDB

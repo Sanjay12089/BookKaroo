@@ -5,13 +5,23 @@ namespace BookKaroo.Application.Interfaces.Services;
 public interface IEmailService
 {
     Task SendBookingConfirmationAsync(
-        Booking booking, Show show, Movie? movie, User user,
-        byte[] invoicePdf, string? qrUrl, CancellationToken ct = default);
+        Booking booking, Show? show, Movie? movie, User user,
+        byte[] invoicePdf, string? qrUrl, CancellationToken ct = default,
+        DateTime? eventDate = null, string? eventTitle = null);
 
     Task SendWelcomeAsync(User user, CancellationToken ct = default);
 
     Task SendPasswordResetAsync(User user, string token, CancellationToken ct = default);
 
     Task SendBookingCancelledAsync(
-        Booking booking, User user, decimal refundAmount, CancellationToken ct = default);
+        Booking booking, User user, decimal refundAmount, CancellationToken ct = default,
+        string? contentTitle = null, string? venueAndCity = null, DateTime? showDateTime = null);
+
+    Task SendContactSupportAsync(
+        string name, string email, string subject, string message,
+        string? bookingRef, string supportEmail, CancellationToken ct = default);
+
+    Task SendAccountDeletedAsync(User user, CancellationToken ct = default);
+
+    Task SendMovieNowShowingAsync(User user, Movie movie, CancellationToken ct = default);
 }

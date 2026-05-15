@@ -10,6 +10,8 @@ import { SeatBottomBar } from '../components/SeatBottomBar';
 import { useShowRealtime } from '@/shared/hooks/useSupabaseRealtime';
 import { ROUTES } from '@/shared/constants';
 import { toast } from '@/shared/components/ui/Toast';
+import { usePublicSettings, parseNum } from '@/shared/lib/usePublicSettings';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import type { SeatState } from '@/shared/types';
 import type { SeatCategory, ScreenLayout } from '../types';
 
@@ -27,8 +29,6 @@ const FALLBACK_LAYOUT: ScreenLayout = {
   ],
 };
 
-const CONV_FEE = 59;
-
 export default function SeatSelectionPage() {
   const { showId = '' }  = useParams();
   const navigate          = useNavigate();
@@ -42,6 +42,14 @@ export default function SeatSelectionPage() {
     clearSeats,
     setLock,
   } = useSeatStore();
+
+  // ── Settings (conv fee + seat limit from DB) ───────────────────────────────
+  const { data: publicSettings } = usePublicSettings();
+  const CONV_FEE    = parseNum(publicSettings?.convenience_fee_per_ticket, 59);
+  const MAX_SEATS   = parseNum(publicSettings?.max_seats_per_booking, 10);
+  const GST_RATE    = parseNum(publicSettings?.gst_rate, 0.18);
+  const { user }    = useAuthStore();
+  const isIntraState = user?.stateCode === (publicSettings?.company_state_code ?? '24');
 
   // ── API ────────────────────────────────────────────────────────────────────
   const { data, isLoading } = useShowSeats(showId);
@@ -70,16 +78,17 @@ export default function SeatSelectionPage() {
     setRealtimeLocked((prev) => prev.filter((s) => !seats.includes(s)));
   }, []);
 
-  useShowRealtime(showId, onSeatLocked, onSeatUnlocked);
+  const broadcastSeat = useShowRealtime(showId, onSeatLocked, onSeatUnlocked);
 
   // ── Lock expiry ────────────────────────────────────────────────────────────
-  const [remaining, setRemaining] = useState<number>(8 * 60);
+  const lockTotalSeconds = parseNum(publicSettings?.seat_lock_minutes, 8) * 60;
+  const [remaining, setRemaining] = useState<number>(lockTotalSeconds);
   const expiredRef = useRef(false);
 
   useEffect(() => {
     expiredRef.current = false;
     if (!lockExpiresAt) {
-      setRemaining(8 * 60);
+      setRemaining(lockTotalSeconds);
       return;
     }
     const tick = () => {
@@ -113,7 +122,7 @@ export default function SeatSelectionPage() {
 
   const ticketTotal = selectedSeats.reduce((sum, l) => sum + (getCategoryForSeat(l)?.price ?? 0), 0);
   const convFee     = selectedSeats.length * CONV_FEE;
-  const gst         = Math.round(convFee * 0.18);
+  const gst         = Math.round(convFee * GST_RATE);
   const grand       = ticketTotal + convFee + gst;
 
   // ── Seat click ─────────────────────────────────────────────────────────────
@@ -122,26 +131,49 @@ export default function SeatSelectionPage() {
 
     if (state === 'selected') {
       deselectSeat(label);
+
+      // ── Optimistic update: remove from realtimeLocked immediately ──────
+      // The Supabase DELETE event arrives ~100–500 ms after the DB write.
+      // Without this, the seat briefly appears as "Held" to the deselecting
+      // user because it's still in realtimeLocked but no longer in selectedSeats.
+      setRealtimeLocked((prev) => prev.filter((s) => s !== label));
+
+      // ── Broadcast the unlock instantly to all other users ──────────────
+      broadcastSeat('unlock', [label]);
+
       const remaining = selectedSeats.filter((s) => s !== label);
       if (remaining.length === 0) {
         await releaseMutation.mutateAsync(showId);
+      } else {
+        try {
+          const result = await lockMutation.mutateAsync({ showId, seats: remaining });
+          setLock(result.lockId, result.expiresAt);
+        } catch {
+          // Non-fatal: ghost lock will expire naturally
+        }
       }
       return;
     }
 
-    if (selectedSeats.length >= 10) {
-      toast('Maximum 10 seats allowed.', 'error');
+    if (selectedSeats.length >= MAX_SEATS) {
+      toast(`Maximum ${MAX_SEATS} seats allowed.`, 'error');
       return;
     }
 
     const newSeats = [...selectedSeats, label];
-    selectSeat(label);
+    selectSeat(label, MAX_SEATS);
+
+    // Broadcast immediately so other users see the seat lock without waiting
+    // for the DB write → Supabase WAL → postgres_changes pipeline (~200-500 ms)
+    broadcastSeat('lock', [label]);
 
     try {
       const result = await lockMutation.mutateAsync({ showId, seats: newSeats });
       setLock(result.lockId, result.expiresAt);
     } catch (err: unknown) {
       deselectSeat(label);
+      // Undo the optimistic broadcast on failure
+      broadcastSeat('unlock', [label]);
       const msg = (err as { message?: string })?.message ?? 'Could not lock seat. Try another.';
       toast(msg, 'error');
     }
@@ -181,13 +213,15 @@ export default function SeatSelectionPage() {
       return;
     }
 
-    for (const s of picked) selectSeat(s);
+    for (const s of picked) selectSeat(s, MAX_SEATS);
+    broadcastSeat('lock', picked);
 
     try {
       const result = await lockMutation.mutateAsync({ showId, seats: picked });
       setLock(result.lockId, result.expiresAt);
     } catch (err: unknown) {
       clearSeats(showId);
+      broadcastSeat('unlock', picked);
       const msg = (err as { message?: string })?.message ?? 'Could not lock those seats. Try again.';
       toast(msg, 'error');
     }
@@ -217,7 +251,7 @@ export default function SeatSelectionPage() {
 
         {lockExpiresAt && (
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface border border-border-strong">
-            <CountdownRing totalSeconds={8 * 60} remainingSeconds={remaining} size={44} strokeWidth={4} />
+            <CountdownRing totalSeconds={lockTotalSeconds} remainingSeconds={remaining} size={44} strokeWidth={4} />
             <div className="text-[10px] text-text-muted uppercase tracking-wider hidden sm:block">Hold expires</div>
           </div>
         )}
@@ -230,7 +264,7 @@ export default function SeatSelectionPage() {
             {/* Quick pick */}
             <div className="flex items-center gap-2 mb-6 flex-wrap">
               <span className="text-xs text-text-muted">Quick pick:</span>
-              {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+              {Array.from({ length: MAX_SEATS }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
                   onClick={() => void pickBest(n)}
@@ -286,18 +320,40 @@ export default function SeatSelectionPage() {
 
               {/* Price breakdown */}
               {selectedSeats.length > 0 && (
-                <div className="space-y-1.5 text-sm font-sans p-3 rounded-lg bg-bg-base border border-border-default mb-4">
-                  <div className="flex justify-between text-text-secondary">
-                    <span>{selectedSeats.length} ticket{selectedSeats.length !== 1 ? 's' : ''}</span>
-                    <span>₹{ticketTotal}</span>
+                <div className="text-sm font-sans p-3 rounded-lg bg-bg-base border border-border-default mb-4 space-y-3">
+                  {/* Ticket Amount */}
+                  <div>
+                    <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+                      <span>Ticket Amount</span>
+                      <span>₹{ticketTotal}</span>
+                    </div>
+                    <p className="text-[11px] text-text-muted mt-0.5">
+                      {selectedSeats.length} ticket{selectedSeats.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
-                  <div className="flex justify-between text-text-secondary">
-                    <span>Convenience fee</span><span>₹{convFee}</span>
+                  {/* Convenience Fees */}
+                  <div>
+                    <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+                      <span>Convenience Fees</span>
+                      <span>₹{convFee + gst}</span>
+                    </div>
+                    <div className="mt-1 space-y-0.5">
+                      <div className="flex justify-between text-[11px] text-text-muted">
+                        <span>Base Amount</span>
+                        <span>₹{convFee}</span>
+                      </div>
+                      <div className="flex justify-between text-[11px] text-text-muted">
+                        <span>
+                          {isIntraState
+                            ? `CGST @ 9% + SGST @ 9%`
+                            : `Integrated GST (IGST) @ ${Math.round(GST_RATE * 100)}%`}
+                        </span>
+                        <span>₹{gst}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-text-secondary">
-                    <span>GST 18%</span><span>₹{gst}</span>
-                  </div>
-                  <div className="flex justify-between border-t border-border-default pt-2 mt-2 font-semibold text-base text-text-primary">
+                  {/* Total */}
+                  <div className="flex justify-between border-t border-border-default pt-2 font-semibold text-base text-text-primary">
                     <span>Total</span>
                     <span className="font-display text-xl">{formatCurrency(grand)}</span>
                   </div>
@@ -325,7 +381,7 @@ export default function SeatSelectionPage() {
             {/* Countdown on desktop */}
             {lockExpiresAt && (
               <div className="mt-4 p-4 rounded-xl bg-bg-surface border border-border-default flex items-center gap-3">
-                <CountdownRing totalSeconds={8 * 60} remainingSeconds={remaining} size={56} strokeWidth={5} />
+                <CountdownRing totalSeconds={lockTotalSeconds} remainingSeconds={remaining} size={56} strokeWidth={5} />
                 <div>
                   <p className="text-xs font-semibold text-text-primary">Seats held for</p>
                   <p className="text-[11px] text-text-muted">Hold expires in {Math.floor(remaining / 60)}m {remaining % 60}s</p>
@@ -342,6 +398,8 @@ export default function SeatSelectionPage() {
         getCategory={getCategoryForSeat}
         onPay={() => navigate(ROUTES.CHECKOUT)}
         onDeselect={(label) => void handleSeatClick(label, 'selected')}
+        convFeePerTicket={CONV_FEE}
+        gstRate={GST_RATE}
       />
     </div>
   );

@@ -2,7 +2,9 @@ using System.Security.Claims;
 using BookKaroo.Application.DTOs.Auth;
 using BookKaroo.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace BookKaroo.Api.Controllers;
 
@@ -12,9 +14,14 @@ namespace BookKaroo.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _auth;
+    private readonly IWebHostEnvironment _env;
     private const string RefreshTokenCookie = "bk_refresh";
 
-    public AuthController(IAuthService auth) => _auth = auth;
+    public AuthController(IAuthService auth, IWebHostEnvironment env)
+    {
+        _auth = auth;
+        _env  = env;
+    }
 
     /// <summary>Register a new user account.</summary>
     [HttpPost("signup")]
@@ -105,9 +112,11 @@ public class AuthController : ControllerBase
         Response.Cookies.Append(RefreshTokenCookie, token, new CookieOptions
         {
             HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            Expires = DateTimeOffset.UtcNow.AddDays(30)
+            // Secure must be false in dev (HTTP localhost); true in production (HTTPS).
+            // Without this, the browser silently drops the cookie on HTTP.
+            Secure   = !_env.IsDevelopment(),
+            SameSite = SameSiteMode.Lax, // Lax allows cross-port localhost requests
+            Expires  = DateTimeOffset.UtcNow.AddDays(30)
         });
     }
 

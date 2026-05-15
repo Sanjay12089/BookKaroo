@@ -82,7 +82,88 @@ Issue 29: IN Admin panel -> select Reports  -> shows message "Reports   — Comi
 Issue 30: IN Admin panel -> select CMS  -> Shos message "CMS   — Coming in next sprint"
 
 Issue 31: IN Admin panel -> select settings -> Shos message "settings  — Coming in next sprint"
+
+======================================
+ISSUES AFTER SPRINT 15
+Issue 1: On /admin/venues, while add or edit venue, on STATUS field, toggle button is overlap with text Active, also toggle button looks like DOT only, please update its UI
+-> Alos in Amenities field, it does not show any changes while is selected or not selected, correct the UI 
+-> Change the UI of Cancel and Create Venue buttons
+Issue 2: on /admin/venues page UI issues
+-> Correct the UI of Toggle button of Active and Inactive
+-> Correct the UI of Cancel and Create Venue buttons
+Issue 3: On /profile/bookings
+-> On page load, Past always show 0 in bracket, it shows correct count only when we click on it
+Issue 4: on /admin/shows
+-> Correct the UI od Tabs of All, Schedules,Cancelled and Completed, its just shows as label
+-> There is no any option for Filter by Venue
+-> /admin/shows/Create Show -> Serch movie is not working
+-> Also there should be filter for Movies/Event OR a general search box, which can search by Movie, event, venue, format/lang
+-> Create conflicting show , even if there is conflict, it show No Conflit lable below date field
+Issue 5: on /movies/kgf-chapter-2/showtimes
+--> While selecting Time of show -> 10:00 - IMAX · Hindi, its just shows as label, so no ui changed when it is selected or not selected. please correc the UI
+Issue 6: ON /admin/shows page Cancel a show with bookings:
+-> But I already have booked ticket, so after cancellation, didn;t receveid any mail of bookings
+================
+Issues After SPRINT 16
+
+Issue 1: In /admin/reports  page, Last 7 days, Last 30 days, and This month button shows as label, please correct UI
+
+Isue 2: Verify home page reflects changes:
+    Go to http://localhost:5173 → hero carousel / banner reflects active banners
+
+Issue 3: Updated Max Seats per Booking to 11 in /admin/settings page, but it still allows only 10 bookings on /booking/{movieid}/seats page, 
+Also Convenience fee updated on /admin/settings page does not reflected in booking page
+-- Also verify all updates values on /admin/settings page are reflected on site
+====================
+Login or singup issue 
+
+Issue 1: on /login page, if provide wrong password, then it shows "No refresh token." message 
+Expected result - It should show message like wrong password
+
+Issue 2: on /login page, When trying to login using correct mobile number and correct password it shows message "No refresh token."
+Expected result - It should allow to login successfully
+
+Issue 3: On /profile page, it should show the form wiht pre-filled values, but it shows blank full name and mobile number
+
+Issue 4: After sometime, on refreshing page, it automatically redirect to login page. Increase the timout time to 2 hours if its set statically from frontent or backend
+
+Issue 5: On /signup page, after signup, it is not sending welcome mail to user on provided email address
+
+Issue 6: On Delete my account, it should send mail to user on his email address, you can decide email template on your own based on other email templates
+
+
+
 =========================ABOVE DONE===============
+
+STILL ISSUE AFTER SPRONT 15
+Issue 2: on /admin/venues page UI issues
+-> Correct the UI of Cancel and Create Venue buttons
+
+Issue 3: On /profile/bookings
+-> On page load, Past always show 0 in bracket, it shows correct count only when we click on it
+
+
+Issue 4: on /admin/shows
+-> /admin/shows/Create Show -> Serch movie is not working
+-> Correct the UI of Movie and events selection in create show
+
+Issue 6: ON /admin/shows page Cancel a show with bookings:
+-> But I already have booked ticket, so after cancellation, didn;t receveid any mail of bookings
+
+===sprint 16 issues==========
+Issue 1: On /admin/bookings page, on selectig Resend mail, it sends mail of cancellation
+
+Issue 2: Filter by City=Ahmedabad → Ahmedabad bookings only
+There is no filter to filter by City in /admin/bookings page
+
+Issue 3: Click a row → BookingDetailDrawer slides in from right
+   Verify:
+--> here Invoice and QR code is disabled
+
+Issue 4: "Process Refund" should be shows for Cancelled bookings, but it shows for Confirmed bookings
+
+Issue 5: User -> Booking -> Booking Detail -> here Invoice and QR code is disabled
+======================================
 Test 32: UI issue in login form -> Email or Mobile watermark text is overlapped with Email or 10-digit mobile watermarked text,
 - But when we click on this field, it shows correctly
 - Same issue wiht all fields of Signup form
@@ -100,6 +181,71 @@ Test 6 - Forgot password:
   - It should redirect back to choose seat
 
   On changing City from home page city dropdown or search box, movies should updated
-  
+
+Events, plays , ipl not showing any data
+
+Test with login using mobile number
+
+FIRSTBOOK voucher should allow only once to one user
+
+Implement chatbot for search and quick book
+
+verify authentaction and authiorization
+- open ticket of another user booking from URL and shoould not allow
+
+Forget password
+
+on giving wrong password, it shows "Request failed with status code 401" instead of wrong password message
+
+Test remind me feature
+
+increase the auto logout time for admin and end user
+--
+ask claude to rename and recrate md files accordong to courses of anthopic
+
+Go to my bookings, and refresh , should not logout
+
+Validation for signup form, for email, mobile number
+
+
+/booking/{ID}/seats page, selecte 5 seats, unselect 3 seats , then clikc on pay now will redirect to /booking/checkout, from here now click Back button, it will show 3 unseleced seats as locked
+
+
+Cancelled movie or event's seat/count should be updated  
+
+On cancellation mail, showing incorrect refund amount
+
+Invoice does not contains detials of movie/event
+
+delete account - sign up using same email address
+
+=======================================
+## 14 may 2026
+Here I have listed few issues, please review and solve it. Make sure that any updates you made in code do not affect or break other features:
+
+Issue 1: Please correct the UI of all buttons, some buttons are looked like label only, so correct it
+
+Issue 2: On /Events page, it show many events of Play and Sports as well, but on /Sports and /Plays page it does not show any event
+
+Issue 3: While bookig -> seat selection, "GST 18%" it seems its statis, it should show based on selected GST Rate in /admin/settings page
+
+Issue 4: On filling up the signup form and click on Submit, it should send a welcome mail to sigup user on the provided email address
+
+Issue 5: While cancelling the ticket, it sends mail, but it does not contains details like movie/event name, date time, location, paid amoiunt and refund amount, you can generate mail template for this mail at your own by using the new booking email tempalte
+-> Also while Delete account, it should send mail to use whose account is deleted
+
+=============
+## 14 may 2026 2
+Issue 1: on /movies page, UI of each filter is looks like labels only please correc the UI of filters and also validate that filters are wokring correctly
+-> Also correct the UI of Sort dropdown, on clicking Sort dropdown, it shows options but text are while so text are not visible
+
+Issue 2: On /booking/confirmed page, Correc the UI of View my bookingd and Back to Home button
+
+Issue 3: On /signup page, when fill the EMAIL address of existing user, and submit the form, it shows the message 'conflict', instead it should show proper message of already existing user with selected email address.
+
+
+
+
+
 
 

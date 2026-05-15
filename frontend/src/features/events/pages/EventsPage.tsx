@@ -1,19 +1,19 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { Chip } from '@/shared/components/ui/Chip';
 import { useCityStore } from '@/shared/store/cityStore';
 import { EventCard } from '../components/EventCard';
 import { useEvents } from '../api/useEvents';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/shared/lib/utils'; // used by grid opacity
 
 interface Tab { key: string | null; label: string; emoji: string }
 
 const TABS: Tab[] = [
   { key: null,         label: 'All',        emoji: '🎪' },
   { key: 'live_event', label: 'Concerts',   emoji: '🎵' },
-  { key: 'play',       label: 'Plays',      emoji: '🎭' },
-  { key: 'sport',      label: 'Sports',     emoji: '🏟️' },
   { key: 'comedy',     label: 'Comedy',     emoji: '😂' },
   { key: 'activity',   label: 'Activities', emoji: '⚡' },
 ];
@@ -21,9 +21,11 @@ const TABS: Tab[] = [
 interface EventsPageProps {
   defaultType?: string;
   title?:       string;
+  noCityFilter?: boolean;
+  fixedType?:   string;  // locks the type filter and hides the tab bar
 }
 
-export default function EventsPage({ defaultType, title }: EventsPageProps) {
+export default function EventsPage({ defaultType, title, noCityFilter, fixedType }: EventsPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { selectedCity } = useCityStore();
   const cityId   = selectedCity?.id ?? null;
@@ -34,6 +36,9 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
 
   const [activeType, setActiveType] = useState<string | null>(typeParam);
   const [page, setPage] = useState(pageParam);
+
+  // When fixedType is provided, always use it regardless of tab/URL state
+  const resolvedType = fixedType ?? activeType;
 
   function selectTab(key: string | null) {
     setActiveType(key);
@@ -46,47 +51,46 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  // Only apply city filter for specific type tabs; "All" shows everything across all cities
-  const effectiveCityId = activeType ? cityId : null;
+  // Sports/Plays pages pass noCityFilter so touring events without a venue show everywhere.
+  // On /events, city always filters — All tab and type-specific tabs both respect selected city.
+  const effectiveCityId = noCityFilter ? null : cityId;
 
-  const { data, isLoading, isFetching } = useEvents(activeType, effectiveCityId, page);
+  const { data, isLoading, isFetching } = useEvents(resolvedType, effectiveCityId, page);
   const events     = data?.items ?? [];
   const total      = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 0;
 
   const headingTitle = title
-    ?? TABS.find((t) => t.key === activeType)?.label
+    ?? TABS.find((t) => t.key === resolvedType)?.label
     ?? 'Events';
 
   return (
     <PublicLayout>
-      {/* Sticky filter bar */}
-      <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
-        <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none">
-          <div className="flex gap-1.5 flex-nowrap">
-            {TABS.map((t) => (
-              <button
-                key={t.label}
-                onClick={() => selectTab(t.key)}
-                className={cn(
-                  'flex-shrink-0 px-4 py-2 rounded-full text-sm font-semibold font-sans transition-all duration-150 border',
-                  activeType === t.key
-                    ? 'bg-gradient-to-r from-accent-indigo to-accent-purple text-white border-transparent'
-                    : 'border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong bg-bg-surface',
-                )}
-              >
-                {t.emoji} {t.label}
-              </button>
-            ))}
+      <Helmet><title>Events &amp; Shows | BookKaroo</title></Helmet>
+      {/* Sticky filter bar — hidden when fixedType locks the page to a single type */}
+      {!fixedType && (
+        <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
+          <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none">
+            <div className="flex gap-1.5 flex-nowrap">
+              {TABS.map((t) => (
+                <Chip
+                  key={t.label}
+                  active={resolvedType === t.key}
+                  onToggle={() => selectTab(t.key)}
+                >
+                  {t.emoji} {t.label}
+                </Chip>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Content */}
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
         <div className="mb-6">
           <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">
-            {headingTitle}{activeType && cityName ? ` · ${cityName}` : ''}
+            {headingTitle}{cityName && !noCityFilter ? ` · ${cityName}` : ''}
           </p>
           <h1 className="font-display font-semibold text-3xl md:text-4xl tracking-tight">
             {headingTitle === 'All' ? 'Events & Shows' : headingTitle}
@@ -94,7 +98,7 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
           {!isLoading && (
             <p className="text-text-secondary text-sm mt-2 font-sans">
               {total} event{total === 1 ? '' : 's'}
-              {activeType && cityName ? ` in ${cityName}` : ''}
+              {cityName && !noCityFilter ? ` in ${cityName}` : ''}
             </p>
           )}
         </div>
@@ -116,7 +120,7 @@ export default function EventsPage({ defaultType, title }: EventsPageProps) {
               No {headingTitle === 'All' ? 'events' : headingTitle.toLowerCase()} right now
             </h3>
             <p className="text-text-muted text-sm font-sans">
-              {activeType && cityName ? `Try changing your city or c` : 'C'}heck back soon — events are added regularly.
+              {cityName && !noCityFilter ? `Try changing your city or c` : 'C'}heck back soon — events are added regularly.
             </p>
           </div>
         ) : (

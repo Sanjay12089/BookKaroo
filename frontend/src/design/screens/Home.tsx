@@ -57,7 +57,7 @@ function Nav() {
             <span style={{ color: T.colors.text.muted }}>🔍</span>
             <input
               autoFocus
-              placeholder="Search movies, events, venues…"
+              placeholder="Search movies, events"
               style={{
                 flex: 1, background: 'none', border: 'none', outline: 'none',
                 color: T.colors.text.primary, fontFamily: T.fonts.body, fontSize: 14,
@@ -79,7 +79,7 @@ function Nav() {
             onMouseEnter={(e) => (e.currentTarget.style.borderColor = T.colors.border.strong)}
             onMouseLeave={(e) => (e.currentTarget.style.borderColor = T.colors.border.default)}
           >
-            <span>🔍</span> Search movies, events, venues…
+            <span>🔍</span> Search movies, events
           </button>
         )}
 

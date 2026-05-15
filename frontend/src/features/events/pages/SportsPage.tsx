@@ -24,7 +24,7 @@ export default function SportsPage() {
           </Link>
         </div>
       </div>
-      <EventsPage defaultType="sport" title="Sports Events" />
+      <EventsPage fixedType="ipl" title="Sports Events" noCityFilter />
     </>
   );
 }

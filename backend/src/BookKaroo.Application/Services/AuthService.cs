@@ -9,6 +9,8 @@ using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace BookKaroo.Application.Services;
@@ -19,17 +21,23 @@ public class AuthService : IAuthService
     private readonly IPasswordResetTokenRepository _resetTokens;
     private readonly IEmailService _email;
     private readonly IConfiguration _config;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository users,
         IPasswordResetTokenRepository resetTokens,
         IEmailService email,
-        IConfiguration config)
+        IConfiguration config,
+        IServiceScopeFactory scopeFactory,
+        ILogger<AuthService> logger)
     {
-        _users = users;
-        _resetTokens = resetTokens;
-        _email = email;
-        _config = config;
+        _users        = users;
+        _resetTokens  = resetTokens;
+        _email        = email;
+        _config       = config;
+        _scopeFactory = scopeFactory;
+        _logger       = logger;
     }
 
     public async Task<AuthResponse> SignupAsync(SignupRequest request, CancellationToken ct = default)
@@ -53,7 +61,25 @@ public class AuthService : IAuthService
 
         await _users.AddAsync(user, ct);
 
-        _ = Task.Run(() => _email.SendWelcomeAsync(user, ct), ct);
+        // Use a fresh scope so the scoped IEmailService isn't disposed when the request ends
+        var capturedName  = user.Name;
+        var capturedEmail = user.Email;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await using var scope = _scopeFactory.CreateAsyncScope();
+                var email = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                await email.SendWelcomeAsync(
+                    new User { Name = capturedName, Email = capturedEmail },
+                    CancellationToken.None);
+                _logger.LogInformation("Welcome email sent to {Email}", capturedEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send welcome email to {Email}", capturedEmail);
+            }
+        });
 
         var (accessToken, refreshToken) = GenerateTokens(user);
         user.RefreshToken = BCrypt.Net.BCrypt.HashPassword(refreshToken, workFactor: 4);
@@ -143,6 +169,7 @@ public class AuthService : IAuthService
         if (user == null) throw new NotFoundException("User not found.");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
+        user.PasswordChangedAt = DateTime.UtcNow;
         user.RefreshToken = null;
         user.RefreshTokenExpiresAt = null;
         await _users.UpdateAsync(user, ct);
@@ -190,5 +217,5 @@ public class AuthService : IAuthService
         int.TryParse(_config["JWT_REFRESH_TTL_DAYS"], out var d) ? d : 30;
 
     private static UserResponse MapUser(User u) => new(
-        u.Id, u.Email, u.Mobile, u.Name, u.Role, u.EmailVerified, u.CityId, u.StateCode, u.ProfilePicUrl, u.Gender, u.Dob);
+        u.Id, u.Email, u.Mobile, u.Name, u.Role, u.EmailVerified, u.CityId, u.StateCode, u.ProfilePicUrl, u.Gender, u.Dob, u.PasswordChangedAt);
 }

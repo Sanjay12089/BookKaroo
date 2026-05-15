@@ -6,7 +6,7 @@ public class Booking : BaseEntity
 {
     public string BookingRef { get; set; } = string.Empty;
     public Guid UserId { get; set; }
-    public Guid ShowId { get; set; }
+    public Guid? ShowId { get; set; }
     public int TicketQty { get; set; }
     public decimal TicketAmount { get; set; }
     public decimal ConvenienceFee { get; set; }
@@ -19,6 +19,8 @@ public class Booking : BaseEntity
     public decimal AmountPaid { get; set; }
     public string CustomerStateCode { get; set; } = string.Empty;
     public Guid? CouponId { get; set; }
+    public Guid? EventId  { get; set; }
+    public string? TierName { get; set; }
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
     public string? InvoiceNumber { get; set; }
     public string? InvoiceUrl { get; set; }

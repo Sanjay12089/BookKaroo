@@ -44,11 +44,17 @@ public class GlobalExceptionMiddleware
         if (status == 500)
             _logger.LogError(ex, "Unhandled exception at {Path}", ctx.Request.Path);
 
+        // For 500s, surface the innermost exception message so the cause is visible
+        // in the response body (avoids "See the inner exception for details" dead-ends).
+        var detail = ex.Message;
+        if (status == 500 && ex.InnerException is not null)
+            detail = ex.InnerException.Message;
+
         var problem = new ProblemDetails
         {
             Status = status,
             Title = title,
-            Detail = ex.Message,
+            Detail = detail,
             Instance = ctx.Request.Path
         };
         problem.Extensions["traceId"] = ctx.TraceIdentifier;

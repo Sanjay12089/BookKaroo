@@ -9,6 +9,12 @@ import type {
 } from '../types';
 import type { ApiError } from '@/shared/types';
 
+interface VerifyPaymentData {
+  razorpayOrderId:   string;
+  razorpayPaymentId: string;
+  razorpaySignature: string;
+}
+
 export function useMyBookings(tab: 'upcoming' | 'past' = 'upcoming', page = 1) {
   return useQuery<PaginatedBookings>({
     queryKey: ['bookings', 'mine', tab, page],
@@ -24,7 +30,13 @@ export function useCancelBooking() {
   return useMutation<CancelResponse, ApiError, string>({
     mutationFn: (ref: string) =>
       api.post<CancelResponse>(`/api/bookings/${ref}/cancel`).then((r) => r.data),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['bookings', 'mine'] });
+      void qc.invalidateQueries({ queryKey: ['my-bookings'] });
+      // Freed seats/counts should be immediately visible to other users
+      void qc.invalidateQueries({ queryKey: ['show-seats'] });
+      void qc.invalidateQueries({ queryKey: ['event-availability'] });
+    },
   });
 }
 
@@ -77,6 +89,15 @@ export function useMockCapture() {
   return useMutation<BookingDetailResponse, ApiError, MockCaptureRequest>({
     mutationFn: (data) =>
       api.post<BookingDetailResponse>('/api/payments/mock-capture', data).then((r) => r.data),
+  });
+}
+
+export function useVerifyPayment() {
+  const queryClient = useQueryClient();
+  return useMutation<BookingDetailResponse, ApiError, VerifyPaymentData>({
+    mutationFn: (data) =>
+      api.post<BookingDetailResponse>('/api/payments/verify', data).then((r) => r.data),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['my-bookings'] }),
   });
 }
 

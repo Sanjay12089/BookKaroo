@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Bell, X, Star, ThumbsUp, ThumbsDown, BadgeCheck } from 'lucide-react';
+import { Helmet } from 'react-helmet-async';
 import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
-import { useMovieDetail, useMovieReviews, useCreateReview, useRemindMe } from '../api/useMovies';
+import { useMovieDetail, useMovieReviews, useCreateReview, useRemindMe, useRemindMeStatus } from '../api/useMovies';
 import { usePassedViewport } from '@/shared/hooks/useScrollPosition';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { ROUTES, TMDB_BACKDROP, TMDB_POSTER, TMDB_IMAGE_BASE } from '@/shared/constants';
@@ -45,6 +46,7 @@ export default function MovieDetailPage() {
 
   return (
     <PublicLayout>
+      <Helmet><title>{movie.title} | BookKaroo</title></Helmet>
       {/* ── HERO BACKDROP ──────────────────────────────────────────────── */}
       <div className="relative h-[400px] md:h-[500px] overflow-hidden">
         {backdropUrl && (
@@ -462,15 +464,28 @@ function ReviewCard({ review }: { review: Review }) {
       {review.title && <p className="font-semibold text-sm text-text-primary font-sans">{review.title}</p>}
       {review.body  && <p className="text-sm text-text-secondary leading-relaxed font-sans">{review.body}</p>}
       <div className="flex items-center gap-4 text-xs text-text-muted font-sans">
-        <button className="flex items-center gap-1 hover:text-text-secondary"><ThumbsUp size={13} /> {review.thumbsUp}</button>
-        <button className="flex items-center gap-1 hover:text-text-secondary"><ThumbsDown size={13} /> {review.thumbsDown}</button>
+        <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-default bg-bg-surface hover:border-border-strong hover:text-text-secondary transition-colors"><ThumbsUp size={13} /> {review.thumbsUp}</button>
+        <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-default bg-bg-surface hover:border-border-strong hover:text-text-secondary transition-colors"><ThumbsDown size={13} /> {review.thumbsDown}</button>
       </div>
     </div>
   );
 }
 
 function RemindMeButton({ movieId }: { movieId: string }) {
-  const { mutate: remindMe, isPending } = useRemindMe(movieId);
+  const { user }                                   = useAuthStore();
+  const { data: status }                           = useRemindMeStatus(movieId, !!user);
+  const { mutate: remindMe, isPending, isSuccess }  = useRemindMe(movieId);
+
+  const optedIn = status?.optedIn || isSuccess;
+
+  if (optedIn) {
+    return (
+      <Button size="lg" variant="secondary" disabled>
+        <Bell size={18} className="text-accent-indigo" /> You're on the list!
+      </Button>
+    );
+  }
+
   return (
     <Button size="lg" variant="secondary" loading={isPending} onClick={() => remindMe()}>
       <Bell size={18} /> Remind Me
