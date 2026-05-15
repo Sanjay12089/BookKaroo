@@ -56,6 +56,7 @@ export function LoginForm() {
           label="Password"
           type={showPwd ? 'text' : 'password'}
           autoComplete="current-password"
+          placeholder="Your password"
           error={errors.password?.message}
           rightElement={
             <button

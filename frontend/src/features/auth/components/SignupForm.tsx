@@ -100,6 +100,7 @@ export function SignupForm() {
           label="Password"
           type={showPwd ? 'text' : 'password'}
           autoComplete="new-password"
+          placeholder="Min 8 chars, uppercase, number, symbol"
           error={errors.password?.message}
           rightElement={
             <button

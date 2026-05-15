@@ -54,6 +54,7 @@ public class UsersController : ControllerBase
             user.EmailVerified,
             user.ProfilePicUrl,
             user.StateCode,
+            user.PasswordChangedAt,
         });
     }
 
@@ -75,6 +76,7 @@ public class UsersController : ControllerBase
             return BadRequest(new { message = "New password must be at least 8 characters." });
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword, workFactor: 12);
+        user.PasswordChangedAt = DateTime.UtcNow;
         await _users.UpdateAsync(user, ct);
 
         return Ok(new { message = "Password updated successfully." });
