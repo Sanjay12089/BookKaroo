@@ -44,7 +44,7 @@ BookKaroo is an entertainment ticket booking platform (BookMyShow-style) for the
 
 ## Key Documents
 - `/docs/PRD.md` — full product requirements (Phase 1 + 2)
-- `/docs/ARCHITECTURE_v2.md` — system design + diagrams
+- `/docs/ARCHITECTURE.md` — system design + diagrams
 - `/docs/DATABASE.md` — schema + ERD
 - `/docs/API.md` — REST endpoint contracts
 - `/docs/DESIGN-SYSTEM.md` — colors, typography, spacing, components

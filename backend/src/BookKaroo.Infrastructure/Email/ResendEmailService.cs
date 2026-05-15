@@ -27,7 +27,8 @@ public class ResendEmailService : IEmailService
     public async Task SendBookingConfirmationAsync(
         Booking booking, Show? show, Movie? movie, User user,
         byte[] invoicePdf, string? qrUrl, CancellationToken ct = default,
-        DateTime? eventDate = null, string? eventTitle = null)
+        DateTime? eventDate = null, string? eventTitle = null,
+        string? venueName = null, string? screenName = null)
     {
         var companyGstin  = _config["COMPANY_GSTIN"] ?? "24XXXXX0000X1Z5";
         var frontendUrl   = _config["FRONTEND_URL"] ?? "http://localhost:5173";
@@ -38,8 +39,8 @@ public class ResendEmailService : IEmailService
             ? (eventTitle ?? (booking.TierName is not null ? $"Event — {booking.TierName}" : "Event Ticket"))
             : (movie?.Title ?? "Movie");
 
-        var html      = BuildBookingConfirmationHtml(booking, show, movie, user, openTicketUrl, companyGstin, qrUrl, eventDate, eventTitle);
-        var plainText = BuildBookingConfirmationText(booking, show, displayTitle, user, openTicketUrl, eventDate);
+        var html      = BuildBookingConfirmationHtml(booking, show, movie, user, openTicketUrl, companyGstin, qrUrl, eventDate, eventTitle, venueName, screenName);
+        var plainText = BuildBookingConfirmationText(booking, show, displayTitle, user, openTicketUrl, eventDate, venueName, screenName);
         var pdfBase64 = Convert.ToBase64String(invoicePdf);
 
         await SendAsync(
@@ -424,7 +425,8 @@ public class ResendEmailService : IEmailService
 
     private static string BuildBookingConfirmationHtml(
         Booking booking, Show? show, Movie? movie, User user, string openTicketUrl, string companyGstin,
-        string? qrUrl, DateTime? eventDate = null, string? eventTitle = null)
+        string? qrUrl, DateTime? eventDate = null, string? eventTitle = null,
+        string? venueName = null, string? screenName = null)
     {
         bool hasCoupon       = booking.CouponId.HasValue && booking.Discount > 0;
         var convFeeGst       = Math.Round(booking.ConvenienceFee * 0.18m, 2);
@@ -454,6 +456,13 @@ public class ResendEmailService : IEmailService
         var offerFeeGstStr   = offerFeeGst.ToString("F2");
         var discountStr      = booking.Discount.ToString("F2");
         var ticketQty        = booking.TicketQty.ToString();
+        var venueRow  = venueName is not null
+            ? $$"""<tr><td style="padding:8px 16px 0;font-size:12px;color:#71717A">Venue</td><td style="padding:8px 16px 0;font-size:13px;font-weight:600;color:#18181B">{{venueName}}</td></tr>"""
+            : string.Empty;
+        var screenRow = screenName is not null
+            ? $$"""<tr><td style="padding:4px 16px 12px;font-size:12px;color:#71717A">Screen</td><td style="padding:4px 16px 12px;font-size:13px;font-weight:600;color:#18181B">{{screenName}}</td></tr>"""
+            : string.Empty;
+
         var qrBlock = qrUrl is not null ? $$"""
             <tr><td align="center" class="px" style="padding:0 32px 24px">
               <div style="font-size:13px;font-weight:700;color:#71717A;letter-spacing:1px;margin-bottom:12px">M-TICKET QR CODE</div>
@@ -513,11 +522,13 @@ public class ResendEmailService : IEmailService
                     <tr><td class="px" style="padding:24px 32px">
                       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E4E4E7;border-radius:12px">
                         <tr>
-                          <td class="stack" valign="top" style="padding:16px">
+                          <td class="stack" valign="top" style="padding:16px 16px 8px" colspan="2">
                             <div style="font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:700;color:#18181B;margin-bottom:6px">{{movieTitle}}{{certificate}}</div>
                             <div style="font-size:13px;color:#52525B;line-height:1.5">{{showDateStr}} · {{showTimeStr}}</div>
                           </td>
                         </tr>
+                        {{venueRow}}
+                        {{screenRow}}
                       </table>
                     </td></tr>
 
@@ -597,7 +608,7 @@ public class ResendEmailService : IEmailService
             """;
     }
 
-    private static string BuildBookingConfirmationText(Booking booking, Show? show, string movieTitle, User user, string openTicketUrl, DateTime? eventDate = null)
+    private static string BuildBookingConfirmationText(Booking booking, Show? show, string movieTitle, User user, string openTicketUrl, DateTime? eventDate = null, string? venueName = null, string? screenName = null)
     {
         var eventLocal = eventDate?.ToLocalTime();
         var showLine = show is not null
@@ -605,13 +616,15 @@ public class ResendEmailService : IEmailService
             : (eventLocal.HasValue
                 ? $"{eventLocal.Value:ddd, dd MMM yyyy} · {eventLocal.Value:hh:mm tt}"
                 : (booking.TierName is not null ? $"Tier: {booking.TierName} × {booking.TicketQty} ticket(s)" : "Event Ticket"));
+        var venueLine  = venueName  is not null ? $"\nVenue: {venueName}"   : string.Empty;
+        var screenLine = screenName is not null ? $"\nScreen: {screenName}" : string.Empty;
         return $"""
             BookKaroo — Your Booking Is Confirmed!
 
             Booking ID: {booking.BookingRef}
 
             {movieTitle}
-            {showLine}
+            {showLine}{venueLine}{screenLine}
 
             ORDER SUMMARY
             Ticket Amount ({booking.TicketQty} tickets): Rs.{booking.TicketAmount:F2}
