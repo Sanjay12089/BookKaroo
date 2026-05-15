@@ -56,7 +56,7 @@ public class ShowService : IShowService
 
                     return new ShowtimeItem(
                         s.Id,
-                        s.ShowTime.ToString(@"hh\:mm"),
+                        s.ShowTime.ToString(@"hh\:mm tt"),
                         s.Format ?? "2D",
                         s.Language ?? "Hindi",
                         avail,
@@ -106,7 +106,7 @@ public class ShowService : IShowService
             Format:     show.Format ?? "2D",
             Language:   show.Language ?? "Hindi",
             ShowDate:   show.ShowDate.ToString("yyyy-MM-dd"),
-            ShowTime:   show.ShowTime.ToString(@"hh\:mm"),
+            ShowTime:   show.ShowTime.ToString(@"hh\:mm tt"),
             VenueName:  venue?.Name ?? "Cinema",
             ScreenName: screen?.Name ?? "Screen");
 

@@ -705,7 +705,7 @@ public class BookingService : IBookingService
                 Language:    show?.Language),
             Show: new BookingShowInfo(
                 Date:       show?.ShowDate.ToString("yyyy-MM-dd") ?? "",
-                Time:       show?.ShowTime.ToString(@"hh\:mm") ?? "",
+                Time:       show?.ShowTime.ToString(@"hh\:mm tt") ?? "",
                 VenueName:  venue?.Name ?? "Unknown",
                 ScreenName: screen?.Name ?? "Screen",
                 City:       movieCity),
