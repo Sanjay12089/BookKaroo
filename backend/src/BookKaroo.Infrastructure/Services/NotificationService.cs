@@ -16,6 +16,7 @@ public class NotificationService : INotificationService
     private readonly IShowRepository             _shows;
     private readonly IMovieRepository            _movies;
     private readonly IRepository<Venue>          _venues;
+    private readonly IRepository<Screen>         _screens;
     private readonly IEmailService               _email;
     private readonly InvoiceBuilder              _invoiceBuilder;
     private readonly IInvoicePdfGenerator        _pdfGenerator;
@@ -28,6 +29,7 @@ public class NotificationService : INotificationService
         IShowRepository              shows,
         IMovieRepository             movies,
         IRepository<Venue>           venues,
+        IRepository<Screen>          screens,
         IEmailService                email,
         InvoiceBuilder               invoiceBuilder,
         IInvoicePdfGenerator         pdfGenerator,
@@ -39,6 +41,7 @@ public class NotificationService : INotificationService
         _shows          = shows;
         _movies         = movies;
         _venues         = venues;
+        _screens        = screens;
         _email          = email;
         _invoiceBuilder = invoiceBuilder;
         _pdfGenerator   = pdfGenerator;
@@ -57,12 +60,14 @@ public class NotificationService : INotificationService
             return;
         }
 
-        var user      = await _users.GetByIdAsync(booking.UserId, ct);
-        var show      = booking.ShowId.HasValue ? await _shows.GetByIdAsync(booking.ShowId.Value, ct) : null;
-        var movie     = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
-        var allVenues = await _venues.GetAllAsync(ct);
-        var venue     = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
-        var payment   = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
+        var user       = await _users.GetByIdAsync(booking.UserId, ct);
+        var show       = booking.ShowId.HasValue ? await _shows.GetByIdAsync(booking.ShowId.Value, ct) : null;
+        var movie      = show?.MovieId.HasValue == true ? await _movies.GetByIdAsync(show.MovieId!.Value, ct) : null;
+        var allVenues  = await _venues.GetAllAsync(ct);
+        var venue      = show is not null ? allVenues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+        var allScreens = await _screens.GetAllAsync(ct);
+        var screen     = show is not null ? allScreens.FirstOrDefault(s => s.Id == show.ScreenId) : null;
+        var payment    = await _db.Payments.FirstOrDefaultAsync(p => p.BookingId == bookingId, ct);
 
         // For event bookings: load event to get actual date + time + title + venue
         DateTime? eventDate  = null;
@@ -124,8 +129,13 @@ public class NotificationService : INotificationService
                 _logger.LogWarning(ex, "Invoice upload failed for {Ref} — email will still be sent", booking.BookingRef);
             }
 
+            // Resolve venue/screen names for email
+            var emailVenueName  = venue?.Name;
+            var emailScreenName = screen?.Name ?? (booking.TierName is not null ? booking.TierName : null);
+
             // Send email with PDF attached and QR as a real HTTPS URL
-            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, qrUrl, ct, eventDate, eventTitle);
+            await _email.SendBookingConfirmationAsync(booking, show, movie, user, pdfBytes, qrUrl, ct, eventDate, eventTitle,
+                emailVenueName, emailScreenName);
             _logger.LogInformation("Booking confirmation email sent for {Ref} to {Email}", booking.BookingRef, user.Email);
         }
         catch (Exception ex)
