@@ -36,8 +36,8 @@ public class MovieRepository : Repository<Movie>, IMovieRepository
         if (category.HasValue)
             query = query.Where(m => m.Category == category.Value);
 
-        // City filter: only movies with scheduled shows in the given city today or later
-        if (cityId.HasValue)
+        // City filter: only movies with scheduled shows in that city (skip for Coming Soon — no shows by design)
+        if (cityId.HasValue && category != MovieCategory.ComingSoon)
         {
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var venueIdsInCity = _db.Venues
