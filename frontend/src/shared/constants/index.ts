@@ -76,6 +76,8 @@ export const CITIES = [
 
 export const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p';
 // Valid TMDB poster sizes: w92 w154 w185 w342 w500 w780 original  (w300 is NOT valid)
-export const TMDB_POSTER = (path: string, size = 'w342') => `${TMDB_IMAGE_BASE}/${size}${path}`;
+export const TMDB_POSTER = (path: string, size = 'w342') =>
+  path.startsWith('http') ? path : `${TMDB_IMAGE_BASE}/${size}${path}`;
 // Valid TMDB backdrop sizes: w300 w780 w1280 original
-export const TMDB_BACKDROP = (path: string, size = 'w1280') => `${TMDB_IMAGE_BASE}/${size}${path}`;
+export const TMDB_BACKDROP = (path: string, size = 'w1280') =>
+  path.startsWith('http') ? path : `${TMDB_IMAGE_BASE}/${size}${path}`;
