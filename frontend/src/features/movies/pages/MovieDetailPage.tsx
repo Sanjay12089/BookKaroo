@@ -6,7 +6,7 @@ import { PublicLayout } from '@/shared/components/layout/PublicLayout';
 import { Badge } from '@/shared/components/ui/Badge';
 import { Button } from '@/shared/components/ui/Button';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
-import { useMovieDetail, useMovieReviews, useCreateReview, useRemindMe } from '../api/useMovies';
+import { useMovieDetail, useMovieReviews, useCreateReview, useRemindMe, useRemindMeStatus } from '../api/useMovies';
 import { usePassedViewport } from '@/shared/hooks/useScrollPosition';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { ROUTES, TMDB_BACKDROP, TMDB_POSTER, TMDB_IMAGE_BASE } from '@/shared/constants';
@@ -472,7 +472,20 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 function RemindMeButton({ movieId }: { movieId: string }) {
-  const { mutate: remindMe, isPending } = useRemindMe(movieId);
+  const { user }                                   = useAuthStore();
+  const { data: status }                           = useRemindMeStatus(movieId, !!user);
+  const { mutate: remindMe, isPending, isSuccess }  = useRemindMe(movieId);
+
+  const optedIn = status?.optedIn || isSuccess;
+
+  if (optedIn) {
+    return (
+      <Button size="lg" variant="secondary" disabled>
+        <Bell size={18} className="text-accent-indigo" /> You're on the list!
+      </Button>
+    );
+  }
+
   return (
     <Button size="lg" variant="secondary" loading={isPending} onClick={() => remindMe()}>
       <Bell size={18} /> Remind Me

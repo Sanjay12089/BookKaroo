@@ -83,6 +83,17 @@ public class MoviesController : ControllerBase
         return StatusCode(201, result);
     }
 
+    /// <summary>Check if the authenticated user has opted in to a release reminder.</summary>
+    [HttpGet("{movieId:guid}/remind-me")]
+    [Authorize]
+    [ProducesResponseType(200)]
+    public async Task<IActionResult> GetRemindMeStatus(Guid movieId, CancellationToken ct)
+    {
+        var userId   = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var optedIn  = await _remindMe.HasOptedInAsync(userId, movieId, ct);
+        return Ok(new { optedIn });
+    }
+
     /// <summary>Opt in to release reminder (idempotent).</summary>
     [HttpPost("{movieId:guid}/remind-me")]
     [Authorize]
@@ -92,9 +103,9 @@ public class MoviesController : ControllerBase
         var userId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
         if (await _remindMe.HasOptedInAsync(userId, movieId, ct))
-            return Ok(new { message = "You're already on the remind list!" });
+            return Ok(new { message = "You're already on the remind list!", optedIn = true });
 
         await _remindMe.AddAsync(new RemindMe { UserId = userId, MovieId = movieId, Notified = false }, ct);
-        return Ok(new { message = "We'll notify you when it releases!" });
+        return Ok(new { message = "We'll notify you when it releases!", optedIn = true });
     }
 }

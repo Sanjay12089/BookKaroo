@@ -22,4 +22,6 @@ public interface IEmailService
         string? bookingRef, string supportEmail, CancellationToken ct = default);
 
     Task SendAccountDeletedAsync(User user, CancellationToken ct = default);
+
+    Task SendMovieNowShowingAsync(User user, Movie movie, CancellationToken ct = default);
 }

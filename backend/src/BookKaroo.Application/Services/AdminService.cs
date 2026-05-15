@@ -29,6 +29,7 @@ public class AdminService : IAdminService
     private readonly IEmailService         _email;
     private readonly ICmsBannerRepository  _bannerRepo;
     private readonly ISettingRepository    _settingRepo;
+    private readonly IRemindMeRepository   _remindMes;
 
     // Keep legacy reference for event form dropdown (uses IRepository<Venue>)
     private readonly IRepository<Venue>  _venues;
@@ -49,7 +50,8 @@ public class AdminService : IAdminService
         IUserRepository       users,
         IEmailService         email,
         ICmsBannerRepository  bannerRepo,
-        ISettingRepository    settingRepo)
+        ISettingRepository    settingRepo,
+        IRemindMeRepository   remindMes)
     {
         _movies      = movies;
         _events      = events;
@@ -67,6 +69,7 @@ public class AdminService : IAdminService
         _cities      = cities;
         _bannerRepo  = bannerRepo;
         _settingRepo = settingRepo;
+        _remindMes   = remindMes;
         _venues      = venueRepo; // IVenueRepository extends IRepository<Venue>
     }
 
@@ -216,7 +219,8 @@ public class AdminService : IAdminService
         var movie = await _movies.GetByIdAsync(id, ct)
             ?? throw new KeyNotFoundException($"Movie {id} not found.");
 
-        var before = new { movie.Title, movie.Status, movie.Category };
+        var before              = new { movie.Title, movie.Status, movie.Category };
+        var categoryBefore      = movie.Category;
 
         if (req.Title       != null && req.Title != movie.Title)
         {
@@ -242,7 +246,37 @@ public class AdminService : IAdminService
         await _movies.UpdateAsync(movie, ct);
         var after = new { movie.Title, movie.Status, movie.Category };
         await _audit.LogAsync(null, "update", "movie", movie.Id, before, after, null, ct);
+
+        // Notify opted-in users when a movie transitions to Now Showing
+        if (categoryBefore != MovieCategory.NowShowing && movie.Category == MovieCategory.NowShowing)
+            await NotifyRemindMeUsersAsync(movie, ct);
+
         return MapMovieResponse(movie);
+    }
+
+    private async Task NotifyRemindMeUsersAsync(Movie movie, CancellationToken ct)
+    {
+        var reminders = (await _remindMes.GetByMovieAsync(movie.Id, ct)).ToList();
+        if (reminders.Count == 0) return;
+
+        _logger.LogInformation("Sending Now Showing notifications for {Movie} to {Count} user(s)", movie.Title, reminders.Count);
+
+        foreach (var reminder in reminders)
+        {
+            var user = await _users.GetByIdAsync(reminder.UserId, ct);
+            if (user is null) continue;
+
+            try
+            {
+                await _email.SendMovieNowShowingAsync(user, movie, ct);
+                reminder.Notified = true;
+                await _remindMes.UpdateAsync(reminder, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send Now Showing email to {UserId} for {Movie}", reminder.UserId, movie.Title);
+            }
+        }
     }
 
     public async Task DeleteMovieAsync(Guid id, CancellationToken ct = default)
