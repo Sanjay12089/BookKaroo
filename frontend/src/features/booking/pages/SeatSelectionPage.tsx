@@ -11,6 +11,7 @@ import { useShowRealtime } from '@/shared/hooks/useSupabaseRealtime';
 import { ROUTES } from '@/shared/constants';
 import { toast } from '@/shared/components/ui/Toast';
 import { usePublicSettings, parseNum } from '@/shared/lib/usePublicSettings';
+import { useAuthStore } from '@/features/auth/store/authStore';
 import type { SeatState } from '@/shared/types';
 import type { SeatCategory, ScreenLayout } from '../types';
 
@@ -44,9 +45,11 @@ export default function SeatSelectionPage() {
 
   // ── Settings (conv fee + seat limit from DB) ───────────────────────────────
   const { data: publicSettings } = usePublicSettings();
-  const CONV_FEE  = parseNum(publicSettings?.convenience_fee_per_ticket, 59);
-  const MAX_SEATS = parseNum(publicSettings?.max_seats_per_booking, 10);
-  const GST_RATE  = parseNum(publicSettings?.gst_rate, 0.18);
+  const CONV_FEE    = parseNum(publicSettings?.convenience_fee_per_ticket, 59);
+  const MAX_SEATS   = parseNum(publicSettings?.max_seats_per_booking, 10);
+  const GST_RATE    = parseNum(publicSettings?.gst_rate, 0.18);
+  const { user }    = useAuthStore();
+  const isIntraState = user?.stateCode === (publicSettings?.company_state_code ?? '24');
 
   // ── API ────────────────────────────────────────────────────────────────────
   const { data, isLoading } = useShowSeats(showId);
@@ -317,18 +320,40 @@ export default function SeatSelectionPage() {
 
               {/* Price breakdown */}
               {selectedSeats.length > 0 && (
-                <div className="space-y-1.5 text-sm font-sans p-3 rounded-lg bg-bg-base border border-border-default mb-4">
-                  <div className="flex justify-between text-text-secondary">
-                    <span>{selectedSeats.length} ticket{selectedSeats.length !== 1 ? 's' : ''}</span>
-                    <span>₹{ticketTotal}</span>
+                <div className="text-sm font-sans p-3 rounded-lg bg-bg-base border border-border-default mb-4 space-y-3">
+                  {/* Ticket Amount */}
+                  <div>
+                    <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+                      <span>Ticket Amount</span>
+                      <span>₹{ticketTotal}</span>
+                    </div>
+                    <p className="text-[11px] text-text-muted mt-0.5">
+                      {selectedSeats.length} ticket{selectedSeats.length !== 1 ? 's' : ''}
+                    </p>
                   </div>
-                  <div className="flex justify-between text-text-secondary">
-                    <span>Convenience fee</span><span>₹{convFee}</span>
+                  {/* Convenience Fees */}
+                  <div>
+                    <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+                      <span>Convenience Fees</span>
+                      <span>₹{convFee + gst}</span>
+                    </div>
+                    <div className="mt-1 space-y-0.5">
+                      <div className="flex justify-between text-[11px] text-text-muted">
+                        <span>Base Amount</span>
+                        <span>₹{convFee}</span>
+                      </div>
+                      <div className="flex justify-between text-[11px] text-text-muted">
+                        <span>
+                          {isIntraState
+                            ? `CGST @ 9% + SGST @ 9%`
+                            : `Integrated GST (IGST) @ ${Math.round(GST_RATE * 100)}%`}
+                        </span>
+                        <span>₹{gst}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between text-text-secondary">
-                    <span>GST {Math.round(GST_RATE * 100)}%</span><span>₹{gst}</span>
-                  </div>
-                  <div className="flex justify-between border-t border-border-default pt-2 mt-2 font-semibold text-base text-text-primary">
+                  {/* Total */}
+                  <div className="flex justify-between border-t border-border-default pt-2 font-semibold text-base text-text-primary">
                     <span>Total</span>
                     <span className="font-display text-xl">{formatCurrency(grand)}</span>
                   </div>

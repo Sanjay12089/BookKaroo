@@ -338,6 +338,7 @@ export default function CheckoutPage() {
         {/* ── RIGHT PANEL ── */}
         <OrderSummaryPanel
           breakdown={breakdown}
+          ticketQty={selectedSeats.length}
           coupon={appliedCoupon}
           couponInput={couponInput}
           couponError={couponError}
