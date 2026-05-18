@@ -35,7 +35,7 @@ export default function MovieDetailPage() {
 
   if (!movie) return (
     <PublicLayout>
-      <div className="flex items-center justify-center min-h-[60vh] text-text-muted font-sans">Movie not found.</div>
+      <div className="flex items-center justify-center min-h-[60vh] text-tx-muted font-sans">Movie not found.</div>
     </PublicLayout>
   );
 
@@ -53,7 +53,7 @@ export default function MovieDetailPage() {
           <div className="absolute inset-0 bg-cover bg-center scale-105"
                style={{ backgroundImage: `url(${backdropUrl})`, filter: 'blur(2px) brightness(0.28)' }} />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-bg-base/55 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-page via-page/55 to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(65%_55%_at_60%_25%,rgba(168,85,247,0.22),transparent)]" />
       </div>
 
@@ -62,16 +62,16 @@ export default function MovieDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8 -mt-40 md:-mt-48 relative z-10">
           {/* Poster */}
           <div className="flex justify-center md:block">
-            <div className="w-32 md:w-full aspect-[2/3] rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10 bg-bg-surface2">
+            <div className="w-32 md:w-full aspect-[2/3] rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10 bg-section">
               {posterUrl
                 ? <img src={posterUrl} alt={movie.title} className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center text-text-muted text-4xl">🎬</div>}
+                : <div className="w-full h-full flex items-center justify-center text-tx-muted text-4xl">🎬</div>}
             </div>
           </div>
 
           {/* Metadata */}
           <section className="pt-0 md:pt-10">
-            <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-2">
+            <p className="text-[11px] font-semibold text-tx-muted tracking-widest uppercase font-sans mb-2">
               {isComingSoon ? 'Coming Soon' : 'Now Showing'}
               {movie.certificate && ` · ${movie.certificate}`}
               {` · ${formatDuration(movie.durationMin)}`}
@@ -86,11 +86,11 @@ export default function MovieDetailPage() {
               {movie.averageRating > 0 && (
                 <span className="flex items-center gap-1 font-semibold text-[#FCD34D]">
                   <Star size={14} fill="currentColor" /> {movie.averageRating.toFixed(1)}
-                  <span className="text-text-muted font-normal text-xs">/10 · {movie.totalReviews} reviews</span>
+                  <span className="text-tx-muted font-normal text-xs">/10 · {movie.totalReviews} reviews</span>
                 </span>
               )}
               {movie.imdbRating && (
-                <span className="text-text-muted text-xs">IMDb {movie.imdbRating}</span>
+                <span className="text-tx-muted text-xs">IMDb {movie.imdbRating}</span>
               )}
             </div>
 
@@ -102,7 +102,7 @@ export default function MovieDetailPage() {
             </div>
 
             {movie.description && (
-              <p className="text-text-secondary text-sm leading-relaxed max-w-xl mb-6 font-sans line-clamp-3">
+              <p className="text-tx-secondary text-sm leading-relaxed max-w-xl mb-6 font-sans line-clamp-3">
                 {movie.description}
               </p>
             )}
@@ -122,7 +122,7 @@ export default function MovieDetailPage() {
         </div>
 
         {/* ── TABS ─────────────────────────────────────────────────────── */}
-        <div className="mt-14 border-b border-border-default">
+        <div className="mt-14 border-b border-border-l">
           <div className="flex gap-1">
             {(['about', 'cast', 'reviews'] as Tab[]).map((t) => (
               <button
@@ -131,8 +131,8 @@ export default function MovieDetailPage() {
                 className={cn(
                   'px-5 py-3 text-sm font-semibold font-sans capitalize border-b-2 -mb-px transition-colors',
                   activeTab === t
-                    ? 'border-accent-crimson text-text-primary'
-                    : 'border-transparent text-text-muted hover:text-text-secondary'
+                    ? 'border-brand text-tx-primary'
+                    : 'border-transparent text-tx-muted hover:text-tx-secondary'
                 )}
               >
                 {t === 'reviews' ? `Reviews (${movie.totalReviews})` : t === 'cast' ? 'Cast & Crew' : 'About'}
@@ -154,14 +154,14 @@ export default function MovieDetailPage() {
             <div className="grid grid-cols-3 gap-4">
               {movie.related.map((r) => (
                 <Link key={r.id} to={ROUTES.MOVIE_DETAIL(r.slug)} className="group block">
-                  <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 mb-2">
+                  <div className="aspect-[2/3] rounded-lg overflow-hidden bg-section mb-2">
                     {r.posterUrl
                       ? <img src={TMDB_POSTER(r.posterUrl)} alt={r.title}
                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
                       : <div className="flex items-center justify-center h-full text-2xl">🎬</div>}
                   </div>
-                  <p className="text-sm font-semibold text-text-primary line-clamp-1 font-display">{r.title}</p>
-                  <p className="text-xs text-text-muted font-sans">{r.genres?.slice(0, 2).join(' · ')}</p>
+                  <p className="text-sm font-semibold text-tx-primary line-clamp-1 font-display">{r.title}</p>
+                  <p className="text-xs text-tx-muted font-sans">{r.genres?.slice(0, 2).join(' · ')}</p>
                 </Link>
               ))}
             </div>
@@ -172,10 +172,10 @@ export default function MovieDetailPage() {
       {/* ── STICKY BAR ───────────────────────────────────────────────────── */}
       {stickyVisible && !isComingSoon && (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-4 px-6 py-3
-          bg-bg-surface/95 backdrop-blur-xl border-t border-border-default shadow-lg mb-[56px] md:mb-0">
+          bg-card/95 backdrop-blur-xl border-t border-border-l shadow-lg mb-[56px] md:mb-0">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-text-primary text-sm truncate font-sans">{movie.title}</p>
-            <p className="text-xs text-text-muted font-sans">from ₹180</p>
+            <p className="font-semibold text-tx-primary text-sm truncate font-sans">{movie.title}</p>
+            <p className="text-xs text-tx-muted font-sans">from ₹180</p>
           </div>
           <Link to={showtimesHref}><Button size="md">Pick a showtime →</Button></Link>
         </div>
@@ -215,7 +215,7 @@ function AboutTab({ movie, onTrailer }: { movie: MovieDetail; onTrailer: () => v
         <div>
           <h3 className="font-display font-semibold text-xl mb-4">Trailer</h3>
           <button onClick={onTrailer}
-            className="relative w-full aspect-video rounded-xl overflow-hidden bg-bg-surface2 border border-border-default group">
+            className="relative w-full aspect-video rounded-xl overflow-hidden bg-section border border-border-l group">
             {movie.backdropUrl && (
               <img src={`${TMDB_IMAGE_BASE}/w780${movie.backdropUrl}`} alt="Trailer thumbnail"
                    className="w-full h-full object-cover brightness-50 group-hover:brightness-40 transition-all" />
@@ -232,13 +232,13 @@ function AboutTab({ movie, onTrailer }: { movie: MovieDetail; onTrailer: () => v
       {movie.description && (
         <div>
           <h3 className="font-display font-semibold text-xl mb-3">Synopsis</h3>
-          <p className="text-text-secondary leading-relaxed font-sans">{movie.description}</p>
+          <p className="text-tx-secondary leading-relaxed font-sans">{movie.description}</p>
         </div>
       )}
 
       <div>
         <h3 className="font-display font-semibold text-xl mb-4">Details</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-5 rounded-xl bg-bg-surface border border-border-default">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-5 rounded-xl bg-card border border-border-l">
           {[
             { label: 'Duration',    value: formatDuration(movie.durationMin) },
             { label: 'Released',    value: movie.releaseDate ?? '—' },
@@ -248,8 +248,8 @@ function AboutTab({ movie, onTrailer }: { movie: MovieDetail; onTrailer: () => v
             { label: 'Genre',       value: movie.genres?.slice(0, 2).join(', ') || '—' },
           ].map((f) => (
             <div key={f.label}>
-              <p className="text-[10px] font-semibold text-text-muted tracking-wider uppercase font-sans">{f.label}</p>
-              <p className="text-sm font-semibold text-text-primary mt-1 font-sans">{f.value}</p>
+              <p className="text-[10px] font-semibold text-tx-muted tracking-wider uppercase font-sans">{f.label}</p>
+              <p className="text-sm font-semibold text-tx-primary mt-1 font-sans">{f.value}</p>
             </div>
           ))}
         </div>
@@ -277,8 +277,8 @@ function CastTab({ movie }: { movie: MovieDetail }) {
                       />
                     : <span className="text-white font-bold text-xl">{m.name.charAt(0)}</span>}
                 </div>
-                <p className="text-xs font-semibold text-text-primary font-sans line-clamp-1">{m.name}</p>
-                <p className="text-[11px] text-text-muted font-sans line-clamp-1">{m.role}</p>
+                <p className="text-xs font-semibold text-tx-primary font-sans line-clamp-1">{m.name}</p>
+                <p className="text-[11px] text-tx-muted font-sans line-clamp-1">{m.role}</p>
               </div>
             ))}
           </div>
@@ -290,9 +290,9 @@ function CastTab({ movie }: { movie: MovieDetail }) {
           <h3 className="font-display font-semibold text-xl mb-4">Crew</h3>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {movie.crew.map((m, i) => (
-              <div key={i} className="p-3 rounded-lg bg-bg-surface border border-border-default">
-                <p className="text-sm font-semibold text-text-primary font-sans">{m.name}</p>
-                <p className="text-xs text-text-muted font-sans mt-0.5">{m.role}</p>
+              <div key={i} className="p-3 rounded-lg bg-card border border-border-l">
+                <p className="text-sm font-semibold text-tx-primary font-sans">{m.name}</p>
+                <p className="text-xs text-tx-muted font-sans mt-0.5">{m.role}</p>
               </div>
             ))}
           </div>
@@ -300,7 +300,7 @@ function CastTab({ movie }: { movie: MovieDetail }) {
       )}
 
       {movie.cast.length === 0 && movie.crew.length === 0 && (
-        <p className="text-text-muted font-sans text-sm">Cast & crew info not available yet.</p>
+        <p className="text-tx-muted font-sans text-sm">Cast & crew info not available yet.</p>
       )}
     </div>
   );
@@ -332,24 +332,24 @@ function ReviewsTab({ movie }: { movie: MovieDetail }) {
   return (
     <div className="space-y-8 max-w-3xl">
       {/* Rating distribution card */}
-      <div className="flex gap-8 p-6 rounded-xl bg-bg-surface border border-border-default items-center">
+      <div className="flex gap-8 p-6 rounded-xl bg-card border border-border-l items-center">
         <div className="text-center flex-shrink-0">
           <p className="text-[60px] font-black leading-none text-[#FCD34D] font-display">
             {movie.averageRating > 0 ? movie.averageRating.toFixed(1) : '—'}
           </p>
-          <p className="text-xs text-text-muted font-sans">/10 · {movie.totalReviews} reviews</p>
+          <p className="text-xs text-tx-muted font-sans">/10 · {movie.totalReviews} reviews</p>
         </div>
         <div className="flex-1 space-y-1.5">
           {Array.from({ length: 10 }, (_, i) => 10 - i).map((r) => {
             const count = movie.ratingDistribution[r] ?? 0;
             return (
               <div key={r} className="flex items-center gap-2 text-xs font-sans">
-                <span className="w-4 text-right text-text-muted">{r}</span>
+                <span className="w-4 text-right text-tx-muted">{r}</span>
                 <div className="flex-1 h-1.5 rounded-full bg-border-default overflow-hidden">
                   <div className="h-full rounded-full bg-[#FCD34D] transition-all"
                        style={{ width: `${(count / maxCount) * 100}%` }} />
                 </div>
-                <span className="w-4 text-text-muted">{count}</span>
+                <span className="w-4 text-tx-muted">{count}</span>
               </div>
             );
           })}
@@ -358,13 +358,13 @@ function ReviewsTab({ movie }: { movie: MovieDetail }) {
 
       {/* Write review */}
       {!isAuthenticated ? (
-        <div className="p-5 rounded-xl bg-bg-surface border border-border-default text-center">
-          <p className="text-text-muted text-sm font-sans mb-3">Sign in to write a review</p>
+        <div className="p-5 rounded-xl bg-card border border-border-l text-center">
+          <p className="text-tx-muted text-sm font-sans mb-3">Sign in to write a review</p>
           <Link to={ROUTES.LOGIN}><Button size="sm" variant="ghost">Sign In</Button></Link>
         </div>
       ) : movie.canReview && !submitted ? (
-        <div className="p-6 rounded-xl bg-bg-surface border border-border-default space-y-4">
-          <h3 className="font-semibold text-text-primary font-sans">Rate this movie</h3>
+        <div className="p-6 rounded-xl bg-card border border-border-l space-y-4">
+          <h3 className="font-semibold text-tx-primary font-sans">Rate this movie</h3>
           <div className="flex gap-1.5 flex-wrap">
             {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <button key={n} onClick={() => setRating(n)}
@@ -374,18 +374,18 @@ function ReviewsTab({ movie }: { movie: MovieDetail }) {
                     ? rating >= 8 ? 'bg-green-500 border-green-500 text-white'
                       : rating >= 5 ? 'bg-orange-500 border-orange-500 text-white'
                       : 'bg-red-500 border-red-500 text-white'
-                    : 'border-border-default text-text-muted hover:border-border-strong'
+                    : 'border-border-l text-tx-muted hover:border-border-m'
                 )}>{n}</button>
             ))}
           </div>
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Review title (optional)"
-            className="w-full px-3.5 py-2.5 rounded-md bg-bg-base border border-border-default text-sm font-sans text-text-primary placeholder:text-text-muted outline-none focus:border-accent-indigo" />
+            className="w-full px-3.5 py-2.5 rounded-md bg-page border border-border-l text-sm font-sans text-tx-primary placeholder:text-tx-muted outline-none focus:border-brand" />
           <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Share your thoughts… (optional)" rows={4}
-            className="w-full px-3.5 py-2.5 rounded-md bg-bg-base border border-border-default text-sm font-sans text-text-primary placeholder:text-text-muted outline-none focus:border-accent-indigo resize-none" />
+            className="w-full px-3.5 py-2.5 rounded-md bg-page border border-border-l text-sm font-sans text-tx-primary placeholder:text-tx-muted outline-none focus:border-brand resize-none" />
           <Button onClick={handleSubmit} loading={isSubmitting} disabled={rating === 0}>Submit Review</Button>
         </div>
       ) : isAuthenticated && !movie.canReview && (
-        <p className="text-text-muted text-sm font-sans p-5 bg-bg-surface border border-border-default rounded-xl text-center">
+        <p className="text-tx-muted text-sm font-sans p-5 bg-card border border-border-l rounded-xl text-center">
           {movie.category === 'ComingSoon' ? 'Reviews open after release.' : 'Book this movie to write a verified review.'}
         </p>
       )}
@@ -396,8 +396,8 @@ function ReviewsTab({ movie }: { movie: MovieDetail }) {
           { label: 'Highest', value: 'highest' }, { label: 'Lowest', value: 'lowest' }].map((s) => (
           <button key={s.value} onClick={() => { setSort(s.value); setPage(1); }}
             className={cn('px-3 py-1.5 rounded-full text-xs font-semibold font-sans border transition-colors',
-              sort === s.value ? 'bg-accent-indigo/15 border-accent-indigo text-accent-indigo'
-                              : 'border-border-default text-text-muted hover:text-text-primary')}>
+              sort === s.value ? 'bg-brand/15 border-brand text-brand'
+                              : 'border-border-l text-tx-muted hover:text-tx-primary')}>
             {s.label}
           </button>
         ))}
@@ -407,13 +407,13 @@ function ReviewsTab({ movie }: { movie: MovieDetail }) {
       {isLoading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="p-5 rounded-xl bg-bg-surface border border-border-default space-y-2">
+            <div key={i} className="p-5 rounded-xl bg-card border border-border-l space-y-2">
               <Skeleton height={16} width="30%" /><Skeleton height={14} width="80%" />
             </div>
           ))}
         </div>
       ) : !reviewsData?.items?.length ? (
-        <p className="text-text-muted font-sans text-sm text-center py-8">No reviews yet. Be the first!</p>
+        <p className="text-tx-muted font-sans text-sm text-center py-8">No reviews yet. Be the first!</p>
       ) : (
         <div className="space-y-4">
           {reviewsData.items.map((review) => <ReviewCard key={review.id} review={review} />)}
@@ -424,10 +424,10 @@ function ReviewsTab({ movie }: { movie: MovieDetail }) {
       {(reviewsData?.totalPages ?? 0) > 1 && (
         <div className="flex gap-2 justify-center">
           <button disabled={page === 1} onClick={() => setPage((p) => p - 1)}
-            className="px-4 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans disabled:opacity-40">← Prev</button>
-          <span className="px-4 py-2 text-sm font-sans text-text-muted">{page} / {reviewsData?.totalPages}</span>
+            className="px-4 py-2 rounded-lg bg-card border border-border-l text-sm font-sans disabled:opacity-40">← Prev</button>
+          <span className="px-4 py-2 text-sm font-sans text-tx-muted">{page} / {reviewsData?.totalPages}</span>
           <button disabled={page === reviewsData?.totalPages} onClick={() => setPage((p) => p + 1)}
-            className="px-4 py-2 rounded-lg bg-bg-surface border border-border-default text-sm font-sans disabled:opacity-40">Next →</button>
+            className="px-4 py-2 rounded-lg bg-card border border-border-l text-sm font-sans disabled:opacity-40">Next →</button>
         </div>
       )}
     </div>
@@ -437,7 +437,7 @@ function ReviewsTab({ movie }: { movie: MovieDetail }) {
 function ReviewCard({ review }: { review: Review }) {
   const ratingColor = review.rating >= 8 ? 'text-green-400' : review.rating >= 5 ? 'text-yellow-400' : 'text-red-400';
   return (
-    <div className="p-5 rounded-xl bg-bg-surface border border-border-default space-y-3">
+    <div className="p-5 rounded-xl bg-card border border-border-l space-y-3">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
@@ -445,14 +445,14 @@ function ReviewCard({ review }: { review: Review }) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <p className="text-sm font-semibold text-text-primary font-sans">{review.userName}</p>
+              <p className="text-sm font-semibold text-tx-primary font-sans">{review.userName}</p>
               {review.isVerifiedBooking && (
                 <span className="flex items-center gap-0.5 text-[11px] text-green-400 font-sans">
                   <BadgeCheck size={13} /> Verified
                 </span>
               )}
             </div>
-            <p className="text-xs text-text-muted font-sans">
+            <p className="text-xs text-tx-muted font-sans">
               {new Date(review.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
             </p>
           </div>
@@ -461,11 +461,11 @@ function ReviewCard({ review }: { review: Review }) {
           <Star size={13} fill="currentColor" /> {review.rating}/10
         </span>
       </div>
-      {review.title && <p className="font-semibold text-sm text-text-primary font-sans">{review.title}</p>}
-      {review.body  && <p className="text-sm text-text-secondary leading-relaxed font-sans">{review.body}</p>}
-      <div className="flex items-center gap-4 text-xs text-text-muted font-sans">
-        <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-default bg-bg-surface hover:border-border-strong hover:text-text-secondary transition-colors"><ThumbsUp size={13} /> {review.thumbsUp}</button>
-        <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-default bg-bg-surface hover:border-border-strong hover:text-text-secondary transition-colors"><ThumbsDown size={13} /> {review.thumbsDown}</button>
+      {review.title && <p className="font-semibold text-sm text-tx-primary font-sans">{review.title}</p>}
+      {review.body  && <p className="text-sm text-tx-secondary leading-relaxed font-sans">{review.body}</p>}
+      <div className="flex items-center gap-4 text-xs text-tx-muted font-sans">
+        <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-l bg-card hover:border-border-m hover:text-tx-secondary transition-colors"><ThumbsUp size={13} /> {review.thumbsUp}</button>
+        <button className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-l bg-card hover:border-border-m hover:text-tx-secondary transition-colors"><ThumbsDown size={13} /> {review.thumbsDown}</button>
       </div>
     </div>
   );
@@ -481,7 +481,7 @@ function RemindMeButton({ movieId }: { movieId: string }) {
   if (optedIn) {
     return (
       <Button size="lg" variant="secondary" disabled>
-        <Bell size={18} className="text-accent-indigo" /> You're on the list!
+        <Bell size={18} className="text-brand" /> You're on the list!
       </Button>
     );
   }

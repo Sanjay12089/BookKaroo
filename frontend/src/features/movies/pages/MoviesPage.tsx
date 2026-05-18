@@ -118,7 +118,7 @@ export default function MoviesPage() {
     <PublicLayout>
       <Helmet><title>Movies | BookKaroo</title></Helmet>
       {/* ── Sticky filter bar ─────────────────────────────────────────────── */}
-      <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
+      <div className="sticky top-16 z-30 bg-page/95 backdrop-blur-md border-b border-border-l">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 space-y-2">
 
           {/* Category tabs */}
@@ -141,7 +141,7 @@ export default function MoviesPage() {
             { label: 'Genre',    opts: GENRES     as readonly string[], key: 'genres',    values: genres    },
           ] as const).map(({ label, opts, key, values }) => (
             <div key={label} className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-0.5">
-              <span className="text-[10px] font-semibold text-text-muted tracking-wider uppercase shrink-0 w-16 font-sans">
+              <span className="text-[10px] font-semibold text-tx-muted tracking-wider uppercase shrink-0 w-16 font-sans">
                 {label}
               </span>
               <div className="flex gap-1.5 flex-nowrap">
@@ -165,13 +165,13 @@ export default function MoviesPage() {
 
         {/* Header */}
         <div className="mb-6">
-          <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">
+          <p className="text-[11px] font-semibold text-tx-muted tracking-widest uppercase font-sans mb-1">
             Movies{cityLabel ? ` · ${cityLabel}` : ''}
           </p>
           <h1 className="font-display font-semibold text-3xl md:text-4xl tracking-tight">
             What's on this week
           </h1>
-          <p className="text-text-secondary text-sm mt-2 font-sans">
+          <p className="text-tx-secondary text-sm mt-2 font-sans">
             {isLoading
               ? 'Loading…'
               : `${total} film${total === 1 ? '' : 's'}${cityLabel ? ` in ${cityLabel}` : ''}`}
@@ -185,13 +185,13 @@ export default function MoviesPage() {
               <button
                 key={`${f.key}-${f.value}`}
                 onClick={() => removeFilter(f.key, f.value)}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-sans bg-accent-purple/14 text-[#C4A0FF] border border-accent-purple/28 hover:bg-accent-purple/22 transition-colors"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-sans bg-brand-dark/14 text-[#C4A0FF] border border-accent-purple/28 hover:bg-brand-dark/22 transition-colors"
               >
                 {f.label} ✕
               </button>
             ))}
             {activeFilters.length > 0 && (
-              <button onClick={clearAll} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-sans bg-bg-surface2 border border-border-default text-text-secondary hover:text-text-primary hover:border-border-strong transition-colors">
+              <button onClick={clearAll} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-sans bg-section border border-border-l text-tx-secondary hover:text-tx-primary hover:border-border-m transition-colors">
                 ✕ Clear all
               </button>
             )}
@@ -217,8 +217,8 @@ export default function MoviesPage() {
         ) : movies.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <span className="text-5xl mb-4">🎬</span>
-            <h3 className="font-display text-xl text-text-secondary mb-2">No movies match your filters</h3>
-            <p className="text-text-muted text-sm font-sans mb-6">
+            <h3 className="font-display text-xl text-tx-secondary mb-2">No movies match your filters</h3>
+            <p className="text-tx-muted text-sm font-sans mb-6">
               Try removing some filters to see more results.
             </p>
             <button
@@ -246,7 +246,7 @@ export default function MoviesPage() {
             {/* Page numbers (show at most 7) */}
             {buildPageRange(page, totalPages).map((p, i) =>
               p === '…' ? (
-                <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-text-muted text-sm font-sans">…</span>
+                <span key={`ellipsis-${i}`} className="w-9 h-9 flex items-center justify-center text-tx-muted text-sm font-sans">…</span>
               ) : (
                 <PaginationBtn
                   key={p}
@@ -288,23 +288,23 @@ function SortDropdown({ value, onChange }: { value: string; onChange: (v: string
     <div ref={ref} className="relative shrink-0">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface2 border border-border-strong text-sm font-sans text-text-primary hover:border-accent-indigo/60 transition-colors"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-section border border-border-m text-sm font-sans text-tx-primary hover:border-brand/60 transition-colors"
       >
-        <span className="text-text-muted">↕</span>
+        <span className="text-tx-muted">↕</span>
         <span className="font-semibold">{activeLabel}</span>
-        <span className={`text-text-muted text-xs transition-transform duration-150 ${open ? 'rotate-180' : ''}`}>▾</span>
+        <span className={`text-tx-muted text-xs transition-transform duration-150 ${open ? 'rotate-180' : ''}`}>▾</span>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1.5 w-40 rounded-xl bg-bg-surface border border-border-strong shadow-[0_8px_32px_rgba(0,0,0,0.5)] z-50 overflow-hidden py-1">
+        <div className="absolute right-0 top-full mt-1.5 w-40 rounded-xl bg-card border border-border-m shadow-[0_8px_32px_rgba(0,0,0,0.5)] z-50 overflow-hidden py-1">
           {SORTS.map((s) => (
             <button
               key={s.value}
               onClick={() => { onChange(s.value); setOpen(false); }}
               className={`w-full text-left px-4 py-2.5 text-sm font-sans transition-colors ${
                 s.value === value
-                  ? 'text-accent-indigo bg-accent-indigo/10 font-semibold'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface2'
+                  ? 'text-brand bg-brand/10 font-semibold'
+                  : 'text-tx-secondary hover:text-tx-primary hover:bg-section'
               }`}
             >
               {s.label}
@@ -326,8 +326,8 @@ function PaginationBtn({ label, active, disabled, onClick }: PBtnProps) {
         active
           ? 'bg-gradient-to-r from-accent-indigo to-accent-purple text-white'
           : disabled
-          ? 'text-text-muted cursor-default bg-bg-surface'
-          : 'bg-bg-surface text-text-secondary hover:text-text-primary border border-border-default'
+          ? 'text-tx-muted cursor-default bg-card'
+          : 'bg-card text-tx-secondary hover:text-tx-primary border border-border-l'
       }`}
     >
       {label}
