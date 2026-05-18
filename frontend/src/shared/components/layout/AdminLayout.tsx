@@ -33,24 +33,24 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-bg-surface font-sans">
+    <div className="flex min-h-screen bg-card font-sans">
       {/* Sidebar */}
       <aside
         className={cn(
-          'flex flex-col flex-shrink-0 border-r border-border-default bg-bg-base transition-[width] duration-[220ms]',
+          'flex flex-col flex-shrink-0 border-r border-border-l bg-page transition-[width] duration-[220ms]',
           collapsed ? 'w-[60px]' : 'w-[240px]'
         )}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-border-default">
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-border-l">
           {!collapsed && (
-            <span className="font-display font-bold text-base text-text-primary truncate">
-              Book<span className="text-accent-crimson">Karoo</span>
+            <span className="font-display font-bold text-base text-tx-primary truncate">
+              Book<span className="text-brand">Karoo</span>
             </span>
           )}
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="ml-auto text-text-muted hover:text-text-primary p-1 rounded flex-shrink-0"
+            className="ml-auto text-tx-muted hover:text-tx-primary p-1 rounded flex-shrink-0"
           >
             {collapsed ? <Menu size={18} /> : <X size={18} />}
           </button>
@@ -68,8 +68,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                 className={cn(
                   'flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors duration-150',
                   active
-                    ? 'bg-accent-crimson/12 text-accent-crimson border border-accent-crimson/25'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-bg-surface2',
+                    ? 'bg-brand/12 text-brand border border-brand/25'
+                    : 'text-tx-secondary hover:text-tx-primary hover:bg-section',
                   collapsed && 'justify-center px-2'
                 )}
               >
@@ -81,12 +81,12 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         {/* View Site + Sign out — directly below Settings, not at page bottom */}
-        <div className={cn('border-t border-border-default mx-2 mt-1 pt-2 pb-3 space-y-0.5', collapsed && 'flex flex-col items-center mx-0 px-2')}>
+        <div className={cn('border-t border-border-l mx-2 mt-1 pt-2 pb-3 space-y-0.5', collapsed && 'flex flex-col items-center mx-0 px-2')}>
           <Link
             to={ROUTES.HOME}
             title="View Site"
             className={cn(
-              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors w-full',
+              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-tx-secondary hover:text-tx-primary hover:bg-section transition-colors w-full',
               collapsed && 'justify-center w-auto px-2'
             )}
           >
@@ -98,7 +98,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
             onClick={handleLogout}
             title="Sign out"
             className={cn(
-              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-text-muted hover:text-semantic-error hover:bg-semantic-error/08 transition-colors w-full',
+              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-tx-muted hover:text-error hover:bg-error-bg/08 transition-colors w-full',
               collapsed && 'justify-center w-auto px-2'
             )}
           >
@@ -107,7 +107,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
           </button>
 
           {!collapsed && (
-            <p className="text-[11px] text-text-muted truncate px-3 pt-1">{user?.email}</p>
+            <p className="text-[11px] text-tx-muted truncate px-3 pt-1">{user?.email}</p>
           )}
         </div>
 
@@ -116,7 +116,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-auto bg-bg-surface">
+      <main className="flex-1 overflow-auto bg-card">
         {children}
       </main>
     </div>
