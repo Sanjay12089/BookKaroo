@@ -67,13 +67,13 @@ export default function ShowtimesPage() {
 
         {/* Movie mini-header */}
         <header className="flex gap-4 items-center py-6 mb-2">
-          <div className="w-14 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 flex-shrink-0">
+          <div className="w-14 aspect-[2/3] rounded-lg overflow-hidden bg-section flex-shrink-0">
             {posterUrl
               ? <img src={posterUrl} alt={movie?.title} className="w-full h-full object-cover" />
-              : <div className="w-full h-full bg-gradient-to-br from-bg-surface2 to-bg-surface3" />}
+              : <div className="w-full h-full bg-gradient-to-br from-section to-border-l" />}
           </div>
           <div>
-            <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">Showtimes</p>
+            <p className="text-[11px] font-semibold text-tx-muted tracking-widest uppercase font-sans mb-1">Showtimes</p>
             {movieLoading
               ? <Skeleton height={32} width={240} />
               : <h1 className="font-display font-bold text-2xl md:text-3xl tracking-tight">{movie?.title}</h1>}
@@ -86,7 +86,7 @@ export default function ShowtimesPage() {
         </header>
 
         {/* Date strip (sticky) */}
-        <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 bg-bg-base/95 backdrop-blur-md border-b border-border-default mb-6">
+        <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 bg-page/95 backdrop-blur-md border-b border-border-l mb-6">
           <div className="flex gap-2 overflow-x-auto pt-3 pb-1 [scrollbar-width:none]">
             {DATES.map((d, i) => (
               <button
@@ -96,7 +96,7 @@ export default function ShowtimesPage() {
                   'flex-shrink-0 w-[76px] py-3 rounded-xl text-center transition-all duration-150 font-sans',
                   dateIdx === i
                     ? 'bg-gradient-to-br from-accent-indigo to-accent-purple text-white shadow-[0_8px_24px_rgba(99,102,241,0.4)]'
-                    : 'bg-bg-surface border border-border-default text-text-secondary hover:border-border-strong'
+                    : 'bg-card border border-border-l text-tx-secondary hover:border-border-m'
                 )}
               >
                 <div className="text-[10px] uppercase tracking-wider opacity-80">{d.label}</div>
@@ -109,16 +109,16 @@ export default function ShowtimesPage() {
 
         {/* No city selected */}
         {!cityId && (
-          <div className="rounded-xl bg-bg-surface border border-border-default p-8 text-center mb-6">
-            <p className="text-text-secondary font-sans mb-3">Select a city to see showtimes near you.</p>
+          <div className="rounded-xl bg-card border border-border-l p-8 text-center mb-6">
+            <p className="text-tx-secondary font-sans mb-3">Select a city to see showtimes near you.</p>
           </div>
         )}
 
         {/* Legend */}
         {cityId && (
-          <div className="flex gap-4 flex-wrap mb-5 p-4 rounded-xl bg-bg-surface border border-border-default text-xs font-sans">
+          <div className="flex gap-4 flex-wrap mb-5 p-4 rounded-xl bg-card border border-border-l text-xs font-sans">
             {AVAIL_LEGEND.map(({ color, label }) => (
-              <span key={label} className="flex items-center gap-1.5 text-text-secondary">
+              <span key={label} className="flex items-center gap-1.5 text-tx-secondary">
                 <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: color }} />
                 {label}
               </span>
@@ -128,7 +128,7 @@ export default function ShowtimesPage() {
 
         {/* Mobile sticky CTA */}
         {selectedShowId && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-bg-surface/95 backdrop-blur-md border-t border-border-default lg:hidden">
+          <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-card/95 backdrop-blur-md border-t border-border-l lg:hidden">
             <Link to={ROUTES.SEAT_SELECTION(selectedShowId)}>
               <button className="w-full py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-base font-sans shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)]">
                 Choose Seats →
@@ -143,18 +143,18 @@ export default function ShowtimesPage() {
             {showsLoading ? (
               Array.from({ length: 3 }, (_, i) => <Skeleton key={i} height={180} className="rounded-xl mb-3" />)
             ) : venues.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl bg-bg-surface border border-border-default">
+              <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl bg-card border border-border-l">
                 <span className="text-4xl mb-3">🎭</span>
-                <p className="text-text-secondary font-sans">
+                <p className="text-tx-secondary font-sans">
                   {cityId
                     ? `No shows on ${DATES[dateIdx].label} in ${selectedCity?.name ?? 'this city'}.`
                     : 'Select a city to see showtimes.'}
                 </p>
-                <p className="text-text-muted text-sm mt-1 font-sans">Try another date or change your city.</p>
+                <p className="text-tx-muted text-sm mt-1 font-sans">Try another date or change your city.</p>
               </div>
             ) : (
               <>
-                <p className="text-xs text-text-muted font-sans mb-4">
+                <p className="text-xs text-tx-muted font-sans mb-4">
                   {venues.length} cinema{venues.length === 1 ? '' : 's'} showing this film
                   {selectedCity?.name ? ` in ${selectedCity.name}` : ''}
                 </p>
@@ -173,13 +173,13 @@ export default function ShowtimesPage() {
 
           {/* Sticky sidebar */}
           <aside className="hidden lg:block">
-            <div className="sticky top-28 p-5 rounded-xl bg-bg-surface border border-border-default">
+            <div className="sticky top-28 p-5 rounded-xl bg-card border border-border-l">
               <h4 className="font-semibold text-sm mb-4 font-sans">Your selection</h4>
               {!selectedShowId ? (
-                <p className="text-text-muted text-sm text-center py-6 font-sans">Tap a showtime to continue.</p>
+                <p className="text-tx-muted text-sm text-center py-6 font-sans">Tap a showtime to continue.</p>
               ) : (
                 <div className="space-y-3">
-                  <p className="text-sm text-text-secondary font-sans">Show selected ✓</p>
+                  <p className="text-sm text-tx-secondary font-sans">Show selected ✓</p>
                   <Link to={ROUTES.SEAT_SELECTION(selectedShowId)}>
                     <button className="w-full py-3 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-sm font-sans shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)]">
                       Choose Seats →
@@ -189,9 +189,9 @@ export default function ShowtimesPage() {
               )}
             </div>
 
-            <div className="mt-4 p-5 rounded-xl bg-bg-surface border border-border-default">
-              <h4 className="font-semibold text-xs text-text-muted uppercase tracking-wider mb-3 font-sans">Why BookKaroo</h4>
-              <ul className="text-sm text-text-muted font-sans space-y-2">
+            <div className="mt-4 p-5 rounded-xl bg-card border border-border-l">
+              <h4 className="font-semibold text-xs text-tx-muted uppercase tracking-wider mb-3 font-sans">Why BookKaroo</h4>
+              <ul className="text-sm text-tx-muted font-sans space-y-2">
                 <li>✓ Reserved seats · No queue</li>
                 <li>✓ Free reschedule (4h before)</li>
                 <li>✓ Instant M-Tickets</li>

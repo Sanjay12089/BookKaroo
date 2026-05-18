@@ -42,7 +42,7 @@ const AVAIL_CLASSES: Record<ShowtimeItem['availability'], string> = {
   green:    'bg-emerald-500/10 border-emerald-500/40 text-emerald-400',
   orange:   'bg-amber-500/10  border-amber-500/40  text-amber-400',
   red:      'bg-rose-500/10   border-rose-500/40   text-rose-400',
-  sold_out: 'bg-bg-surface3  border-border-default text-text-muted cursor-not-allowed opacity-50',
+  sold_out: 'bg-section  border-border-l text-tx-muted cursor-not-allowed opacity-50',
 };
 
 export function ShowtimeVenueCard({ venue, selectedShowId, onSelectShow, selectedDate }: Props) {
@@ -51,7 +51,7 @@ export function ShowtimeVenueCard({ venue, selectedShowId, onSelectShow, selecte
     : 0;
 
   return (
-    <div className="p-5 rounded-xl bg-bg-surface border border-border-default hover:border-border-strong transition-colors duration-150 mb-3">
+    <div className="p-5 rounded-xl bg-card border border-border-l hover:border-border-m transition-colors duration-150 mb-3">
       {/* Venue header */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className="flex items-start gap-3">
@@ -59,10 +59,10 @@ export function ShowtimeVenueCard({ venue, selectedShowId, onSelectShow, selecte
             🎬
           </div>
           <div>
-            <h3 className="font-semibold text-text-primary text-base leading-snug">{venue.venueName}</h3>
-            <div className="flex gap-2 items-center text-xs text-text-muted font-sans mt-0.5 flex-wrap">
+            <h3 className="font-semibold text-tx-primary text-base leading-snug">{venue.venueName}</h3>
+            <div className="flex gap-2 items-center text-xs text-tx-muted font-sans mt-0.5 flex-wrap">
               {venue.venueArea && <span>{venue.venueArea}</span>}
-              {venue.distance  && <><span>·</span><span className="font-medium text-text-secondary">{venue.distance}</span></>}
+              {venue.distance  && <><span>·</span><span className="font-medium text-tx-secondary">{venue.distance}</span></>}
               <span>·</span>
               <span>from <strong className="text-emerald-400">₹{lowestPrice}</strong></span>
             </div>
@@ -73,7 +73,7 @@ export function ShowtimeVenueCard({ venue, selectedShowId, onSelectShow, selecte
                 {venue.amenities.map((a) => (
                   <span
                     key={a}
-                    className="text-[10px] px-2 py-0.5 rounded-full bg-bg-surface2 border border-border-default text-text-secondary font-sans"
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-section border border-border-l text-tx-secondary font-sans"
                   >
                     {AMENITY_ICONS[a] ?? '·'} {a}
                   </span>
@@ -100,9 +100,9 @@ export function ShowtimeVenueCard({ venue, selectedShowId, onSelectShow, selecte
               className={cn(
                 'flex flex-col gap-0.5 text-left px-3.5 py-2 rounded-lg border-2 transition-all duration-150',
                 isSelected
-                  ? 'border-accent-crimson bg-accent-crimson/10 text-accent-crimson shadow-[0_0_0_2px_rgba(229,9,20,0.25)] scale-105'
+                  ? 'border-brand bg-brand/10 text-brand shadow-[0_0_0_2px_rgba(229,9,20,0.25)] scale-105'
                   : isPast
-                    ? 'bg-bg-surface3 border-border-default text-text-muted cursor-not-allowed opacity-40'
+                    ? 'bg-section border-border-l text-tx-muted cursor-not-allowed opacity-40'
                     : [AVAIL_CLASSES[show.availability], !isSold && 'hover:scale-105'],
               )}
             >
@@ -113,7 +113,7 @@ export function ShowtimeVenueCard({ venue, selectedShowId, onSelectShow, selecte
                 {isPast ? 'Show ended' : `${show.format} · ${show.language}`}
               </span>
               {isSelected && (
-                <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5 text-accent-crimson">
+                <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5 text-brand">
                   Selected ✓
                 </span>
               )}
