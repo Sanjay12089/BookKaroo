@@ -7,10 +7,10 @@ import { useAdminBookings } from '../api/useAdmin';
 import type { AdminBooking, AdminBookingFilters } from '../types';
 
 const STATUS_CLASSES: Record<string, string> = {
-  Confirmed: 'bg-semantic-success/15 text-semantic-success',
-  Cancelled: 'bg-accent-crimson/15 text-accent-crimson',
+  Confirmed: 'bg-success-bg/15 text-success',
+  Cancelled: 'bg-brand/15 text-brand',
   Pending:   'bg-amber-500/15 text-amber-400',
-  Refunded:  'bg-accent-indigo/15 text-accent-indigo',
+  Refunded:  'bg-brand/15 text-brand',
 };
 
 function fmt(n: number) {
@@ -88,8 +88,8 @@ export default function AdminBookingsPage() {
       key: 'booking', header: 'Booking',
       render: (b) => (
         <div>
-          <p className="font-mono text-[12px] text-accent-indigo font-semibold">{b.bookingRef}</p>
-          <p className="text-[11px] text-text-muted">{relativeTime(b.createdAt)}</p>
+          <p className="font-mono text-[12px] text-brand font-semibold">{b.bookingRef}</p>
+          <p className="text-[11px] text-tx-muted">{relativeTime(b.createdAt)}</p>
         </div>
       ),
     },
@@ -101,8 +101,8 @@ export default function AdminBookingsPage() {
             {b.userName.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-text-primary line-clamp-1">{b.userName}</p>
-            <p className="text-[11px] text-text-muted truncate max-w-[160px]">{b.userEmail}</p>
+            <p className="text-[13px] font-semibold text-tx-primary line-clamp-1">{b.userName}</p>
+            <p className="text-[11px] text-tx-muted truncate max-w-[160px]">{b.userEmail}</p>
           </div>
         </div>
       ),
@@ -118,11 +118,11 @@ export default function AdminBookingsPage() {
             />
           )}
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-text-primary line-clamp-1 max-w-[140px]">
+            <p className="text-[13px] font-semibold text-tx-primary line-clamp-1 max-w-[140px]">
               {b.movieTitle ?? b.eventTitle ?? '—'}
             </p>
-            <p className="text-[11px] text-text-muted">{b.showDateLabel}</p>
-            <p className="text-[11px] text-text-muted">{b.showTimeLabel}</p>
+            <p className="text-[11px] text-tx-muted">{b.showDateLabel}</p>
+            <p className="text-[11px] text-tx-muted">{b.showTimeLabel}</p>
           </div>
         </div>
       ),
@@ -131,8 +131,8 @@ export default function AdminBookingsPage() {
       key: 'venue', header: 'Venue',
       render: (b) => (
         <div>
-          <p className="text-[13px] text-text-primary line-clamp-1">{b.venueName}</p>
-          <p className="text-[11px] text-text-muted">{b.cityName}</p>
+          <p className="text-[13px] text-tx-primary line-clamp-1">{b.venueName}</p>
+          <p className="text-[11px] text-tx-muted">{b.cityName}</p>
         </div>
       ),
     },
@@ -140,9 +140,9 @@ export default function AdminBookingsPage() {
       key: 'seats', header: 'Seats',
       render: (b) => (
         <div>
-          <p className="text-[13px] font-semibold text-text-primary">{b.ticketQty} seat{b.ticketQty !== 1 ? 's' : ''}</p>
+          <p className="text-[13px] font-semibold text-tx-primary">{b.ticketQty} seat{b.ticketQty !== 1 ? 's' : ''}</p>
           {b.seatsSummary && (
-            <p className="text-[11px] text-text-muted line-clamp-1 max-w-[128px]">{b.seatsSummary}</p>
+            <p className="text-[11px] text-tx-muted line-clamp-1 max-w-[128px]">{b.seatsSummary}</p>
           )}
         </div>
       ),
@@ -151,15 +151,15 @@ export default function AdminBookingsPage() {
       key: 'amount', header: 'Amount',
       render: (b) => (
         <div className="text-right">
-          <p className="text-[13px] font-semibold text-text-primary">{fmt(b.amountPaid)}</p>
-          {b.discount > 0 && <p className="text-[10px] text-semantic-success">saved {fmt(b.discount)}</p>}
+          <p className="text-[13px] font-semibold text-tx-primary">{fmt(b.amountPaid)}</p>
+          {b.discount > 0 && <p className="text-[10px] text-success">saved {fmt(b.discount)}</p>}
         </div>
       ),
     },
     {
       key: 'status', header: 'Status',
       render: (b) => (
-        <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${STATUS_CLASSES[b.status] ?? 'bg-bg-surface2 text-text-muted'}`}>
+        <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${STATUS_CLASSES[b.status] ?? 'bg-section text-tx-muted'}`}>
           {b.status}
         </span>
       ),
@@ -169,7 +169,7 @@ export default function AdminBookingsPage() {
       render: (b) => (
         <button
           onClick={(e) => { e.stopPropagation(); setSelectedRef(b.bookingRef); }}
-          className="px-2 py-1 rounded-lg border border-border-default text-text-secondary text-[11px] hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+          className="px-2 py-1 rounded-lg border border-border-l text-tx-secondary text-[11px] hover:border-brand hover:text-brand transition-colors"
         >
           View
         </button>
@@ -185,9 +185,9 @@ export default function AdminBookingsPage() {
           <div>
             <h1 className="font-display font-bold text-2xl mb-1 tracking-tight">
               Bookings
-              {data && <span className="ml-2 text-base font-normal text-text-muted">({data.total})</span>}
+              {data && <span className="ml-2 text-base font-normal text-tx-muted">({data.total})</span>}
             </h1>
-            <p className="text-text-muted text-sm font-sans">View and manage all ticket bookings.</p>
+            <p className="text-tx-muted text-sm font-sans">View and manage all ticket bookings.</p>
           </div>
         </div>
 
@@ -196,15 +196,15 @@ export default function AdminBookingsPage() {
           {/* Row 1 */}
           <div className="flex flex-wrap gap-3">
             <div className="relative flex-1 min-w-48">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-tx-muted" />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search booking ref, name, email…"
-                className="w-full pl-8 pr-8 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+                className="w-full pl-8 pr-8 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">
+                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-tx-muted hover:text-tx-primary">
                   <X size={12} />
                 </button>
               )}
@@ -212,7 +212,7 @@ export default function AdminBookingsPage() {
             <select
               value={status}
               onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+              className="px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand [color-scheme:dark]"
             >
               <option value="">All Statuses</option>
               <option value="Pending">Pending</option>
@@ -225,27 +225,27 @@ export default function AdminBookingsPage() {
           {/* Row 2 */}
           <div className="flex flex-wrap gap-3 items-center">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-text-muted whitespace-nowrap">From</label>
+              <label className="text-sm text-tx-muted whitespace-nowrap">From</label>
               <input
                 type="date"
                 value={fromDate}
                 onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
-                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+                className="px-2 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand"
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-text-muted whitespace-nowrap">To</label>
+              <label className="text-sm text-tx-muted whitespace-nowrap">To</label>
               <input
                 type="date"
                 value={toDate}
                 onChange={(e) => { setToDate(e.target.value); setPage(1); }}
-                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+                className="px-2 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand"
               />
             </div>
             {!isDefaultFilter && (
               <button
                 onClick={clearFilters}
-                className="text-sm text-accent-indigo hover:underline flex items-center gap-1 whitespace-nowrap"
+                className="text-sm text-brand hover:underline flex items-center gap-1 whitespace-nowrap"
               >
                 <X size={12} /> Clear filters
               </button>
@@ -256,10 +256,10 @@ export default function AdminBookingsPage() {
         {/* Summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
           {summaryItems.map(({ label, value }) => (
-            <div key={label} className="rounded-xl border border-border-default bg-bg-surface p-3">
-              <p className="text-[11px] text-text-muted uppercase tracking-wider mb-1">{label}</p>
-              <p className="text-lg font-bold text-text-primary font-display">{isLoading ? '…' : value}</p>
-              <p className="text-[10px] text-text-muted font-sans">(filtered)</p>
+            <div key={label} className="rounded-xl border border-border-l bg-card p-3">
+              <p className="text-[11px] text-tx-muted uppercase tracking-wider mb-1">{label}</p>
+              <p className="text-lg font-bold text-tx-primary font-display">{isLoading ? '…' : value}</p>
+              <p className="text-[10px] text-tx-muted font-sans">(filtered)</p>
             </div>
           ))}
         </div>
@@ -275,11 +275,11 @@ export default function AdminBookingsPage() {
         {/* Pagination */}
         {data && data.totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
-            <p className="text-sm text-text-muted">{data.total} bookings</p>
+            <p className="text-sm text-tx-muted">{data.total} bookings</p>
             <div className="flex gap-2">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">← Prev</button>
-              <span className="px-3 py-1 text-sm text-text-primary">Page {page} / {data.totalPages}</span>
-              <button disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">Next →</button>
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1 rounded-lg border border-border-l text-sm text-tx-secondary disabled:opacity-40">← Prev</button>
+              <span className="px-3 py-1 text-sm text-tx-primary">Page {page} / {data.totalPages}</span>
+              <button disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 rounded-lg border border-border-l text-sm text-tx-secondary disabled:opacity-40">Next →</button>
             </div>
           </div>
         )}

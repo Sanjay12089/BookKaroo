@@ -34,7 +34,7 @@ export function KpiCard({
 }: KpiCardProps) {
   if (isLoading) {
     return (
-      <div className="p-5 rounded-xl bg-bg-surface border border-border-default space-y-3">
+      <div className="p-5 rounded-xl bg-card border border-border-l space-y-3">
         <Skeleton height={11} width="55%" />
         <Skeleton height={28} width="70%" />
         <Skeleton height={11} width="40%" />
@@ -43,9 +43,9 @@ export function KpiCard({
   }
 
   return (
-    <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
+    <div className="p-5 rounded-xl bg-card border border-border-l">
       <div className="flex items-start justify-between mb-3">
-        <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans">
+        <p className="text-[11px] font-semibold text-tx-muted tracking-widest uppercase font-sans">
           {title}
         </p>
         <div
@@ -56,17 +56,17 @@ export function KpiCard({
         </div>
       </div>
 
-      <p className="font-display font-black text-[28px] text-text-primary leading-none">
+      <p className="font-display font-black text-[28px] text-tx-primary leading-none">
         {value}
       </p>
 
       {subtitle && (
-        <p className="text-xs text-text-muted font-sans mt-1">{subtitle}</p>
+        <p className="text-xs text-tx-muted font-sans mt-1">{subtitle}</p>
       )}
 
       {trend && (
         <div className={cn('flex items-center gap-1 mt-2 text-xs font-sans font-semibold',
-          trend.positive ? 'text-semantic-success' : 'text-semantic-error')}>
+          trend.positive ? 'text-success' : 'text-error')}>
           {trend.positive
             ? <TrendingUp size={12} />
             : <TrendingDown size={12} />}

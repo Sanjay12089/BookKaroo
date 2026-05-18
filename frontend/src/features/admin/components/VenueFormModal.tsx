@@ -122,10 +122,10 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
   return (
     <Modal open onClose={onClose} maxWidth="max-w-2xl">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display font-bold text-xl text-text-primary">
+        <h2 className="font-display font-bold text-xl text-tx-primary">
           {mode === 'create' ? 'Add New Venue' : 'Edit Venue'}
         </h2>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
+        <button onClick={onClose} className="text-tx-muted hover:text-tx-primary transition-colors">
           <X size={20} />
         </button>
       </div>
@@ -133,16 +133,16 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
       <form onSubmit={onSubmit} className="space-y-5 max-h-[75vh] overflow-y-auto pr-1">
         {/* Basic Information */}
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Basic Information</h3>
+          <h3 className="text-sm font-semibold text-tx-muted uppercase tracking-wider">Basic Information</h3>
 
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Venue Name *</label>
-            <input {...register('name')} className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" placeholder="e.g. PVR Acropolis" />
-            {errors.name && <p className="text-xs text-semantic-error mt-1">{errors.name.message}</p>}
+            <label className="block text-sm font-medium text-tx-primary mb-1">Venue Name *</label>
+            <input {...register('name')} className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" placeholder="e.g. PVR Acropolis" />
+            {errors.name && <p className="text-xs text-error mt-1">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Chain</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Chain</label>
             <div className="flex flex-wrap gap-2 mb-2">
               {CHAINS.map((c) => (
                 <button
@@ -152,66 +152,66 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
                   className={cn(
                     'px-3 py-1.5 rounded-lg text-sm border-2 transition-all',
                     selectedChain === c
-                      ? 'border-accent-crimson bg-accent-crimson text-white'
-                      : 'border-border-default text-text-secondary hover:border-accent-indigo'
+                      ? 'border-brand bg-brand text-white'
+                      : 'border-border-l text-tx-secondary hover:border-brand'
                   )}
                 >{c}</button>
               ))}
             </div>
             {showCustomChain && (
-              <input {...register('customChain')} placeholder="Enter chain name" className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
+              <input {...register('customChain')} placeholder="Enter chain name" className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" />
             )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Address *</label>
-            <textarea {...register('address')} rows={3} className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo resize-none" placeholder="Full venue address" />
-            {errors.address && <p className="text-xs text-semantic-error mt-1">{errors.address.message}</p>}
+            <label className="block text-sm font-medium text-tx-primary mb-1">Address *</label>
+            <textarea {...register('address')} rows={3} className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand resize-none" placeholder="Full venue address" />
+            {errors.address && <p className="text-xs text-error mt-1">{errors.address.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">City *</label>
-            <select {...register('cityId')} className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]">
+            <label className="block text-sm font-medium text-tx-primary mb-1">City *</label>
+            <select {...register('cityId')} className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand [color-scheme:dark]">
               <option value="">— Select City —</option>
               {cities?.map((c) => <option key={c.id} value={c.id}>{c.name}, {c.state}</option>)}
             </select>
-            {errors.cityId && <p className="text-xs text-semantic-error mt-1">{errors.cityId.message}</p>}
+            {errors.cityId && <p className="text-xs text-error mt-1">{errors.cityId.message}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Contact Phone</label>
-              <input {...register('contactPhone')} className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" placeholder="+91 98765 43210" />
+              <label className="block text-sm font-medium text-tx-primary mb-1">Contact Phone</label>
+              <input {...register('contactPhone')} className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" placeholder="+91 98765 43210" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Contact Email</label>
-              <input {...register('contactEmail')} type="email" className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" placeholder="venue@example.com" />
-              {errors.contactEmail && <p className="text-xs text-semantic-error mt-1">{errors.contactEmail.message}</p>}
+              <label className="block text-sm font-medium text-tx-primary mb-1">Contact Email</label>
+              <input {...register('contactEmail')} type="email" className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" placeholder="venue@example.com" />
+              {errors.contactEmail && <p className="text-xs text-error mt-1">{errors.contactEmail.message}</p>}
             </div>
           </div>
         </section>
 
         {/* Location */}
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Location (optional)</h3>
+          <h3 className="text-sm font-semibold text-tx-muted uppercase tracking-wider">Location (optional)</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Latitude</label>
-              <input {...register('latitude', { valueAsNumber: true })} type="number" step="0.000001" className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" placeholder="23.022505" />
+              <label className="block text-sm font-medium text-tx-primary mb-1">Latitude</label>
+              <input {...register('latitude', { valueAsNumber: true })} type="number" step="0.000001" className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" placeholder="23.022505" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-text-primary mb-1">Longitude</label>
-              <input {...register('longitude', { valueAsNumber: true })} type="number" step="0.000001" className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" placeholder="72.571362" />
+              <label className="block text-sm font-medium text-tx-primary mb-1">Longitude</label>
+              <input {...register('longitude', { valueAsNumber: true })} type="number" step="0.000001" className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" placeholder="72.571362" />
             </div>
           </div>
           {lat && lng && !isNaN(lat) && !isNaN(lng) && (
-            <p className="text-xs text-semantic-success">Location set: {lat.toFixed(6)}, {lng.toFixed(6)}</p>
+            <p className="text-xs text-success">Location set: {lat.toFixed(6)}, {lng.toFixed(6)}</p>
           )}
         </section>
 
         {/* Amenities */}
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Amenities</h3>
+          <h3 className="text-sm font-semibold text-tx-muted uppercase tracking-wider">Amenities</h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {AMENITY_OPTIONS.map((a) => {
               const active = selectedAmenities?.includes(a.value);
@@ -223,15 +223,15 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
                   className={cn(
                     'flex items-center gap-2 px-3 py-2 rounded-lg text-sm border-2 text-left transition-all',
                     active
-                      ? 'border-accent-crimson bg-accent-crimson/15 text-accent-crimson font-semibold'
-                      : 'border-border-default bg-bg-surface2 text-text-secondary hover:border-accent-indigo'
+                      ? 'border-brand bg-brand/15 text-brand font-semibold'
+                      : 'border-border-l bg-section text-tx-secondary hover:border-brand'
                   )}
                 >
                   <span className={cn(
                     'flex-shrink-0 w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] font-bold transition-all',
                     active
-                      ? 'border-accent-crimson bg-accent-crimson text-white'
-                      : 'border-border-default'
+                      ? 'border-brand bg-brand text-white'
+                      : 'border-border-l'
                   )}>
                     {active ? '✓' : ''}
                   </span>
@@ -244,7 +244,7 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
 
         {/* Status */}
         <section className="space-y-2">
-          <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Status</h3>
+          <h3 className="text-sm font-semibold text-tx-muted uppercase tracking-wider">Status</h3>
           <Controller
             control={control}
             name="isActive"
@@ -255,7 +255,7 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
               >
                 <div className={cn(
                   'relative w-14 h-7 rounded-full transition-colors duration-200 flex-shrink-0',
-                  field.value ? 'bg-semantic-success' : 'bg-bg-surface3 border border-border-default'
+                  field.value ? 'bg-success-bg' : 'bg-section border border-border-l'
                 )}>
                   <div className={cn(
                     'absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow-sm transition-transform duration-200',
@@ -264,7 +264,7 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
                 </div>
                 <span className={cn(
                   'text-sm font-medium',
-                  field.value ? 'text-semantic-success' : 'text-text-muted'
+                  field.value ? 'text-success' : 'text-tx-muted'
                 )}>
                   {field.value ? 'Active' : 'Inactive'}
                 </span>
@@ -274,18 +274,18 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
         </section>
 
         {/* Footer */}
-        <div className="flex gap-3 pt-3 border-t border-border-default sticky bottom-0 bg-bg-surface pb-1">
+        <div className="flex gap-3 pt-3 border-t border-border-l sticky bottom-0 bg-card pb-1">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 hover:text-text-primary transition-colors text-sm font-semibold font-sans"
+            className="px-5 py-2.5 rounded-lg border border-border-l text-tx-secondary hover:bg-section hover:text-tx-primary transition-colors text-sm font-semibold font-sans"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="flex-1 px-5 py-2.5 rounded-lg bg-accent-crimson text-white text-sm font-bold font-sans disabled:opacity-60 hover:opacity-90 transition-opacity shadow-sm"
+            className="flex-1 px-5 py-2.5 rounded-lg bg-brand text-white text-sm font-bold font-sans disabled:opacity-60 hover:opacity-90 transition-opacity shadow-sm"
           >
             {isLoading ? 'Saving…' : mode === 'create' ? 'Create Venue' : 'Save Changes'}
           </button>

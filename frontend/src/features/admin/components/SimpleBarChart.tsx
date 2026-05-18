@@ -38,7 +38,7 @@ export function SimpleBarChart({
               {isHovered && d.value > 0 && (
                 <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-10
                   px-2 py-0.5 rounded text-[10px] font-semibold font-sans
-                  bg-bg-base border border-border-default text-text-primary whitespace-nowrap">
+                  bg-page border border-border-l text-tx-primary whitespace-nowrap">
                   {d.value}
                 </div>
               )}
@@ -55,9 +55,9 @@ export function SimpleBarChart({
               />
             </div>
             {showValues && (
-              <span className="text-[10px] text-text-muted font-sans">{d.value}</span>
+              <span className="text-[10px] text-tx-muted font-sans">{d.value}</span>
             )}
-            <span className="text-[10px] text-text-muted font-sans">{d.label}</span>
+            <span className="text-[10px] text-tx-muted font-sans">{d.label}</span>
           </div>
         );
       })}

@@ -19,19 +19,19 @@ interface DeleteModalProps {
 function DeleteConfirmModal({ banner, onConfirm, onClose, loading }: DeleteModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="w-full max-w-sm bg-bg-surface rounded-2xl border border-border-default shadow-2xl p-6">
-        <h2 className="font-display font-bold text-lg mb-2 text-text-primary">Delete Banner?</h2>
-        <p className="text-sm text-text-secondary font-sans mb-1">
+      <div className="w-full max-w-sm bg-card rounded-2xl border border-border-l shadow-2xl p-6">
+        <h2 className="font-display font-bold text-lg mb-2 text-tx-primary">Delete Banner?</h2>
+        <p className="text-sm text-tx-secondary font-sans mb-1">
           <span className="font-semibold">"{banner.title}"</span> will be removed from the home page.
         </p>
-        <p className="text-xs text-text-muted font-sans mb-5">This action cannot be undone.</p>
+        <p className="text-xs text-tx-muted font-sans mb-5">This action cannot be undone.</p>
         <div className="flex gap-3 justify-end">
           <button onClick={onClose}
-            className="px-4 py-2 rounded-full border border-border-default text-sm font-semibold font-sans hover:bg-bg-surface2 transition-colors">
+            className="px-4 py-2 rounded-full border border-border-l text-sm font-semibold font-sans hover:bg-section transition-colors">
             Cancel
           </button>
           <button onClick={onConfirm} disabled={loading}
-            className="px-4 py-2 rounded-full bg-semantic-error text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all disabled:opacity-50">
+            className="px-4 py-2 rounded-full bg-error-bg text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all disabled:opacity-50">
             {loading ? 'Deleting…' : 'Delete'}
           </button>
         </div>
@@ -48,7 +48,7 @@ function ToggleSwitch({ checked, onChange, loading }: { checked: boolean; onChan
       onClick={onChange}
       disabled={loading}
       className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
-        checked ? 'bg-semantic-success' : 'bg-bg-surface3'
+        checked ? 'bg-success-bg' : 'bg-section'
       }`}
     >
       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
@@ -78,9 +78,9 @@ function BannerCard({ banner, index, total, onEdit, onDelete, onMoveUp, onMoveDn
     s ? new Date(s).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
 
   return (
-    <div className="flex items-center gap-4 p-4 rounded-xl bg-bg-surface border border-border-default hover:border-accent-indigo/30 transition-colors">
+    <div className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border-l hover:border-brand/30 transition-colors">
       {/* Thumbnail */}
-      <div className="flex-shrink-0 w-[120px] h-[68px] rounded-lg overflow-hidden bg-bg-surface2 border border-border-default">
+      <div className="flex-shrink-0 w-[120px] h-[68px] rounded-lg overflow-hidden bg-section border border-border-l">
         {banner.imageUrl ? (
           <img src={banner.imageUrl} alt={banner.title} className="w-full h-full object-cover" />
         ) : (
@@ -90,15 +90,15 @@ function BannerCard({ banner, index, total, onEdit, onDelete, onMoveUp, onMoveDn
 
       {/* Info */}
       <div className="flex-1 min-w-0 px-2">
-        <div className="font-semibold text-text-primary text-sm truncate">{banner.title}</div>
+        <div className="font-semibold text-tx-primary text-sm truncate">{banner.title}</div>
         {banner.imageUrl && (
-          <div className="text-xs text-text-muted font-sans truncate max-w-xs mt-0.5">{banner.imageUrl}</div>
+          <div className="text-xs text-tx-muted font-sans truncate max-w-xs mt-0.5">{banner.imageUrl}</div>
         )}
         {banner.linkUrl && (
-          <div className="text-xs text-text-muted font-sans truncate max-w-xs">{banner.linkUrl}</div>
+          <div className="text-xs text-tx-muted font-sans truncate max-w-xs">{banner.linkUrl}</div>
         )}
         {(banner.startsAt || banner.endsAt) && (
-          <div className="text-xs text-text-muted font-sans mt-0.5">
+          <div className="text-xs text-tx-muted font-sans mt-0.5">
             📅 {fmtDate(banner.startsAt)} → {fmtDate(banner.endsAt)}
           </div>
         )}
@@ -106,7 +106,7 @@ function BannerCard({ banner, index, total, onEdit, onDelete, onMoveUp, onMoveDn
 
       {/* Controls */}
       <div className="flex-shrink-0 flex flex-col items-end gap-2">
-        <span className="font-mono text-xs text-text-muted px-2 py-0.5 rounded-full bg-bg-surface2 border border-border-default">
+        <span className="font-mono text-xs text-tx-muted px-2 py-0.5 rounded-full bg-section border border-border-l">
           #{banner.position + 1}
         </span>
 
@@ -120,23 +120,23 @@ function BannerCard({ banner, index, total, onEdit, onDelete, onMoveUp, onMoveDn
           <button
             onClick={() => onMoveUp(banner.id, index)}
             disabled={index === 0}
-            className="w-6 h-6 flex items-center justify-center rounded text-text-muted hover:text-text-primary hover:bg-bg-surface2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-sm"
+            className="w-6 h-6 flex items-center justify-center rounded text-tx-muted hover:text-tx-primary hover:bg-section transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-sm"
             title="Move up"
           >▲</button>
           <button
             onClick={() => onMoveDn(banner.id, index)}
             disabled={index === total - 1}
-            className="w-6 h-6 flex items-center justify-center rounded text-text-muted hover:text-text-primary hover:bg-bg-surface2 transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-sm"
+            className="w-6 h-6 flex items-center justify-center rounded text-tx-muted hover:text-tx-primary hover:bg-section transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-sm"
             title="Move down"
           >▼</button>
           <button
             onClick={() => onEdit(banner)}
-            className="w-6 h-6 flex items-center justify-center rounded text-accent-indigo hover:bg-accent-indigo/10 transition-colors text-sm"
+            className="w-6 h-6 flex items-center justify-center rounded text-brand hover:bg-brand/10 transition-colors text-sm"
             title="Edit"
           >✏️</button>
           <button
             onClick={() => onDelete(banner.id)}
-            className="w-6 h-6 flex items-center justify-center rounded text-semantic-error hover:bg-semantic-error/10 transition-colors text-sm"
+            className="w-6 h-6 flex items-center justify-center rounded text-error hover:bg-error-bg/10 transition-colors text-sm"
             title="Delete"
           >🗑️</button>
         </div>
@@ -181,11 +181,11 @@ export default function AdminCmsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display font-bold text-2xl tracking-tight">CMS — Home Banners</h1>
-            <p className="text-text-muted text-sm font-sans mt-1">Manage homepage promotional banners.</p>
+            <p className="text-tx-muted text-sm font-sans mt-1">Manage homepage promotional banners.</p>
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="px-4 py-2 rounded-full bg-accent-crimson text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all"
+            className="px-4 py-2 rounded-full bg-brand text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all"
           >
             + Add Banner
           </button>
@@ -194,20 +194,20 @@ export default function AdminCmsPage() {
         {/* Active Preview Strip */}
         {activeBanners.length > 0 && (
           <div className="mb-6">
-            <h2 className="text-sm font-semibold text-text-muted font-sans uppercase tracking-wider mb-2">
+            <h2 className="text-sm font-semibold text-tx-muted font-sans uppercase tracking-wider mb-2">
               Current Active Banners
             </h2>
             <div className="flex gap-3 overflow-x-auto pb-2">
               {activeBanners.map((b) => (
                 <div key={b.id} className="flex-shrink-0 w-40">
-                  <div className="w-40 h-[90px] rounded-lg overflow-hidden bg-bg-surface2 border border-border-default">
+                  <div className="w-40 h-[90px] rounded-lg overflow-hidden bg-section border border-border-l">
                     {b.imageUrl
                       ? <img src={b.imageUrl} alt={b.title} className="w-full h-full object-cover" />
                       : <div className="flex items-center justify-center h-full text-2xl">🖼</div>
                     }
                   </div>
-                  <div className="mt-1 text-xs text-text-secondary font-sans truncate">{b.title}</div>
-                  <div className="mt-0.5 inline-flex px-1.5 py-0.5 rounded-full bg-semantic-success/15 text-semantic-success text-[10px] font-semibold">
+                  <div className="mt-1 text-xs text-tx-secondary font-sans truncate">{b.title}</div>
+                  <div className="mt-0.5 inline-flex px-1.5 py-0.5 rounded-full bg-success-bg/15 text-success text-[10px] font-semibold">
                     Active
                   </div>
                 </div>
@@ -219,20 +219,20 @@ export default function AdminCmsPage() {
         {/* Banner List */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-text-primary font-sans">All Banners ({banners.length})</h2>
-            <p className="text-xs text-text-muted font-sans">💡 Use ▲ ▼ arrows to reorder banners</p>
+            <h2 className="text-sm font-semibold text-tx-primary font-sans">All Banners ({banners.length})</h2>
+            <p className="text-xs text-tx-muted font-sans">💡 Use ▲ ▼ arrows to reorder banners</p>
           </div>
 
           {isLoading && (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 rounded-xl bg-bg-surface2 animate-pulse" />
+                <div key={i} className="h-24 rounded-xl bg-section animate-pulse" />
               ))}
             </div>
           )}
 
           {isError && (
-            <div className="flex items-center justify-center h-40 text-semantic-error text-sm font-sans">
+            <div className="flex items-center justify-center h-40 text-error text-sm font-sans">
               Failed to load banners. Please try again.
             </div>
           )}
@@ -240,11 +240,11 @@ export default function AdminCmsPage() {
           {!isLoading && !isError && banners.length === 0 && (
             <div className="flex flex-col items-center justify-center h-48 gap-3">
               <span className="text-4xl">🖼</span>
-              <p className="text-text-secondary font-sans text-sm">No banners yet</p>
-              <p className="text-text-muted font-sans text-xs">Add your first home page banner</p>
+              <p className="text-tx-secondary font-sans text-sm">No banners yet</p>
+              <p className="text-tx-muted font-sans text-xs">Add your first home page banner</p>
               <button
                 onClick={() => setShowCreate(true)}
-                className="px-4 py-2 rounded-full bg-accent-crimson text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all mt-1"
+                className="px-4 py-2 rounded-full bg-brand text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all mt-1"
               >
                 + Add Banner
               </button>

@@ -32,7 +32,7 @@ export function ReportChart({
   if (data.length === 0) {
     return (
       <div
-        className="flex items-center justify-center text-text-muted text-sm font-sans"
+        className="flex items-center justify-center text-tx-muted text-sm font-sans"
         style={{ height }}
       >
         No data for selected period
@@ -49,12 +49,12 @@ export function ReportChart({
         <div className="flex items-center gap-4 mb-3">
           <div className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: primaryColor }} />
-            <span className="text-xs text-text-muted font-sans">{primaryLabel}</span>
+            <span className="text-xs text-tx-muted font-sans">{primaryLabel}</span>
           </div>
           {data.some((d) => d.secondaryValue !== undefined) && (
             <div className="flex items-center gap-1.5">
               <span className="w-3 h-3 rounded-sm" style={{ backgroundColor: secondaryColor }} />
-              <span className="text-xs text-text-muted font-sans">{secondaryLabel}</span>
+              <span className="text-xs text-tx-muted font-sans">{secondaryLabel}</span>
             </div>
           )}
         </div>
@@ -63,10 +63,10 @@ export function ReportChart({
       <div className="relative" style={{ height }}>
         {tooltip && (
           <div
-            className="absolute z-10 px-2 py-1.5 rounded-lg bg-bg-surface border border-border-default text-xs font-sans shadow-lg pointer-events-none"
+            className="absolute z-10 px-2 py-1.5 rounded-lg bg-card border border-border-l text-xs font-sans shadow-lg pointer-events-none"
             style={{ left: tooltip.x, top: tooltip.y, transform: 'translateX(-50%) translateY(-110%)' }}
           >
-            <div className="font-semibold text-text-primary mb-0.5">{tooltip.label}</div>
+            <div className="font-semibold text-tx-primary mb-0.5">{tooltip.label}</div>
             <div style={{ color: primaryColor }}>{primaryLabel}: {formatValue(tooltip.primary)}</div>
             {tooltip.secondary !== undefined && (
               <div style={{ color: secondaryColor }}>{secondaryLabel}: {tooltip.secondary.toLocaleString()}</div>
@@ -111,7 +111,7 @@ export function ReportChart({
                     />
                   )}
                 </div>
-                <span className="text-[9px] text-text-muted font-sans truncate w-full text-center leading-tight">
+                <span className="text-[9px] text-tx-muted font-sans truncate w-full text-center leading-tight">
                   {d.label.length > 6 ? d.label.slice(0, 6) + '…' : d.label}
                 </span>
               </div>

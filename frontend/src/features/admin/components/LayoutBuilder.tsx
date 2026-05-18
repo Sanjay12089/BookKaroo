@@ -122,53 +122,53 @@ export function LayoutBuilder({ value, onChange }: LayoutBuilderProps) {
       {/* Grid settings */}
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-medium text-text-primary mb-1">Number of Columns *</label>
+          <label className="block text-sm font-medium text-tx-primary mb-1">Number of Columns *</label>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setCols((c) => Math.max(1, c - 1))} className="w-8 h-8 rounded-lg bg-bg-surface2 border border-border-default flex items-center justify-center text-text-primary hover:bg-bg-surface3">−</button>
-            <input type="number" min={1} max={30} value={cols} onChange={(e) => setCols(parseInt(e.target.value) || 1)} className="w-16 text-center px-2 py-1.5 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
-            <button type="button" onClick={() => setCols((c) => Math.min(30, c + 1))} className="w-8 h-8 rounded-lg bg-bg-surface2 border border-border-default flex items-center justify-center text-text-primary hover:bg-bg-surface3">+</button>
+            <button type="button" onClick={() => setCols((c) => Math.max(1, c - 1))} className="w-8 h-8 rounded-lg bg-section border border-border-l flex items-center justify-center text-tx-primary hover:bg-section">−</button>
+            <input type="number" min={1} max={30} value={cols} onChange={(e) => setCols(parseInt(e.target.value) || 1)} className="w-16 text-center px-2 py-1.5 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" />
+            <button type="button" onClick={() => setCols((c) => Math.min(30, c + 1))} className="w-8 h-8 rounded-lg bg-section border border-border-l flex items-center justify-center text-tx-primary hover:bg-section">+</button>
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-text-primary mb-1">Aisle after columns</label>
-          <input value={aisles} onChange={(e) => setAisles(e.target.value)} placeholder="e.g. 6, 12" className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
-          <p className="text-xs text-text-muted mt-1">Leave blank for no aisles</p>
+          <label className="block text-sm font-medium text-tx-primary mb-1">Aisle after columns</label>
+          <input value={aisles} onChange={(e) => setAisles(e.target.value)} placeholder="e.g. 6, 12" className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" />
+          <p className="text-xs text-tx-muted mt-1">Leave blank for no aisles</p>
         </div>
       </div>
 
       {/* Auto-calculated seats */}
-      <p className="text-sm text-text-muted">Auto-calculated: <span className="text-text-primary font-medium">{currentSeats} seats</span></p>
+      <p className="text-sm text-tx-muted">Auto-calculated: <span className="text-tx-primary font-medium">{currentSeats} seats</span></p>
 
       {/* Categories */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-semibold text-text-primary">Seat Categories</span>
-          <button type="button" onClick={addCat} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-accent-indigo text-accent-indigo hover:bg-accent-indigo/10 transition-colors">
+          <span className="text-sm font-semibold text-tx-primary">Seat Categories</span>
+          <button type="button" onClick={addCat} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border border-brand text-brand hover:bg-brand/10 transition-colors">
             <Plus size={12} /> Add Category
           </button>
         </div>
 
         <div className="space-y-3">
           {cats.map((cat, i) => (
-            <div key={i} className="rounded-lg border border-border-default bg-bg-surface2 p-3 space-y-2">
+            <div key={i} className="rounded-lg border border-border-l bg-section p-3 space-y-2">
               <div className="flex items-center gap-2">
-                <input value={cat.name} onChange={(e) => updateCat(i, 'name', e.target.value)} placeholder="Category name" className="flex-1 px-2 py-1.5 rounded bg-bg-surface border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
-                <input type="color" value={cat.color} onChange={(e) => updateCat(i, 'color', e.target.value)} className="w-10 h-8 rounded cursor-pointer border border-border-default" title="Category color" />
+                <input value={cat.name} onChange={(e) => updateCat(i, 'name', e.target.value)} placeholder="Category name" className="flex-1 px-2 py-1.5 rounded bg-card border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" />
+                <input type="color" value={cat.color} onChange={(e) => updateCat(i, 'color', e.target.value)} className="w-10 h-8 rounded cursor-pointer border border-border-l" title="Category color" />
                 {cats.length > 1 && (
-                  <button type="button" onClick={() => removeCat(i)} className="text-semantic-error hover:opacity-80 transition-opacity">
+                  <button type="button" onClick={() => removeCat(i)} className="text-error hover:opacity-80 transition-opacity">
                     <Trash2 size={14} />
                   </button>
                 )}
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex-1">
-                  <input value={cat.rows} onChange={(e) => updateCat(i, 'rows', e.target.value)} placeholder="Row letters: A, B, C" className="w-full px-2 py-1.5 rounded bg-bg-surface border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
-                  <p className="text-xs text-text-muted mt-0.5">Single A-Z letters, comma-separated</p>
+                  <input value={cat.rows} onChange={(e) => updateCat(i, 'rows', e.target.value)} placeholder="Row letters: A, B, C" className="w-full px-2 py-1.5 rounded bg-card border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" />
+                  <p className="text-xs text-tx-muted mt-0.5">Single A-Z letters, comma-separated</p>
                 </div>
                 <div className="w-28">
                   <div className="flex items-center gap-1">
-                    <span className="text-text-muted text-sm">₹</span>
-                    <input type="number" min={1} value={cat.price} onChange={(e) => updateCat(i, 'price', parseInt(e.target.value) || 0)} className="w-full px-2 py-1.5 rounded bg-bg-surface border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
+                    <span className="text-tx-muted text-sm">₹</span>
+                    <input type="number" min={1} value={cat.price} onChange={(e) => updateCat(i, 'price', parseInt(e.target.value) || 0)} className="w-full px-2 py-1.5 rounded bg-card border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand" />
                   </div>
                 </div>
               </div>
@@ -179,31 +179,31 @@ export function LayoutBuilder({ value, onChange }: LayoutBuilderProps) {
 
       {/* Blocked seats */}
       <div>
-        <button type="button" onClick={() => setShowBlocked((v) => !v)} className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
+        <button type="button" onClick={() => setShowBlocked((v) => !v)} className="flex items-center gap-1 text-sm text-tx-secondary hover:text-tx-primary transition-colors">
           {showBlocked ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           Blocked/Unavailable Seats
         </button>
         {showBlocked && (
           <div className="mt-2">
-            <textarea value={blocked} onChange={(e) => setBlocked(e.target.value)} rows={2} placeholder="A1, A18, L1, L18" className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo resize-none" />
-            <p className="text-xs text-text-muted mt-1">Seats permanently unavailable (pillars, broken seats, etc.)</p>
+            <textarea value={blocked} onChange={(e) => setBlocked(e.target.value)} rows={2} placeholder="A1, A18, L1, L18" className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand resize-none" />
+            <p className="text-xs text-tx-muted mt-1">Seats permanently unavailable (pillars, broken seats, etc.)</p>
           </div>
         )}
       </div>
 
       {/* JSON preview */}
       <div>
-        <button type="button" onClick={() => setShowPreview((v) => !v)} className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors">
+        <button type="button" onClick={() => setShowPreview((v) => !v)} className="flex items-center gap-1 text-sm text-tx-secondary hover:text-tx-primary transition-colors">
           {showPreview ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           View Raw JSON
         </button>
         {showPreview && (
           <div className="mt-2 relative">
-            <textarea readOnly value={currentJson} rows={6} className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-muted text-xs font-mono resize-none" />
+            <textarea readOnly value={currentJson} rows={6} className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-muted text-xs font-mono resize-none" />
             <button
               type="button"
               onClick={() => navigator.clipboard.writeText(currentJson)}
-              className="absolute top-2 right-2 p-1 rounded bg-bg-surface3 hover:bg-bg-surface2 text-text-muted"
+              className="absolute top-2 right-2 p-1 rounded bg-section hover:bg-section text-tx-muted"
             ><Copy size={12} /></button>
           </div>
         )}
@@ -212,9 +212,9 @@ export function LayoutBuilder({ value, onChange }: LayoutBuilderProps) {
       {/* Validation */}
       <div className={cn(
         'text-sm font-sans',
-        validation === 'valid'   && 'text-semantic-success',
-        validation === 'invalid' && 'text-semantic-error',
-        validation === 'idle'    && 'text-text-muted',
+        validation === 'valid'   && 'text-success',
+        validation === 'invalid' && 'text-error',
+        validation === 'idle'    && 'text-tx-muted',
       )}>
         {validation === 'idle' && 'Validating…'}
         {validation === 'valid'   && `✅ ${validationMsg}`}

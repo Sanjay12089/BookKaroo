@@ -32,14 +32,14 @@ export default function AdminDashboardPage() {
       <div className="p-6 md:p-8 max-w-[1440px]">
         {/* Page header */}
         <div className="mb-8">
-          <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">
+          <p className="text-[11px] font-semibold text-tx-muted tracking-widest uppercase font-sans mb-1">
             {todayLabel()}
           </p>
-          <h1 className="font-display font-bold text-2xl md:text-3xl tracking-tight text-text-primary">
+          <h1 className="font-display font-bold text-2xl md:text-3xl tracking-tight text-tx-primary">
             Dashboard
           </h1>
           {user && (
-            <p className="text-text-muted text-sm font-sans mt-1">
+            <p className="text-tx-muted text-sm font-sans mt-1">
               Welcome back, {user.name}
             </p>
           )}
@@ -83,7 +83,7 @@ export default function AdminDashboardPage() {
 
         {/* Top Movie */}
         {!isLoading && data?.topMovie && (
-          <div className="p-4 rounded-xl bg-bg-surface border border-border-default flex items-center gap-4 mb-8">
+          <div className="p-4 rounded-xl bg-card border border-border-l flex items-center gap-4 mb-8">
             {data.topMovie.posterUrl && (
               <img
                 src={data.topMovie.posterUrl.startsWith('/')
@@ -97,16 +97,16 @@ export default function AdminDashboardPage() {
               <p className="text-[11px] font-semibold tracking-widest uppercase font-sans text-amber-400 mb-0.5">
                 Top Performing This Week
               </p>
-              <h3 className="font-display font-bold text-xl text-text-primary truncate">
+              <h3 className="font-display font-bold text-xl text-tx-primary truncate">
                 {data.topMovie.title}
               </h3>
-              <p className="text-text-muted text-sm font-sans">
+              <p className="text-tx-muted text-sm font-sans">
                 {data.topMovie.bookingCount} bookings this week
               </p>
             </div>
             <Link
               to={`/admin/movies`}
-              className="text-sm text-accent-indigo font-semibold font-sans hover:underline flex-shrink-0"
+              className="text-sm text-brand font-semibold font-sans hover:underline flex-shrink-0"
             >
               View Movie →
             </Link>
@@ -115,12 +115,12 @@ export default function AdminDashboardPage() {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
+          <div className="p-5 rounded-xl bg-card border border-border-l">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-[14px] font-semibold text-text-primary font-sans">
+              <h3 className="text-[14px] font-semibold text-tx-primary font-sans">
                 Bookings — Last 7 Days
               </h3>
-              <Link to="/admin/bookings" className="text-[12px] text-accent-indigo font-sans hover:underline">
+              <Link to="/admin/bookings" className="text-[12px] text-brand font-sans hover:underline">
                 View all →
               </Link>
             </div>
@@ -136,8 +136,8 @@ export default function AdminDashboardPage() {
             />
           </div>
 
-          <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
-            <h3 className="text-[14px] font-semibold text-text-primary font-sans mb-5">
+          <div className="p-5 rounded-xl bg-card border border-border-l">
+            <h3 className="text-[14px] font-semibold text-tx-primary font-sans mb-5">
               Revenue by City
             </h3>
             <HorizontalBarChart
@@ -149,19 +149,19 @@ export default function AdminDashboardPage() {
               formatValue={formatIndianCurrency}
             />
             {!isLoading && (data?.revenuePerCity?.length ?? 0) === 0 && (
-              <p className="text-text-muted text-sm font-sans text-center py-4">No booking revenue yet</p>
+              <p className="text-tx-muted text-sm font-sans text-center py-4">No booking revenue yet</p>
             )}
           </div>
         </div>
 
         {/* Bottom Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 p-5 rounded-xl bg-bg-surface border border-border-default">
+          <div className="lg:col-span-2 p-5 rounded-xl bg-card border border-border-l">
             <div className="flex items-center justify-between mb-5">
-              <h3 className="text-[14px] font-semibold text-text-primary font-sans">
+              <h3 className="text-[14px] font-semibold text-tx-primary font-sans">
                 Recent Bookings
               </h3>
-              <Link to="/admin/bookings" className="text-[12px] text-accent-indigo font-sans hover:underline">
+              <Link to="/admin/bookings" className="text-[12px] text-brand font-sans hover:underline">
                 View all →
               </Link>
             </div>
@@ -171,8 +171,8 @@ export default function AdminDashboardPage() {
             />
           </div>
 
-          <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
-            <h3 className="text-[14px] font-semibold text-text-primary font-sans mb-5">
+          <div className="p-5 rounded-xl bg-card border border-border-l">
+            <h3 className="text-[14px] font-semibold text-tx-primary font-sans mb-5">
               Recent Activity
             </h3>
             <ActivityLog

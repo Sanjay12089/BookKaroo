@@ -62,10 +62,10 @@ export function ScreenFormModal({ mode, venueId, venueName, screen, onClose, onS
   return (
     <Modal open onClose={onClose} maxWidth="max-w-2xl">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display font-bold text-xl text-text-primary">
+        <h2 className="font-display font-bold text-xl text-tx-primary">
           {mode === 'create' ? `Add Screen — ${venueName}` : `Edit Screen — ${screen?.name}`}
         </h2>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
+        <button onClick={onClose} className="text-tx-muted hover:text-tx-primary transition-colors">
           <X size={20} />
         </button>
       </div>
@@ -74,22 +74,22 @@ export function ScreenFormModal({ mode, venueId, venueName, screen, onClose, onS
         {/* Basic info */}
         <section className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Screen Name *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Screen Name *</label>
             <input
               value={name}
               onChange={(e) => { setName(e.target.value); setNameError(''); }}
               placeholder="SCREEN 1 / AUDI 2 / IMAX SCREEN"
-              className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+              className="w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand"
             />
-            {nameError && <p className="text-xs text-semantic-error mt-1">{nameError}</p>}
+            {nameError && <p className="text-xs text-error mt-1">{nameError}</p>}
           </div>
 
           <div className="flex items-center gap-3">
-            <label className="text-sm font-medium text-text-primary">Active</label>
+            <label className="text-sm font-medium text-tx-primary">Active</label>
             <button
               type="button"
               onClick={() => setIsActive((v) => !v)}
-              className={`relative w-12 h-6 rounded-full transition-colors ${isActive ? 'bg-semantic-success' : 'bg-bg-surface3'}`}
+              className={`relative w-12 h-6 rounded-full transition-colors ${isActive ? 'bg-success-bg' : 'bg-section'}`}
             >
               <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${isActive ? 'translate-x-7' : 'translate-x-1'}`} />
             </button>
@@ -98,20 +98,20 @@ export function ScreenFormModal({ mode, venueId, venueName, screen, onClose, onS
 
         {/* Layout builder */}
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Seat Layout Builder</h3>
-          <p className="text-xs text-text-muted">Define seat categories, rows, and pricing for this screen.</p>
+          <h3 className="text-sm font-semibold text-tx-muted uppercase tracking-wider">Seat Layout Builder</h3>
+          <p className="text-xs text-tx-muted">Define seat categories, rows, and pricing for this screen.</p>
           <LayoutBuilder value={layoutJson} onChange={handleLayoutChange} />
         </section>
 
         {/* Footer */}
-        <div className="flex gap-3 pt-2 sticky bottom-0 bg-bg-surface pb-1">
-          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm">
+        <div className="flex gap-3 pt-2 sticky bottom-0 bg-card pb-1">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-border-l text-tx-secondary hover:bg-section transition-colors text-sm">
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading || !isValid}
-            className="flex-1 px-4 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            className="flex-1 px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
           >
             {isLoading ? 'Saving…' : mode === 'create' ? 'Create Screen' : 'Save Changes'}
           </button>

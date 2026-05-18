@@ -122,25 +122,25 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
     onClose();
   };
 
-  const inputCls  = 'w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo';
+  const inputCls  = 'w-full px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand';
   const selectCls = inputCls + ' [color-scheme:dark]';
 
   return (
     <Modal open onClose={onClose} maxWidth="max-w-lg">
       <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display font-bold text-xl text-text-primary">Create Show</h2>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors"><X size={20} /></button>
+        <h2 className="font-display font-bold text-xl text-tx-primary">Create Show</h2>
+        <button onClick={onClose} className="text-tx-muted hover:text-tx-primary transition-colors"><X size={20} /></button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
         {/* Type toggle */}
-        <div className="flex rounded-lg border border-border-default overflow-hidden">
+        <div className="flex rounded-lg border border-border-l overflow-hidden">
           {(['movie', 'event'] as const).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setType(t)}
-              className={`flex-1 py-2 text-sm font-semibold transition-colors ${type === t ? 'bg-accent-indigo text-white' : 'bg-bg-surface2 text-text-secondary hover:bg-bg-surface3'}`}
+              className={`flex-1 py-2 text-sm font-semibold transition-colors ${type === t ? 'bg-brand text-white' : 'bg-section text-tx-secondary hover:bg-section'}`}
             >
               {t === 'movie' ? '🎬 Movie' : '🎭 Event'}
             </button>
@@ -150,7 +150,7 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
         {/* Movie / Event selector */}
         {type === 'movie' ? (
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Movie *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Movie *</label>
             <input
               value={movieSearch}
               onChange={(e) => setMovieSearch(e.target.value)}
@@ -164,12 +164,12 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
               ))}
             </select>
             {filteredMovies.length === 0 && movieSearch && (
-              <p className="text-xs text-text-muted mt-1">No published movies match "{movieSearch}"</p>
+              <p className="text-xs text-tx-muted mt-1">No published movies match "{movieSearch}"</p>
             )}
           </div>
         ) : (
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Event *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Event *</label>
             <select value={selectedEventId} onChange={(e) => setSelectedEventId(e.target.value)} className={selectCls}>
               <option value="">— Select Event —</option>
               {events?.items?.map((ev) => (
@@ -182,7 +182,7 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
         {/* Venue + Screen */}
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Venue *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Venue *</label>
             <select
               value={venueId}
               onChange={(e) => { setVenueId(e.target.value); setScreenId(''); }}
@@ -193,7 +193,7 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Screen *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Screen *</label>
             <select
               value={screenId}
               onChange={(e) => setScreenId(e.target.value)}
@@ -209,39 +209,39 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
         {/* Date + Time */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Date *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Date *</label>
             <input type="date" min={today} value={showDate} onChange={(e) => setShowDate(e.target.value)} className={inputCls} />
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Time *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Time *</label>
             <input
               type="time"
               step={1800}
               value={showTime}
               onChange={(e) => setShowTime(e.target.value)}
-              className={inputCls + (conflict === 'conflict' ? ' border-semantic-error' : '')}
+              className={inputCls + (conflict === 'conflict' ? ' border-error' : '')}
             />
           </div>
         </div>
 
         {/* Conflict indicator */}
         {conflict === 'conflict' && (
-          <p className="text-xs text-semantic-error">⚠️ This screen already has a show at this time.</p>
+          <p className="text-xs text-error">⚠️ This screen already has a show at this time.</p>
         )}
         {conflict === 'clear' && (
-          <p className="text-xs text-semantic-success">✅ No conflicts</p>
+          <p className="text-xs text-success">✅ No conflicts</p>
         )}
 
         {/* Format + Language */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Format *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Format *</label>
             <select value={format} onChange={(e) => setFormat(e.target.value)} className={selectCls}>
               {FORMATS.map((f) => <option key={f} value={f}>{f}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Language *</label>
+            <label className="block text-sm font-medium text-tx-primary mb-1">Language *</label>
             <select value={language} onChange={(e) => setLanguage(e.target.value)} className={selectCls}>
               {LANGUAGES.map((l) => <option key={l} value={l}>{l}</option>)}
             </select>
@@ -249,14 +249,14 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 pt-2 sticky bottom-0 bg-bg-surface pb-1">
-          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm">
+        <div className="flex gap-3 pt-2 sticky bottom-0 bg-card pb-1">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-border-l text-tx-secondary hover:bg-section transition-colors text-sm">
             Cancel
           </button>
           <button
             type="submit"
             disabled={!canSubmit() || createShow.isPending}
-            className="flex-1 px-4 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            className="flex-1 px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
           >
             {createShow.isPending ? 'Creating…' : 'Create Show'}
           </button>

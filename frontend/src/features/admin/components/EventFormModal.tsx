@@ -16,9 +16,9 @@ const EVENT_TYPES = [
 const STATUSES = ['Draft', 'Published', 'Archived'];
 const TIER_COLORS = ['#E11D48', '#6366F1', '#F59E0B', '#22C55E', '#A855F7', '#0EA5E9'];
 
-const inputCls = 'w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-sm text-text-primary font-sans focus:outline-none focus:border-accent-indigo [color-scheme:dark]';
-const labelCls = 'block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1';
-const sectionCls = 'border-t border-border-default pt-4 mt-4';
+const inputCls = 'w-full px-3 py-2 rounded-lg bg-section border border-border-l text-sm text-tx-primary font-sans focus:outline-none focus:border-brand [color-scheme:dark]';
+const labelCls = 'block text-[11px] font-semibold text-tx-muted uppercase tracking-wider mb-1';
+const sectionCls = 'border-t border-border-l pt-4 mt-4';
 
 interface PriceTier { name: string; price: number; capacity: number; color: string; }
 
@@ -177,7 +177,7 @@ export function EventFormModal({ mode, event, onClose, onSuccess }: Props) {
             <span className={labelCls}>Price Tiers</span>
             <button type="button"
               onClick={() => append({ name: '', price: 0, capacity: 100, color: TIER_COLORS[fields.length % TIER_COLORS.length] })}
-              className="flex items-center gap-1 text-xs text-accent-indigo font-semibold font-sans hover:underline">
+              className="flex items-center gap-1 text-xs text-brand font-semibold font-sans hover:underline">
               <Plus size={12} /> Add Tier
             </button>
           </div>
@@ -190,7 +190,7 @@ export function EventFormModal({ mode, event, onClose, onSuccess }: Props) {
                   placeholder="₹ Price" className={cn(inputCls, 'w-28')} />
                 <input type="number" {...register(`priceTiersArr.${i}.capacity`, { valueAsNumber: true })}
                   placeholder="Capacity" className={cn(inputCls, 'w-28')} />
-                <button type="button" onClick={() => remove(i)} className="text-semantic-error hover:opacity-70">
+                <button type="button" onClick={() => remove(i)} className="text-error hover:opacity-70">
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -213,13 +213,13 @@ export function EventFormModal({ mode, event, onClose, onSuccess }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-3 pt-5 mt-4 border-t border-border-default">
+        <div className="flex justify-end gap-3 pt-5 mt-4 border-t border-border-l">
           <button type="button" onClick={onClose}
-            className="px-5 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 text-sm font-sans transition-colors">
+            className="px-5 py-2 rounded-lg border border-border-l text-tx-secondary hover:bg-section text-sm font-sans transition-colors">
             Cancel
           </button>
           <button type="submit" disabled={isSubmitting}
-            className="px-5 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold font-sans disabled:opacity-60 hover:opacity-90 transition-opacity">
+            className="px-5 py-2 rounded-lg bg-brand text-white text-sm font-semibold font-sans disabled:opacity-60 hover:opacity-90 transition-opacity">
             {isSubmitting ? 'Saving…' : mode === 'create' ? 'Create Event' : 'Save Changes'}
           </button>
         </div>

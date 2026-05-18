@@ -28,17 +28,17 @@ const GROUP_BY_OPTIONS = ['day', 'week', 'month', 'movie', 'venue', 'city'] as c
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 
 function CardSkeleton() {
-  return <div className="h-24 rounded-xl bg-bg-surface2 animate-pulse" />;
+  return <div className="h-24 rounded-xl bg-section animate-pulse" />;
 }
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 
 interface KpiProps { label: string; value: string; color?: string }
-function KpiCard({ label, value, color = 'text-text-primary' }: KpiProps) {
+function KpiCard({ label, value, color = 'text-tx-primary' }: KpiProps) {
   return (
-    <div className="p-4 rounded-xl bg-bg-surface border border-border-default">
+    <div className="p-4 rounded-xl bg-card border border-border-l">
       <div className={`font-display font-bold text-xl ${color}`}>{value}</div>
-      <div className="text-xs text-text-muted font-sans mt-1 uppercase tracking-wider">{label}</div>
+      <div className="text-xs text-tx-muted font-sans mt-1 uppercase tracking-wider">{label}</div>
     </div>
   );
 }
@@ -56,13 +56,13 @@ function BookingDataTable({ rows, groupBy }: { rows: ReportRow[]; groupBy: strin
     convenienceFeeRevenue: rows.reduce((s, r) => s + r.convenienceFeeRevenue, 0),
   };
 
-  const tdCls = 'px-3 py-2.5 text-sm font-sans text-text-secondary';
-  const thCls = 'px-3 py-2 text-[10px] font-semibold text-text-muted uppercase tracking-wider text-right first:text-left';
+  const tdCls = 'px-3 py-2.5 text-sm font-sans text-tx-secondary';
+  const thCls = 'px-3 py-2 text-[10px] font-semibold text-tx-muted uppercase tracking-wider text-right first:text-left';
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-border-default">
+    <div className="overflow-x-auto rounded-xl border border-border-l">
       <table className="w-full text-sm">
-        <thead className="bg-bg-surface2 border-b border-border-default">
+        <thead className="bg-section border-b border-border-l">
           <tr>
             <th className={thCls + ' text-left'}>Period</th>
             <th className={thCls}>Total</th>
@@ -82,17 +82,17 @@ function BookingDataTable({ rows, groupBy }: { rows: ReportRow[]; groupBy: strin
         <tbody>
           {rows.length === 0 && (
             <tr>
-              <td colSpan={7} className="px-4 py-16 text-center text-text-muted text-sm font-sans">
+              <td colSpan={7} className="px-4 py-16 text-center text-tx-muted text-sm font-sans">
                 No data for selected period
               </td>
             </tr>
           )}
           {rows.map((r, i) => (
-            <tr key={i} className="border-b border-border-default hover:bg-bg-surface2/50 transition-colors">
-              <td className={tdCls + ' font-medium text-text-primary'}>{r.period}</td>
+            <tr key={i} className="border-b border-border-l hover:bg-section/50 transition-colors">
+              <td className={tdCls + ' font-medium text-tx-primary'}>{r.period}</td>
               <td className={tdCls + ' text-right'}>{r.totalBookings.toLocaleString()}</td>
-              <td className={tdCls + ' text-right text-semantic-success'}>{r.confirmedBookings.toLocaleString()}</td>
-              <td className={tdCls + ' text-right text-semantic-error'}>{r.cancelledBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right text-success'}>{r.confirmedBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right text-error'}>{r.cancelledBookings.toLocaleString()}</td>
               <td className={tdCls + ' text-right font-mono'}>{formatCurrency(r.revenue)}</td>
               {groupBy === 'day' || groupBy === 'week' || groupBy === 'month' ? (
                 <>
@@ -106,12 +106,12 @@ function BookingDataTable({ rows, groupBy }: { rows: ReportRow[]; groupBy: strin
           ))}
         </tbody>
         {rows.length > 0 && (
-          <tfoot className="bg-bg-surface2 border-t-2 border-border-default font-semibold">
+          <tfoot className="bg-section border-t-2 border-border-l font-semibold">
             <tr>
-              <td className={tdCls + ' text-text-primary'}>Total</td>
+              <td className={tdCls + ' text-tx-primary'}>Total</td>
               <td className={tdCls + ' text-right'}>{totals.totalBookings.toLocaleString()}</td>
-              <td className={tdCls + ' text-right text-semantic-success'}>{totals.confirmedBookings.toLocaleString()}</td>
-              <td className={tdCls + ' text-right text-semantic-error'}>{totals.cancelledBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right text-success'}>{totals.confirmedBookings.toLocaleString()}</td>
+              <td className={tdCls + ' text-right text-error'}>{totals.cancelledBookings.toLocaleString()}</td>
               <td className={tdCls + ' text-right font-mono'}>{formatCurrency(totals.revenue)}</td>
               {groupBy === 'day' || groupBy === 'week' || groupBy === 'month' ? (
                 <>
@@ -170,7 +170,7 @@ export default function AdminReportsPage() {
     else                    setUserFilters((p)    => ({ ...p, ...range }));
   };
 
-  const INPUT = 'px-3 py-1.5 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm font-sans focus:outline-none focus:border-accent-indigo transition-colors';
+  const INPUT = 'px-3 py-1.5 rounded-lg bg-section border border-border-l text-tx-primary text-sm font-sans focus:outline-none focus:border-brand transition-colors';
 
   return (
     <AdminLayout>
@@ -179,27 +179,27 @@ export default function AdminReportsPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="font-display font-bold text-2xl tracking-tight">Reports</h1>
-            <p className="text-text-muted text-sm font-sans mt-1">Platform analytics and performance overview.</p>
+            <p className="text-tx-muted text-sm font-sans mt-1">Platform analytics and performance overview.</p>
           </div>
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="flex items-center gap-2 px-4 py-2 rounded-full border border-border-default text-sm font-semibold font-sans hover:bg-bg-surface2 transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 rounded-full border border-border-l text-sm font-semibold font-sans hover:bg-section transition-colors disabled:opacity-50"
           >
             {exporting ? 'Exporting…' : '⬇ Export CSV'}
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 mb-6 border-b border-border-default">
+        <div className="flex gap-1 mb-6 border-b border-border-l">
           {(['bookings', 'users'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`px-4 py-2 text-sm font-semibold font-sans capitalize border-b-2 transition-colors -mb-px ${
                 activeTab === tab
-                  ? 'border-accent-crimson text-text-primary'
-                  : 'border-transparent text-text-muted hover:text-text-primary'
+                  ? 'border-brand text-tx-primary'
+                  : 'border-transparent text-tx-muted hover:text-tx-primary'
               }`}
             >
               {tab === 'bookings' ? '📊 Booking Reports' : '👥 User Reports'}
@@ -211,16 +211,16 @@ export default function AdminReportsPage() {
         {activeTab === 'bookings' && (
           <div className="space-y-6">
             {/* Filters */}
-            <div className="p-4 rounded-xl bg-bg-surface border border-border-default space-y-3">
+            <div className="p-4 rounded-xl bg-card border border-border-l space-y-3">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-text-muted font-sans">From</label>
+                  <label className="text-xs text-tx-muted font-sans">From</label>
                   <input type="date" value={bookingFilters.fromDate}
                     onChange={(e) => setBookingFilters((p) => ({ ...p, fromDate: e.target.value }))}
                     className={INPUT} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-text-muted font-sans">To</label>
+                  <label className="text-xs text-tx-muted font-sans">To</label>
                   <input type="date" value={bookingFilters.toDate}
                     onChange={(e) => setBookingFilters((p) => ({ ...p, toDate: e.target.value }))}
                     className={INPUT} />
@@ -234,7 +234,7 @@ export default function AdminReportsPage() {
                     <button
                       key={key}
                       onClick={() => setQuickDate('bookings', key)}
-                      className="px-3 py-1.5 rounded-full text-xs font-semibold font-sans bg-bg-surface2 border border-border-default hover:bg-accent-indigo/20 hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold font-sans bg-section border border-border-l hover:bg-brand/20 hover:border-brand hover:text-brand transition-colors"
                     >
                       {label}
                     </button>
@@ -243,14 +243,14 @@ export default function AdminReportsPage() {
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-text-muted font-sans">Group By</label>
+                  <label className="text-xs text-tx-muted font-sans">Group By</label>
                   <div className="flex gap-1">
                     {GROUP_BY_OPTIONS.map((g) => (
                       <button key={g} onClick={() => setBookingFilters((p) => ({ ...p, groupBy: g }))}
                         className={`px-2.5 py-1 rounded-full text-xs font-semibold font-sans border transition-colors capitalize ${
                           bookingFilters.groupBy === g
-                            ? 'bg-accent-crimson text-white border-accent-crimson'
-                            : 'border-border-default hover:bg-bg-surface2'
+                            ? 'bg-brand text-white border-brand'
+                            : 'border-border-l hover:bg-section'
                         }`}>
                         {g}
                       </button>
@@ -268,27 +268,27 @@ export default function AdminReportsPage() {
             ) : bookingReport && (
               <>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <KpiCard label="Total Revenue" value={formatCurrency(bookingReport.summary.totalRevenue)} color="text-accent-crimson" />
-                  <KpiCard label="Confirmed Bookings" value={bookingReport.summary.confirmedBookings.toLocaleString()} color="text-semantic-success" />
-                  <KpiCard label="GST Collected" value={formatCurrency(bookingReport.summary.gstCollected)} color="text-accent-indigo" />
-                  <KpiCard label="Total Discount" value={formatCurrency(bookingReport.summary.totalDiscount)} color="text-semantic-warning" />
+                  <KpiCard label="Total Revenue" value={formatCurrency(bookingReport.summary.totalRevenue)} color="text-brand" />
+                  <KpiCard label="Confirmed Bookings" value={bookingReport.summary.confirmedBookings.toLocaleString()} color="text-success" />
+                  <KpiCard label="GST Collected" value={formatCurrency(bookingReport.summary.gstCollected)} color="text-brand" />
+                  <KpiCard label="Total Discount" value={formatCurrency(bookingReport.summary.totalDiscount)} color="text-warning" />
                 </div>
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                  <KpiCard label="Net Revenue" value={formatCurrency(bookingReport.summary.netRevenue)} color="text-semantic-success" />
-                  <KpiCard label="Conv. Fee Revenue" value={formatCurrency(bookingReport.summary.convenienceFeeRevenue)} color="text-accent-indigo" />
-                  <KpiCard label="Cancelled Bookings" value={bookingReport.summary.cancelledBookings.toLocaleString()} color="text-accent-crimson" />
+                  <KpiCard label="Net Revenue" value={formatCurrency(bookingReport.summary.netRevenue)} color="text-success" />
+                  <KpiCard label="Conv. Fee Revenue" value={formatCurrency(bookingReport.summary.convenienceFeeRevenue)} color="text-brand" />
+                  <KpiCard label="Cancelled Bookings" value={bookingReport.summary.cancelledBookings.toLocaleString()} color="text-brand" />
                   <KpiCard
                     label="Cancellation Rate"
                     value={bookingReport.summary.totalBookings > 0
                       ? `${((bookingReport.summary.cancelledBookings / bookingReport.summary.totalBookings) * 100).toFixed(1)}%`
                       : '0%'}
-                    color="text-text-muted"
+                    color="text-tx-muted"
                   />
                 </div>
 
                 {/* Chart */}
-                <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
-                  <h2 className="text-sm font-semibold text-text-primary mb-4 capitalize">
+                <div className="p-5 rounded-xl bg-card border border-border-l">
+                  <h2 className="text-sm font-semibold text-tx-primary mb-4 capitalize">
                     Revenue &amp; Bookings — {bookingFilters.groupBy}
                   </h2>
                   <ReportChart
@@ -307,11 +307,11 @@ export default function AdminReportsPage() {
                 {/* Table */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-sm font-semibold text-text-primary">Detailed Breakdown</h2>
-                    <span className="text-xs text-text-muted font-sans">{bookingReport.rows.length} row(s)</span>
+                    <h2 className="text-sm font-semibold text-tx-primary">Detailed Breakdown</h2>
+                    <span className="text-xs text-tx-muted font-sans">{bookingReport.rows.length} row(s)</span>
                   </div>
                   <BookingDataTable rows={bookingReport.rows} groupBy={bookingFilters.groupBy} />
-                  <p className="text-xs text-text-muted font-sans mt-2">
+                  <p className="text-xs text-tx-muted font-sans mt-2">
                     💡 Use Export CSV to download the full dataset
                   </p>
                 </div>
@@ -324,16 +324,16 @@ export default function AdminReportsPage() {
         {activeTab === 'users' && (
           <div className="space-y-6">
             {/* Filters */}
-            <div className="p-4 rounded-xl bg-bg-surface border border-border-default space-y-3">
+            <div className="p-4 rounded-xl bg-card border border-border-l space-y-3">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-text-muted font-sans">From</label>
+                  <label className="text-xs text-tx-muted font-sans">From</label>
                   <input type="date" value={userFilters.fromDate}
                     onChange={(e) => setUserFilters((p) => ({ ...p, fromDate: e.target.value }))}
                     className={INPUT} />
                 </div>
                 <div className="flex items-center gap-2">
-                  <label className="text-xs text-text-muted font-sans">To</label>
+                  <label className="text-xs text-tx-muted font-sans">To</label>
                   <input type="date" value={userFilters.toDate}
                     onChange={(e) => setUserFilters((p) => ({ ...p, toDate: e.target.value }))}
                     className={INPUT} />
@@ -347,7 +347,7 @@ export default function AdminReportsPage() {
                     <button
                       key={key}
                       onClick={() => setQuickDate('users', key)}
-                      className="px-3 py-1.5 rounded-full text-xs font-semibold font-sans bg-bg-surface2 border border-border-default hover:bg-accent-indigo/20 hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+                      className="px-3 py-1.5 rounded-full text-xs font-semibold font-sans bg-section border border-border-l hover:bg-brand/20 hover:border-brand hover:text-brand transition-colors"
                     >
                       {label}
                     </button>
@@ -355,14 +355,14 @@ export default function AdminReportsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <label className="text-xs text-text-muted font-sans">Group By</label>
+                <label className="text-xs text-tx-muted font-sans">Group By</label>
                 <div className="flex gap-1">
                   {(['day', 'week', 'month'] as const).map((g) => (
                     <button key={g} onClick={() => setUserFilters((p) => ({ ...p, groupBy: g }))}
                       className={`px-2.5 py-1 rounded-full text-xs font-semibold font-sans border transition-colors capitalize ${
                         userFilters.groupBy === g
-                          ? 'bg-accent-indigo text-white border-accent-indigo'
-                          : 'border-border-default hover:bg-bg-surface2'
+                          ? 'bg-brand text-white border-brand'
+                          : 'border-border-l hover:bg-section'
                       }`}>
                       {g}
                     </button>
@@ -379,7 +379,7 @@ export default function AdminReportsPage() {
             ) : userReport && (
               <>
                 <div className="grid grid-cols-2 gap-4">
-                  <KpiCard label="New Users" value={userReport.totalNewUsers.toLocaleString()} color="text-accent-indigo" />
+                  <KpiCard label="New Users" value={userReport.totalNewUsers.toLocaleString()} color="text-brand" />
                   <KpiCard
                     label="Verified"
                     value={`${userReport.verifiedUsers.toLocaleString()} (${
@@ -387,12 +387,12 @@ export default function AdminReportsPage() {
                         ? ((userReport.verifiedUsers / userReport.totalNewUsers) * 100).toFixed(1)
                         : 0
                     }%)`}
-                    color="text-semantic-success"
+                    color="text-success"
                   />
                 </div>
 
-                <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
-                  <h2 className="text-sm font-semibold text-text-primary mb-4">User Acquisition</h2>
+                <div className="p-5 rounded-xl bg-card border border-border-l">
+                  <h2 className="text-sm font-semibold text-tx-primary mb-4">User Acquisition</h2>
                   <ReportChart
                     data={userReport.rows.map((r) => ({
                       label:          r.period,
@@ -409,37 +409,37 @@ export default function AdminReportsPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-sm font-semibold text-text-primary">Detailed Breakdown</h2>
-                    <span className="text-xs text-text-muted font-sans">{userReport.rows.length} row(s)</span>
+                    <h2 className="text-sm font-semibold text-tx-primary">Detailed Breakdown</h2>
+                    <span className="text-xs text-tx-muted font-sans">{userReport.rows.length} row(s)</span>
                   </div>
-                  <div className="overflow-x-auto rounded-xl border border-border-default">
+                  <div className="overflow-x-auto rounded-xl border border-border-l">
                     <table className="w-full text-sm">
-                      <thead className="bg-bg-surface2 border-b border-border-default">
+                      <thead className="bg-section border-b border-border-l">
                         <tr>
-                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-text-muted uppercase tracking-wider">Period</th>
-                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-text-muted uppercase tracking-wider">New Users</th>
-                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-text-muted uppercase tracking-wider">Verified</th>
-                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-text-muted uppercase tracking-wider">Rate (%)</th>
+                          <th className="px-3 py-2 text-left text-[10px] font-semibold text-tx-muted uppercase tracking-wider">Period</th>
+                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-tx-muted uppercase tracking-wider">New Users</th>
+                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-tx-muted uppercase tracking-wider">Verified</th>
+                          <th className="px-3 py-2 text-right text-[10px] font-semibold text-tx-muted uppercase tracking-wider">Rate (%)</th>
                         </tr>
                       </thead>
                       <tbody>
                         {userReport.rows.map((r, i) => (
-                          <tr key={i} className="border-b border-border-default hover:bg-bg-surface2/50 transition-colors">
-                            <td className="px-3 py-2.5 font-medium text-text-primary font-sans">{r.period}</td>
-                            <td className="px-3 py-2.5 text-right font-sans text-text-secondary">{r.newUsers}</td>
-                            <td className="px-3 py-2.5 text-right font-sans text-semantic-success">{r.verifiedUsers}</td>
-                            <td className="px-3 py-2.5 text-right font-sans text-text-muted">
+                          <tr key={i} className="border-b border-border-l hover:bg-section/50 transition-colors">
+                            <td className="px-3 py-2.5 font-medium text-tx-primary font-sans">{r.period}</td>
+                            <td className="px-3 py-2.5 text-right font-sans text-tx-secondary">{r.newUsers}</td>
+                            <td className="px-3 py-2.5 text-right font-sans text-success">{r.verifiedUsers}</td>
+                            <td className="px-3 py-2.5 text-right font-sans text-tx-muted">
                               {r.newUsers > 0 ? ((r.verifiedUsers / r.newUsers) * 100).toFixed(1) : '0.0'}%
                             </td>
                           </tr>
                         ))}
                       </tbody>
-                      <tfoot className="bg-bg-surface2 border-t-2 border-border-default font-semibold">
+                      <tfoot className="bg-section border-t-2 border-border-l font-semibold">
                         <tr>
-                          <td className="px-3 py-2.5 font-sans text-text-primary">Total</td>
+                          <td className="px-3 py-2.5 font-sans text-tx-primary">Total</td>
                           <td className="px-3 py-2.5 text-right font-sans">{userReport.totalNewUsers}</td>
-                          <td className="px-3 py-2.5 text-right font-sans text-semantic-success">{userReport.verifiedUsers}</td>
-                          <td className="px-3 py-2.5 text-right font-sans text-text-muted">
+                          <td className="px-3 py-2.5 text-right font-sans text-success">{userReport.verifiedUsers}</td>
+                          <td className="px-3 py-2.5 text-right font-sans text-tx-muted">
                             {userReport.totalNewUsers > 0
                               ? ((userReport.verifiedUsers / userReport.totalNewUsers) * 100).toFixed(1)
                               : '0.0'}%
@@ -448,7 +448,7 @@ export default function AdminReportsPage() {
                       </tfoot>
                     </table>
                   </div>
-                  <p className="text-xs text-text-muted font-sans mt-2">
+                  <p className="text-xs text-tx-muted font-sans mt-2">
                     💡 Use Export CSV to download the full dataset
                   </p>
                 </div>

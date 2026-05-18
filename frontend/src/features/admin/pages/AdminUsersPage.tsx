@@ -78,25 +78,25 @@ export default function AdminUsersPage() {
             {u.name.charAt(0).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-semibold text-text-primary line-clamp-1">{u.name}</p>
-            <p className="text-[11px] text-text-muted truncate max-w-[180px]">{u.email}</p>
+            <p className="text-[13px] font-semibold text-tx-primary line-clamp-1">{u.name}</p>
+            <p className="text-[11px] text-tx-muted truncate max-w-[180px]">{u.email}</p>
           </div>
         </div>
       ),
     },
     {
       key: 'mobile', header: 'Mobile',
-      render: (u) => <span className="font-mono text-[13px] text-text-primary">{u.mobile}</span>,
+      render: (u) => <span className="font-mono text-[13px] text-tx-primary">{u.mobile}</span>,
     },
     {
       key: 'city', header: 'City',
-      render: (u) => <span className="text-[13px] text-text-secondary">{u.cityName ?? '—'}</span>,
+      render: (u) => <span className="text-[13px] text-tx-secondary">{u.cityName ?? '—'}</span>,
     },
     {
       key: 'role', header: 'Role',
       render: (u) => (
         <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${
-          u.role === 'Admin' ? 'bg-accent-crimson/15 text-accent-crimson' : 'bg-bg-surface2 text-text-muted'
+          u.role === 'Admin' ? 'bg-brand/15 text-brand' : 'bg-section text-tx-muted'
         }`}>
           {u.role}
         </span>
@@ -106,8 +106,8 @@ export default function AdminUsersPage() {
       key: 'status', header: 'Status',
       render: (u) => (
         <div className="flex items-center gap-1.5">
-          <span className={`w-2 h-2 rounded-full ${u.isBlocked ? 'bg-accent-crimson' : 'bg-semantic-success'}`} />
-          <span className={`text-[13px] ${u.isBlocked ? 'text-accent-crimson font-bold' : 'text-text-secondary'}`}>
+          <span className={`w-2 h-2 rounded-full ${u.isBlocked ? 'bg-brand' : 'bg-success-bg'}`} />
+          <span className={`text-[13px] ${u.isBlocked ? 'text-brand font-bold' : 'text-tx-secondary'}`}>
             {u.isBlocked ? 'Blocked' : 'Active'}
           </span>
         </div>
@@ -117,14 +117,14 @@ export default function AdminUsersPage() {
       key: 'bookings', header: 'Bookings',
       render: (u) => (
         <div>
-          <p className="text-[13px] text-text-primary">{u.totalBookings} booking{u.totalBookings !== 1 ? 's' : ''}</p>
-          <p className="text-[11px] text-text-muted">{fmt(u.totalSpent)}</p>
+          <p className="text-[13px] text-tx-primary">{u.totalBookings} booking{u.totalBookings !== 1 ? 's' : ''}</p>
+          <p className="text-[11px] text-tx-muted">{fmt(u.totalSpent)}</p>
         </div>
       ),
     },
     {
       key: 'joined', header: 'Joined',
-      render: (u) => <span className="text-[12px] text-text-muted">{relativeDate(u.createdAt)}</span>,
+      render: (u) => <span className="text-[12px] text-tx-muted">{relativeDate(u.createdAt)}</span>,
     },
     {
       key: 'actions', header: 'Actions',
@@ -132,7 +132,7 @@ export default function AdminUsersPage() {
         <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
           <button
             onClick={() => setSelectedUserId(u.id)}
-            className="px-2 py-1 rounded-lg border border-border-default text-text-secondary text-[11px] hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+            className="px-2 py-1 rounded-lg border border-border-l text-tx-secondary text-[11px] hover:border-brand hover:text-brand transition-colors"
           >
             View
           </button>
@@ -141,7 +141,7 @@ export default function AdminUsersPage() {
               onClick={() => blockUser.mutate(u.id)}
               disabled={blockUser.isPending}
               title="Block user"
-              className="px-2 py-1 rounded-lg border border-border-default text-text-muted text-[11px] hover:border-accent-crimson hover:text-accent-crimson transition-colors disabled:opacity-40"
+              className="px-2 py-1 rounded-lg border border-border-l text-tx-muted text-[11px] hover:border-brand hover:text-brand transition-colors disabled:opacity-40"
             >
               🚫
             </button>
@@ -150,7 +150,7 @@ export default function AdminUsersPage() {
               onClick={() => unblockUser.mutate(u.id)}
               disabled={unblockUser.isPending}
               title="Unblock user"
-              className="px-2 py-1 rounded-lg border border-semantic-success/30 text-semantic-success text-[11px] hover:bg-semantic-success/10 transition-colors disabled:opacity-40"
+              className="px-2 py-1 rounded-lg border border-success-border/30 text-success text-[11px] hover:bg-success-bg/10 transition-colors disabled:opacity-40"
             >
               ✅
             </button>
@@ -168,24 +168,24 @@ export default function AdminUsersPage() {
           <div>
             <h1 className="font-display font-bold text-2xl mb-1 tracking-tight">
               Users
-              {data && <span className="ml-2 text-base font-normal text-text-muted">({data.total})</span>}
+              {data && <span className="ml-2 text-base font-normal text-tx-muted">({data.total})</span>}
             </h1>
-            <p className="text-text-muted text-sm font-sans">Manage registered users and their access.</p>
+            <p className="text-tx-muted text-sm font-sans">Manage registered users and their access.</p>
           </div>
         </div>
 
         {/* Filter bar */}
         <div className="flex flex-wrap gap-3 mb-5">
           <div className="relative flex-1 min-w-48">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-tx-muted" />
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name, email or mobile…"
-              className="w-full pl-8 pr-8 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+              className="w-full pl-8 pr-8 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-tx-muted hover:text-tx-primary">
                 <X size={12} />
               </button>
             )}
@@ -194,7 +194,7 @@ export default function AdminUsersPage() {
           <select
             value={role}
             onChange={(e) => { setRole(e.target.value); setPage(1); }}
-            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+            className="px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand"
           >
             <option value="">All Roles</option>
             <option value="User">Users</option>
@@ -204,7 +204,7 @@ export default function AdminUsersPage() {
           <select
             value={blockedFilter}
             onChange={(e) => { setBlockedFilter(e.target.value); setPage(1); }}
-            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+            className="px-3 py-2 rounded-lg bg-section border border-border-l text-tx-primary text-sm focus:outline-none focus:border-brand"
           >
             <option value="">All Status</option>
             <option value="false">Active</option>
@@ -214,7 +214,7 @@ export default function AdminUsersPage() {
           {!isDefaultFilter && (
             <button
               onClick={clearFilters}
-              className="text-sm text-accent-indigo hover:underline flex items-center gap-1 whitespace-nowrap"
+              className="text-sm text-brand hover:underline flex items-center gap-1 whitespace-nowrap"
             >
               <X size={12} /> Clear filters
             </button>
@@ -224,9 +224,9 @@ export default function AdminUsersPage() {
         {/* Summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
           {summaryItems.map(({ label, value }) => (
-            <div key={label} className="rounded-xl border border-border-default bg-bg-surface p-3">
-              <p className="text-[11px] text-text-muted uppercase tracking-wider mb-1">{label}</p>
-              <p className="text-lg font-bold text-text-primary font-display">{isLoading ? '…' : value}</p>
+            <div key={label} className="rounded-xl border border-border-l bg-card p-3">
+              <p className="text-[11px] text-tx-muted uppercase tracking-wider mb-1">{label}</p>
+              <p className="text-lg font-bold text-tx-primary font-display">{isLoading ? '…' : value}</p>
             </div>
           ))}
         </div>
@@ -242,11 +242,11 @@ export default function AdminUsersPage() {
         {/* Pagination */}
         {data && data.totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
-            <p className="text-sm text-text-muted">{data.total} users</p>
+            <p className="text-sm text-tx-muted">{data.total} users</p>
             <div className="flex gap-2">
-              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">← Prev</button>
-              <span className="px-3 py-1 text-sm text-text-primary">Page {page} / {data.totalPages}</span>
-              <button disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">Next →</button>
+              <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1 rounded-lg border border-border-l text-sm text-tx-secondary disabled:opacity-40">← Prev</button>
+              <span className="px-3 py-1 text-sm text-tx-primary">Page {page} / {data.totalPages}</span>
+              <button disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 rounded-lg border border-border-l text-sm text-tx-secondary disabled:opacity-40">Next →</button>
             </div>
           </div>
         )}

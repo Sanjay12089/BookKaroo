@@ -24,12 +24,12 @@ export function VenueScreensPanel({ venueId, venueName }: Props) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display font-bold text-base text-text-primary">
+        <h3 className="font-display font-bold text-base text-tx-primary">
           Screens ({isLoading ? '…' : screens.length})
         </h3>
         <button
           onClick={() => setAddModal(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-accent-crimson text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand text-white text-sm font-semibold hover:opacity-90 transition-opacity"
         >
           <Plus size={14} /> Add Screen
         </button>
@@ -38,7 +38,7 @@ export function VenueScreensPanel({ venueId, venueName }: Props) {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[0, 1].map((i) => (
-            <div key={i} className="rounded-xl border border-border-default p-4 space-y-2">
+            <div key={i} className="rounded-xl border border-border-l p-4 space-y-2">
               <Skeleton height={16} width="60%" />
               <Skeleton height={12} width="40%" />
               <Skeleton height={12} width="80%" />
@@ -47,10 +47,10 @@ export function VenueScreensPanel({ venueId, venueName }: Props) {
         </div>
       ) : screens.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 gap-3">
-          <p className="text-text-muted font-sans text-sm">No screens added yet.</p>
+          <p className="text-tx-muted font-sans text-sm">No screens added yet.</p>
           <button
             onClick={() => setAddModal(true)}
-            className="px-4 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            className="px-4 py-2 rounded-lg bg-brand text-white text-sm font-semibold hover:opacity-90 transition-opacity"
           >
             Add Screen
           </button>
@@ -116,46 +116,46 @@ function ScreenCard({ screen, onEdit, onDelete }: ScreenCardProps) {
   const layout = screen.layout;
 
   return (
-    <div className="rounded-xl border border-border-default bg-bg-surface p-4">
+    <div className="rounded-xl border border-border-l bg-card p-4">
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-text-primary text-[15px]">{screen.name}</span>
+          <span className="font-semibold text-tx-primary text-[15px]">{screen.name}</span>
           {!screen.isActive && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-bg-surface3 text-text-muted font-semibold uppercase tracking-wider">Inactive</span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-section text-tx-muted font-semibold uppercase tracking-wider">Inactive</span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={onEdit} className="text-text-muted hover:text-accent-indigo transition-colors" aria-label="Edit screen">
+          <button onClick={onEdit} className="text-tx-muted hover:text-brand transition-colors" aria-label="Edit screen">
             <Pencil size={14} />
           </button>
-          <button onClick={onDelete} className="text-text-muted hover:text-semantic-error transition-colors" aria-label="Delete screen">
+          <button onClick={onDelete} className="text-tx-muted hover:text-error transition-colors" aria-label="Delete screen">
             <Trash2 size={14} />
           </button>
         </div>
       </div>
 
-      <p className="text-[13px] text-text-muted mb-2">{screen.totalSeats} seats total</p>
+      <p className="text-[13px] text-tx-muted mb-2">{screen.totalSeats} seats total</p>
 
       {layout && (
         <>
           <div className="flex flex-wrap gap-1.5">
             {layout.categories.map((cat) => (
-              <span key={cat.name} className="flex items-center gap-1 text-[12px] text-text-secondary">
+              <span key={cat.name} className="flex items-center gap-1 text-[12px] text-tx-secondary">
                 <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
                 {cat.name}
-                <span className="text-text-muted text-[11px]">({cat.rows.join(',')}) ₹{cat.price}</span>
+                <span className="text-tx-muted text-[11px]">({cat.rows.join(',')}) ₹{cat.price}</span>
               </span>
             ))}
           </div>
 
           {layout.aisleAfterCols.length > 0 && (
-            <p className="text-[11px] text-text-muted mt-1.5">
+            <p className="text-[11px] text-tx-muted mt-1.5">
               Aisle after col: {layout.aisleAfterCols.join(', ')}
             </p>
           )}
 
           {layout.blockedSeats.length > 0 && (
-            <p className="text-[11px] text-text-muted mt-0.5">
+            <p className="text-[11px] text-tx-muted mt-0.5">
               {layout.blockedSeats.length} blocked seat(s)
             </p>
           )}
