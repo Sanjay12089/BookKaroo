@@ -38,10 +38,10 @@ export default function ResetPasswordPage() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-bg-base">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-page">
         <div className="text-center space-y-4">
-          <p className="text-semantic-error font-sans">Invalid or missing reset token.</p>
-          <Link to={ROUTES.FORGOT_PASSWORD} className="text-accent-indigo hover:underline text-sm font-sans">
+          <p className="text-error font-sans">Invalid or missing reset token.</p>
+          <Link to={ROUTES.FORGOT_PASSWORD} className="text-brand hover:underline text-sm font-sans">
             Request a new reset link
           </Link>
         </div>
@@ -63,21 +63,21 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-bg-base">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-page">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <Link to={ROUTES.HOME}>
-            <span className="font-display font-bold text-xl text-text-primary">
-              Book<span className="text-accent-crimson">Karoo</span>
+            <span className="font-display font-bold text-xl text-tx-primary">
+              Book<span className="text-brand">Karoo</span>
             </span>
           </Link>
         </div>
 
-        <div className="bg-bg-surface border border-border-default rounded-2xl p-8 shadow-sm">
-          <h1 className="font-display font-semibold text-2xl text-text-primary mb-1.5 tracking-tight">
+        <div className="bg-card border border-border-l rounded-2xl p-8 shadow-sm">
+          <h1 className="font-display font-semibold text-2xl text-tx-primary mb-1.5 tracking-tight">
             Set new password
           </h1>
-          <p className="text-text-muted font-sans text-sm mb-6">
+          <p className="text-tx-muted font-sans text-sm mb-6">
             Must be at least 8 characters with uppercase, number, and special character.
           </p>
 
@@ -91,7 +91,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowPwd((v) => !v)}
-                  className="text-text-muted hover:text-text-primary transition-colors"
+                  className="text-tx-muted hover:text-tx-primary transition-colors"
                   tabIndex={-1}
                 >
                   {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
             />
 
             {apiError && (
-              <div className="px-4 py-3 rounded-lg bg-semantic-error/10 border border-semantic-error/25 text-sm text-semantic-error font-sans">
+              <div className="px-4 py-3 rounded-lg bg-error-bg/10 border border-error/25 text-sm text-error font-sans">
                 {apiError}
               </div>
             )}

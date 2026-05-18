@@ -26,53 +26,53 @@ export function CancelConfirmModal({ booking, isPending, onConfirm, onClose }: C
       onClose={onClose}
       maxWidth="max-w-sm"
       title={
-        <span className="flex items-center gap-2 text-semantic-error">
+        <span className="flex items-center gap-2 text-error">
           <AlertTriangle size={18} />
           Cancel Booking?
         </span>
       }
     >
       {/* Booking summary */}
-      <div className="p-3 rounded-lg bg-bg-surface2 border border-border-default mb-4">
-        <p className="font-semibold text-sm text-text-primary font-sans line-clamp-1">{booking.title}</p>
-        <p className="text-xs text-text-muted font-sans mt-0.5">
+      <div className="p-3 rounded-lg bg-section border border-border-l mb-4">
+        <p className="font-semibold text-sm text-tx-primary font-sans line-clamp-1">{booking.title}</p>
+        <p className="text-xs text-tx-muted font-sans mt-0.5">
           {booking.showDate} · {booking.showTime}
         </p>
-        <p className="text-xs text-text-muted font-sans">{booking.venueName}</p>
+        <p className="text-xs text-tx-muted font-sans">{booking.venueName}</p>
         {seatLabels && (
-          <p className="text-xs font-mono text-text-muted mt-1">{seatLabels}</p>
+          <p className="text-xs font-mono text-tx-muted mt-1">{seatLabels}</p>
         )}
       </div>
 
       {/* Refund breakdown */}
       <div className="space-y-2 mb-4">
         <div className="flex justify-between text-sm font-sans">
-          <span className="text-text-secondary">Ticket amount</span>
-          <span className="text-text-primary">{formatCurrency(ticketAmount)}</span>
+          <span className="text-tx-secondary">Ticket amount</span>
+          <span className="text-tx-primary">{formatCurrency(ticketAmount)}</span>
         </div>
         {discount > 0 && (
           <div className="flex justify-between text-sm font-sans">
-            <span className="text-text-secondary">Coupon discount</span>
-            <span className="text-semantic-success">- {formatCurrency(discount)}</span>
+            <span className="text-tx-secondary">Coupon discount</span>
+            <span className="text-success">- {formatCurrency(discount)}</span>
           </div>
         )}
         <div className="flex justify-between text-sm font-sans">
-          <span className="text-text-secondary">Convenience fee + GST (non-refundable)</span>
-          <span className="text-semantic-error">- {formatCurrency(nonRefundable)}</span>
+          <span className="text-tx-secondary">Convenience fee + GST (non-refundable)</span>
+          <span className="text-error">- {formatCurrency(nonRefundable)}</span>
         </div>
-        <div className="border-t border-border-default my-1" />
+        <div className="border-t border-border-l my-1" />
         <div className="flex justify-between font-sans">
-          <span className="text-sm font-semibold text-text-primary">Estimated refund</span>
-          <span className="text-base font-bold text-semantic-success">{formatCurrency(refundAmount)}</span>
+          <span className="text-sm font-semibold text-tx-primary">Estimated refund</span>
+          <span className="text-base font-bold text-success">{formatCurrency(refundAmount)}</span>
         </div>
       </div>
 
       {/* Warning */}
-      <div className="flex gap-2 p-3 rounded-lg bg-semantic-warning/08 border border-semantic-warning/25 mb-5">
-        <AlertTriangle size={14} className="text-semantic-warning flex-shrink-0 mt-0.5" />
-        <div className="text-xs text-text-secondary font-sans">
+      <div className="flex gap-2 p-3 rounded-lg bg-warning-bg/08 border border-warning/25 mb-5">
+        <AlertTriangle size={14} className="text-warning flex-shrink-0 mt-0.5" />
+        <div className="text-xs text-tx-secondary font-sans">
           <p>Refunds are processed in 7 business days.</p>
-          <p className="mt-0.5 text-semantic-error">This action cannot be undone.</p>
+          <p className="mt-0.5 text-error">This action cannot be undone.</p>
         </div>
       </div>
 

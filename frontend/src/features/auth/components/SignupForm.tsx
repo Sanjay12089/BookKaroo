@@ -106,7 +106,7 @@ export function SignupForm() {
             <button
               type="button"
               onClick={() => setShowPwd((v) => !v)}
-              className="text-text-muted hover:text-text-primary transition-colors"
+              className="text-tx-muted hover:text-tx-primary transition-colors"
               tabIndex={-1}
             >
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -144,7 +144,7 @@ export function SignupForm() {
 
       {/* Gender chips */}
       <div>
-        <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2 font-sans">Gender</p>
+        <p className="text-[11px] font-semibold text-tx-muted uppercase tracking-wider mb-2 font-sans">Gender</p>
         <div className="flex flex-wrap gap-2">
           {GENDERS.map((g) => (
             <label
@@ -152,8 +152,8 @@ export function SignupForm() {
               className={cn(
                 'px-3 py-1.5 rounded-full border text-sm font-sans cursor-pointer transition-colors duration-150 select-none',
                 watchedGender === g.value
-                  ? 'bg-accent-indigo/15 border-accent-indigo text-accent-indigo'
-                  : 'border-border-default text-text-muted hover:border-border-strong hover:text-text-primary'
+                  ? 'bg-brand/15 border-brand text-brand'
+                  : 'border-border-l text-tx-muted hover:border-border-m hover:text-tx-primary'
               )}
             >
               <input type="radio" value={g.value} className="sr-only" {...register('gender')} />
@@ -165,22 +165,22 @@ export function SignupForm() {
 
       {/* City */}
       <div>
-        <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">City</p>
+        <p className="text-[11px] font-semibold text-tx-muted uppercase tracking-wider mb-1.5 font-sans">City</p>
         <select
           {...register('cityId')}
-          className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15 transition-all [color-scheme:dark]"
+          className="w-full px-3.5 py-3 rounded-md bg-card border border-border-l text-tx-primary text-sm font-sans outline-none focus:border-brand focus:ring-2 focus:ring-accent-indigo/15 transition-all [color-scheme:dark]"
         >
           <option value="">{citiesLoading ? 'Loading…' : 'Select your city'}</option>
           {cities.map((c) => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
         </select>
-        {errors.cityId && <p className="text-xs text-semantic-error font-sans mt-1">{errors.cityId.message}</p>}
+        {errors.cityId && <p className="text-xs text-error font-sans mt-1">{errors.cityId.message}</p>}
       </div>
 
       {/* API error alert */}
       {apiError && (
-        <div className="px-4 py-3 rounded-lg bg-semantic-error/10 border border-semantic-error/25 text-sm text-semantic-error font-sans">
+        <div className="px-4 py-3 rounded-lg bg-error-bg/10 border border-error/25 text-sm text-error font-sans">
           {apiError}
         </div>
       )}
@@ -189,9 +189,9 @@ export function SignupForm() {
         {isPending ? 'Creating account…' : 'Create Account →'}
       </Button>
 
-      <p className="text-center text-sm text-text-muted font-sans">
+      <p className="text-center text-sm text-tx-muted font-sans">
         Already have an account?{' '}
-        <Link to={ROUTES.LOGIN} className="text-accent-indigo hover:underline font-medium">
+        <Link to={ROUTES.LOGIN} className="text-brand hover:underline font-medium">
           Sign In
         </Link>
       </p>

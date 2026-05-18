@@ -62,7 +62,7 @@ export function LoginForm() {
             <button
               type="button"
               onClick={() => setShowPwd((v) => !v)}
-              className="text-text-muted hover:text-text-primary transition-colors"
+              className="text-tx-muted hover:text-tx-primary transition-colors"
               tabIndex={-1}
             >
               {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -71,14 +71,14 @@ export function LoginForm() {
           {...register('password')}
         />
         <div className="flex justify-end mt-1">
-          <Link to={ROUTES.FORGOT_PASSWORD} className="text-xs text-accent-indigo hover:underline font-sans">
+          <Link to={ROUTES.FORGOT_PASSWORD} className="text-xs text-brand hover:underline font-sans">
             Forgot password?
           </Link>
         </div>
       </div>
 
       {apiError && (
-        <div className="px-4 py-3 rounded-lg bg-semantic-error/10 border border-semantic-error/25 text-sm text-semantic-error font-sans">
+        <div className="px-4 py-3 rounded-lg bg-error-bg/10 border border-error/25 text-sm text-error font-sans">
           {apiError}
         </div>
       )}
@@ -87,9 +87,9 @@ export function LoginForm() {
         {isPending ? 'Signing in…' : 'Sign In →'}
       </Button>
 
-      <p className="text-center text-sm text-text-muted font-sans">
+      <p className="text-center text-sm text-tx-muted font-sans">
         New to BookKaroo?{' '}
-        <Link to={ROUTES.SIGNUP} className="text-accent-indigo hover:underline font-medium">
+        <Link to={ROUTES.SIGNUP} className="text-brand hover:underline font-medium">
           Create account
         </Link>
       </p>

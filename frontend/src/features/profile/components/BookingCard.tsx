@@ -7,11 +7,11 @@ import { downloadInvoicePdf } from '@/features/booking/api/useBooking';
 import type { BookingListItem } from '@/features/booking/types';
 
 const STATUS_STYLE: Record<string, { label: string; className: string }> = {
-  Confirmed: { label: 'CONFIRMED', className: 'bg-semantic-success/12 text-[#6EE7B7] border border-semantic-success/28' },
-  Completed: { label: 'COMPLETED', className: 'bg-bg-surface3 text-text-muted border border-border-default' },
-  Cancelled: { label: 'CANCELLED', className: 'bg-accent-crimson/12 text-[#FF6770] border border-accent-crimson/25' },
-  Refunded:  { label: 'REFUNDED',  className: 'bg-semantic-warning/12 text-[#FCD34D] border border-semantic-warning/28' },
-  Pending:   { label: 'PENDING',   className: 'bg-bg-surface3 text-text-muted border border-border-default' },
+  Confirmed: { label: 'CONFIRMED', className: 'bg-success-bg/12 text-[#6EE7B7] border border-success-border/28' },
+  Completed: { label: 'COMPLETED', className: 'bg-section text-tx-muted border border-border-l' },
+  Cancelled: { label: 'CANCELLED', className: 'bg-brand/12 text-[#FF6770] border border-brand/25' },
+  Refunded:  { label: 'REFUNDED',  className: 'bg-warning-bg/12 text-[#FCD34D] border border-warning/28' },
+  Pending:   { label: 'PENDING',   className: 'bg-section text-tx-muted border border-border-l' },
 };
 
 interface BookingCardProps {
@@ -35,10 +35,10 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
   }
 
   return (
-    <div className="p-5 rounded-xl bg-bg-surface border border-border-default hover:border-border-strong transition-colors">
+    <div className="p-5 rounded-xl bg-card border border-border-l hover:border-border-m transition-colors">
       <div className="flex gap-4 items-start">
         {/* Poster */}
-        <div className="w-16 flex-shrink-0 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2">
+        <div className="w-16 flex-shrink-0 aspect-[2/3] rounded-lg overflow-hidden bg-section">
           {booking.posterUrl ? (
             <img
               src={TMDB_POSTER(booking.posterUrl, 'w185')}
@@ -57,7 +57,7 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
         <div className="flex-1 min-w-0">
           {/* Title + status */}
           <div className="flex items-start justify-between gap-2 mb-1.5">
-            <p className="font-display font-semibold text-base text-text-primary leading-snug line-clamp-1">
+            <p className="font-display font-semibold text-base text-tx-primary leading-snug line-clamp-1">
               {booking.title}
             </p>
             <span className={`flex-shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold font-sans ${style.className}`}>
@@ -68,41 +68,41 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
           {/* Badges row */}
           <div className="flex items-center gap-1.5 mb-2 flex-wrap">
             {booking.certificate && (
-              <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded border border-border-default text-text-muted">
+              <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded border border-border-l text-tx-muted">
                 {booking.certificate}
               </span>
             )}
             {booking.format && (
-              <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded bg-accent-indigo/12 text-[#A5B4FC]">
+              <span className="text-[10px] font-sans font-semibold px-1.5 py-0.5 rounded bg-brand/12 text-[#A5B4FC]">
                 {booking.format}
               </span>
             )}
             {booking.language && (
-              <span className="text-[10px] font-sans text-text-muted">
+              <span className="text-[10px] font-sans text-tx-muted">
                 {booking.language}
               </span>
             )}
           </div>
 
           {/* Date + time */}
-          <p className="text-sm text-text-secondary font-sans mb-0.5">
+          <p className="text-sm text-tx-secondary font-sans mb-0.5">
             {booking.showDate} · {booking.showTime}
           </p>
 
           {/* Venue + screen */}
-          <p className="text-sm text-text-muted font-sans line-clamp-1 mb-1.5">
+          <p className="text-sm text-tx-muted font-sans line-clamp-1 mb-1.5">
             {booking.venueName} · {booking.screenName}
           </p>
 
           {/* Seats / Tier info */}
           {booking.seats.length > 0
             ? Object.entries(seatsByCategory).map(([cat, labels]) => (
-                <p key={cat} className="text-xs text-text-muted font-mono">
+                <p key={cat} className="text-xs text-tx-muted font-mono">
                   {cat.toUpperCase()} — {labels.join(', ')}
                 </p>
               ))
             : booking.ticketQty > 0 && (
-                <p className="text-xs text-text-muted font-sans">
+                <p className="text-xs text-tx-muted font-sans">
                   {booking.screenName !== 'Screen' ? `${booking.screenName} · ` : ''}
                   {booking.ticketQty} ticket{booking.ticketQty !== 1 ? 's' : ''}
                 </p>
@@ -111,15 +111,15 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
 
           {/* Booking ref + amount row */}
           <div className="flex items-center justify-between mt-2 flex-wrap gap-2">
-            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-bg-surface2 text-text-muted border border-border-default">
+            <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-section text-tx-muted border border-border-l">
               {booking.bookingRef}
             </span>
             <div className="text-right">
-              <span className="font-display font-semibold text-base text-text-primary">
+              <span className="font-display font-semibold text-base text-tx-primary">
                 {formatCurrency(booking.amountPaid)}
               </span>
               {booking.discount > 0 && (
-                <span className="ml-2 text-[11px] text-semantic-success font-sans">
+                <span className="ml-2 text-[11px] text-success font-sans">
                   Saved {formatCurrency(booking.discount)}
                 </span>
               )}
@@ -158,7 +158,7 @@ export function BookingCard({ booking, onCancel }: BookingCardProps) {
 
           {/* Refund info for cancelled */}
           {booking.status === 'Cancelled' && (
-            <p className="text-[11px] text-text-muted font-sans mt-2">
+            <p className="text-[11px] text-tx-muted font-sans mt-2">
               Refund processed · 7 business days
             </p>
           )}

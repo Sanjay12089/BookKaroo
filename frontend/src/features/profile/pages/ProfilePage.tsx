@@ -55,7 +55,7 @@ export default function ProfilePage() {
     return (
       <PublicLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="w-8 h-8 rounded-full border-2 border-accent-indigo/20 border-t-accent-indigo animate-spin" />
+          <div className="w-8 h-8 rounded-full border-2 border-brand/20 border-t-accent-indigo animate-spin" />
         </div>
       </PublicLayout>
     );
@@ -71,22 +71,22 @@ export default function ProfilePage() {
           </div>
           <div>
             <h1 className="font-display font-semibold text-2xl tracking-tight">{user?.name}</h1>
-            <p className="text-text-muted text-sm font-sans">{user?.email}</p>
+            <p className="text-tx-muted text-sm font-sans">{user?.email}</p>
           </div>
         </div>
 
         {/* Edit form */}
-        <div className="p-7 rounded-2xl bg-bg-surface border border-border-default">
+        <div className="p-7 rounded-2xl bg-card border border-border-l">
           <h2 className="font-semibold text-lg mb-5 font-sans">Edit Profile</h2>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {/* Email — read only */}
             <div>
-              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">
+              <label className="block text-[11px] font-semibold text-tx-muted uppercase tracking-wider mb-1.5 font-sans">
                 Email
               </label>
-              <div className="px-3.5 py-3 rounded-md bg-bg-surface2 border border-border-default text-text-muted text-sm font-sans">
+              <div className="px-3.5 py-3 rounded-md bg-section border border-border-l text-tx-muted text-sm font-sans">
                 {user?.email}
-                <span className="text-[10px] bg-accent-indigo/12 text-[#A5B4FC] px-1.5 py-0.5 rounded-full ml-2">
+                <span className="text-[10px] bg-brand/12 text-[#A5B4FC] px-1.5 py-0.5 rounded-full ml-2">
                   Cannot change
                 </span>
               </div>
@@ -97,12 +97,12 @@ export default function ProfilePage() {
 
             {/* Gender */}
             <div>
-              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">
+              <label className="block text-[11px] font-semibold text-tx-muted uppercase tracking-wider mb-1.5 font-sans">
                 Gender
               </label>
               <select
                 {...register('gender')}
-                className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo"
+                className="w-full px-3.5 py-3 rounded-md bg-card border border-border-l text-tx-primary text-sm font-sans outline-none focus:border-brand"
               >
                 <option value="">Prefer not to say</option>
                 <option value="Male">Male</option>
@@ -113,12 +113,12 @@ export default function ProfilePage() {
 
             {/* City — loaded from API so UUIDs match DB */}
             <div>
-              <label className="block text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-1.5 font-sans">
+              <label className="block text-[11px] font-semibold text-tx-muted uppercase tracking-wider mb-1.5 font-sans">
                 City
               </label>
               <select
                 {...register('cityId')}
-                className="w-full px-3.5 py-3 rounded-md bg-bg-surface border border-border-default text-text-primary text-sm font-sans outline-none focus:border-accent-indigo"
+                className="w-full px-3.5 py-3 rounded-md bg-card border border-border-l text-tx-primary text-sm font-sans outline-none focus:border-brand"
               >
                 <option value="">Select city</option>
                 {cities.map((c) => (
@@ -134,10 +134,10 @@ export default function ProfilePage() {
         </div>
 
         {/* Change password card */}
-        <div className="p-5 rounded-xl bg-bg-surface border border-border-default mt-4 flex items-center justify-between">
+        <div className="p-5 rounded-xl bg-card border border-border-l mt-4 flex items-center justify-between">
           <div>
-            <p className="font-semibold text-sm text-text-primary font-sans">Password</p>
-            <p className="text-xs text-text-muted font-sans mt-0.5">
+            <p className="font-semibold text-sm text-tx-primary font-sans">Password</p>
+            <p className="text-xs text-tx-muted font-sans mt-0.5">
               Last changed:{' '}
               {user?.passwordChangedAt
                 ? new Date(user.passwordChangedAt).toLocaleDateString('en-IN', {
@@ -148,7 +148,7 @@ export default function ProfilePage() {
           </div>
           <button
             onClick={() => setShowChangePassword(true)}
-            className="px-4 py-2 rounded-full bg-bg-surface2 border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans"
+            className="px-4 py-2 rounded-full bg-section border border-border-l text-sm text-tx-secondary hover:text-tx-primary transition-colors font-sans"
           >
             Change Password
           </button>
@@ -159,9 +159,9 @@ export default function ProfilePage() {
         )}
 
         {/* Danger zone */}
-        <div className="p-5 rounded-xl bg-semantic-error/05 border border-semantic-error/20 mt-4">
-          <p className="font-semibold text-sm text-semantic-error font-sans mb-1">Danger Zone</p>
-          <p className="text-xs text-text-muted font-sans mb-3">
+        <div className="p-5 rounded-xl bg-error-bg/05 border border-error/20 mt-4">
+          <p className="font-semibold text-sm text-error font-sans mb-1">Danger Zone</p>
+          <p className="text-xs text-tx-muted font-sans mb-3">
             Deleting your account is permanent and cannot be undone. A confirmation email will be sent to {user?.email}.
           </p>
           <button
@@ -171,7 +171,7 @@ export default function ProfilePage() {
                 deleteAccount();
               }
             }}
-            className="text-xs text-semantic-error underline font-sans disabled:opacity-50"
+            className="text-xs text-error underline font-sans disabled:opacity-50"
           >
             {isDeleting ? 'Deleting…' : 'Delete my account'}
           </button>

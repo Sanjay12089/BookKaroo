@@ -31,21 +31,21 @@ export default function SignupPage() {
       </div>
 
       {/* Right form panel */}
-      <div className="flex-1 flex items-start lg:items-center justify-center min-h-screen overflow-y-auto px-6 py-12 bg-bg-base">
+      <div className="flex-1 flex items-start lg:items-center justify-center min-h-screen overflow-y-auto px-6 py-12 bg-page">
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
             <Link to={ROUTES.HOME}>
-              <span className="text-2xl font-display font-bold text-text-primary">
-                Book<span className="text-accent-crimson">Karoo</span>
+              <span className="text-2xl font-display font-bold text-tx-primary">
+                Book<span className="text-brand">Karoo</span>
               </span>
             </Link>
           </div>
 
-          <h1 className="font-display font-semibold text-3xl text-text-primary mb-1.5 tracking-tight">
+          <h1 className="font-display font-semibold text-3xl text-tx-primary mb-1.5 tracking-tight">
             Create your account
           </h1>
-          <p className="text-text-muted font-sans text-sm mb-8">
+          <p className="text-tx-muted font-sans text-sm mb-8">
             Join millions booking entertainment across India
           </p>
 

@@ -29,20 +29,20 @@ export function ForgotPasswordForm() {
   if (submittedEmail) {
     return (
       <div className="text-center space-y-4 py-4">
-        <div className="w-14 h-14 rounded-full bg-accent-indigo/10 border border-accent-indigo/20 flex items-center justify-center mx-auto">
-          <Mail size={28} className="text-accent-indigo" />
+        <div className="w-14 h-14 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center mx-auto">
+          <Mail size={28} className="text-brand" />
         </div>
-        <h2 className="font-display font-semibold text-xl text-text-primary">Check your inbox</h2>
-        <p className="text-sm text-text-muted font-sans leading-relaxed">
-          If <span className="text-text-primary font-medium">{submittedEmail}</span> is registered,
+        <h2 className="font-display font-semibold text-xl text-tx-primary">Check your inbox</h2>
+        <p className="text-sm text-tx-muted font-sans leading-relaxed">
+          If <span className="text-tx-primary font-medium">{submittedEmail}</span> is registered,
           you'll receive a reset link shortly.
         </p>
-        <p className="text-xs text-text-muted font-sans">
+        <p className="text-xs text-tx-muted font-sans">
           Didn't get it? Check your spam folder.
         </p>
         <Link
           to={ROUTES.LOGIN}
-          className="inline-block mt-2 text-sm text-accent-indigo hover:underline font-sans font-medium"
+          className="inline-block mt-2 text-sm text-brand hover:underline font-sans font-medium"
         >
           ← Back to Sign In
         </Link>
@@ -64,7 +64,7 @@ export function ForgotPasswordForm() {
         {isPending ? 'Sending…' : 'Send Reset Link'}
       </Button>
       <p className="text-center text-sm font-sans">
-        <Link to={ROUTES.LOGIN} className="text-accent-indigo hover:underline">
+        <Link to={ROUTES.LOGIN} className="text-brand hover:underline">
           ← Back to Sign In
         </Link>
       </p>

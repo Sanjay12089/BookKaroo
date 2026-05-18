@@ -57,19 +57,19 @@ export default function MyBookingsPage() {
     <PublicLayout>
       <Helmet><title>My Bookings | BookKaroo</title></Helmet>
       {/* Profile header */}
-      <div className="bg-gradient-to-b from-bg-surface2 to-bg-base border-b border-border-default">
+      <div className="bg-gradient-to-b from-section to-page border-b border-border-l">
         <div className="max-w-3xl mx-auto px-6 py-8">
           <div className="flex items-center gap-5 mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white font-display font-bold text-2xl flex-shrink-0 border-[3px] border-border-strong">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white font-display font-bold text-2xl flex-shrink-0 border-[3px] border-border-m">
               {user?.name?.charAt(0).toUpperCase() ?? 'U'}
             </div>
             <div>
-              <h1 className="font-display font-semibold text-xl text-text-primary">{user?.name}</h1>
-              <p className="text-sm text-text-muted font-sans">{user?.email}</p>
+              <h1 className="font-display font-semibold text-xl text-tx-primary">{user?.name}</h1>
+              <p className="text-sm text-tx-muted font-sans">{user?.email}</p>
             </div>
             <div className="ml-auto">
               <Link to={ROUTES.PROFILE}>
-                <button className="px-4 py-2 rounded-full bg-bg-surface border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans">
+                <button className="px-4 py-2 rounded-full bg-card border border-border-l text-sm text-tx-secondary hover:text-tx-primary transition-colors font-sans">
                   Edit Profile
                 </button>
               </Link>
@@ -84,8 +84,8 @@ export default function MyBookingsPage() {
               { label: 'Total Spent',    value: formatCurrency(totalSpent) },
             ].map(({ label, value }) => (
               <GlassCard key={label} style={{ padding: '14px 18px' }}>
-                <div className="font-display font-bold text-xl text-accent-crimson">{value}</div>
-                <div className="text-[10px] text-text-muted uppercase tracking-wider mt-0.5 font-sans">{label}</div>
+                <div className="font-display font-bold text-xl text-brand">{value}</div>
+                <div className="text-[10px] text-tx-muted uppercase tracking-wider mt-0.5 font-sans">{label}</div>
               </GlassCard>
             ))}
           </div>
@@ -95,7 +95,7 @@ export default function MyBookingsPage() {
       {/* Tabs + content */}
       <div className="max-w-3xl mx-auto px-6 py-6">
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-border-default mb-6">
+        <div className="flex gap-1 border-b border-border-l mb-6">
           {(['upcoming', 'past'] as const).map((t) => {
             const count = t === 'upcoming' ? upcomingCount : pastCount;
             const isCountLoading = t === 'upcoming' ? upcomingCountLoading : pastCountLoading;
@@ -104,15 +104,15 @@ export default function MyBookingsPage() {
                 key={t}
                 onClick={() => { setTab(t); setPage(1); }}
                 className={`relative px-4 py-3 text-sm font-medium font-sans capitalize transition-colors ${
-                  tab === t ? 'text-accent-crimson' : 'text-text-muted hover:text-text-secondary'
+                  tab === t ? 'text-brand' : 'text-tx-muted hover:text-tx-secondary'
                 }`}
               >
                 {t}
-                <span className="ml-2 text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-bg-surface2 text-text-muted">
+                <span className="ml-2 text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-section text-tx-muted">
                   {isCountLoading ? '…' : count}
                 </span>
                 {tab === t && (
-                  <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-accent-crimson rounded-full" />
+                  <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-brand rounded-full" />
                 )}
               </button>
             );
@@ -129,10 +129,10 @@ export default function MyBookingsPage() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center py-20 text-center">
             <span className="text-5xl mb-4">{tab === 'upcoming' ? '🎟' : '📽'}</span>
-            <p className="text-text-secondary font-sans font-medium">
+            <p className="text-tx-secondary font-sans font-medium">
               {tab === 'upcoming' ? 'No upcoming bookings' : 'No past bookings'}
             </p>
-            <p className="text-sm text-text-muted font-sans mt-1">
+            <p className="text-sm text-tx-muted font-sans mt-1">
               {tab === 'upcoming'
                 ? 'Book a movie or event to see it here'
                 : 'Your booking history will appear here'}
@@ -166,8 +166,8 @@ export default function MyBookingsPage() {
                     onClick={() => setPage(p)}
                     className={`w-8 h-8 rounded-full text-sm font-sans font-medium transition-colors ${
                       p === page
-                        ? 'bg-accent-crimson text-white'
-                        : 'bg-bg-surface border border-border-default text-text-secondary hover:text-text-primary'
+                        ? 'bg-brand text-white'
+                        : 'bg-card border border-border-l text-tx-secondary hover:text-tx-primary'
                     }`}
                   >
                     {p}

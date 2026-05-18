@@ -64,13 +64,13 @@ export function ChangePasswordModal({ onClose }: Props) {
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-md bg-bg-surface rounded-2xl border border-border-default shadow-[0_24px_64px_rgba(0,0,0,0.6)] p-7">
+      <div className="relative w-full max-w-md bg-card rounded-2xl border border-border-l shadow-[0_24px_64px_rgba(0,0,0,0.6)] p-7">
         <div className="flex items-center justify-between mb-6">
           <h2 className="font-semibold text-lg font-sans">Change Password</h2>
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-text-muted hover:text-text-primary transition-colors"
+            className="text-tx-muted hover:text-tx-primary transition-colors"
           >
             <X size={20} />
           </button>
@@ -86,7 +86,7 @@ export function ChangePasswordModal({ onClose }: Props) {
               <button
                 type="button"
                 onClick={() => setShowCurrent((v) => !v)}
-                className="text-text-muted hover:text-text-primary transition-colors"
+                className="text-tx-muted hover:text-tx-primary transition-colors"
                 tabIndex={-1}
                 aria-label={showCurrent ? 'Hide password' : 'Show password'}
               >
@@ -105,7 +105,7 @@ export function ChangePasswordModal({ onClose }: Props) {
               <button
                 type="button"
                 onClick={() => setShowNew((v) => !v)}
-                className="text-text-muted hover:text-text-primary transition-colors"
+                className="text-tx-muted hover:text-tx-primary transition-colors"
                 tabIndex={-1}
                 aria-label={showNew ? 'Hide password' : 'Show password'}
               >
@@ -124,7 +124,7 @@ export function ChangePasswordModal({ onClose }: Props) {
           />
 
           {apiError && (
-            <div className="px-4 py-3 rounded-lg bg-semantic-error/10 border border-semantic-error/25 text-sm text-semantic-error font-sans">
+            <div className="px-4 py-3 rounded-lg bg-error-bg/10 border border-error/25 text-sm text-error font-sans">
               {apiError}
             </div>
           )}
@@ -133,7 +133,7 @@ export function ChangePasswordModal({ onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-full bg-bg-surface2 border border-border-default text-sm text-text-secondary hover:text-text-primary transition-colors font-sans"
+              className="flex-1 py-2.5 rounded-full bg-section border border-border-l text-sm text-tx-secondary hover:text-tx-primary transition-colors font-sans"
             >
               Cancel
             </button>
