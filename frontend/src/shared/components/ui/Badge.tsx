@@ -7,13 +7,13 @@ interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const colorClasses: Record<BadgeColor, string> = {
-  default: 'bg-bg-surface2 text-text-secondary border border-border-default',
-  crimson: 'bg-accent-crimson/12 text-[#FF6770] border border-accent-crimson/25',
-  indigo: 'bg-accent-indigo/14 text-[#A5B4FC] border border-accent-indigo/28',
-  purple: 'bg-accent-purple/14 text-[#C4A0FF] border border-accent-purple/28',
-  success: 'bg-semantic-success/12 text-[#6EE7B7] border border-semantic-success/28',
-  warning: 'bg-semantic-warning/12 text-[#FCD34D] border border-semantic-warning/28',
-  error: 'bg-semantic-error/12 text-[#FCA5A5] border border-semantic-error/28',
+  default: 'bg-section text-tx-muted border border-border-l',
+  crimson: 'bg-brand-light text-brand border border-brand-border',
+  indigo: 'bg-brand-light text-brand border border-brand-border',
+  purple: 'bg-brand-light text-brand border border-brand-border',
+  success: 'bg-success-bg text-success border border-success-border',
+  warning: 'bg-warning-bg text-warning border border-warning-bg',
+  error: 'bg-error-bg text-error border border-error-bg',
 };
 
 export function Badge({ color = 'default', className, ...rest }: BadgeProps) {

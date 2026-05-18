@@ -10,8 +10,8 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        'bg-bg-surface border border-border-default rounded-lg transition-all duration-[220ms]',
-        hover && 'hover:-translate-y-1 hover:border-border-strong hover:shadow-lg cursor-pointer',
+        'bg-card border border-border-l rounded-lg shadow-card transition-all duration-200',
+        hover && 'hover:shadow-card-hover hover:border-border-m cursor-pointer',
         className
       )}
       {...rest}
@@ -25,10 +25,8 @@ export const GlassCard = forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        'bg-bg-surface border border-border-default rounded-xl backdrop-blur-lg',
-        'shadow-[0_8px_24px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.04)]',
-        'transition-all duration-[220ms]',
-        hover && 'hover:-translate-y-1 hover:bg-bg-surface2 hover:border-border-strong',
+        'bg-card border border-border-l rounded-xl shadow-card transition-all duration-200',
+        hover && 'hover:shadow-card-hover hover:border-border-m',
         className
       )}
       {...rest}

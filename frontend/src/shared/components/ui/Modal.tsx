@@ -27,14 +27,14 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg', c
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-base/80 backdrop-blur-md animate-fade-up"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-overlay backdrop-blur-sm animate-fade-up"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className={cn('w-full bg-bg-surface border border-border-default rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-y-auto max-h-[90vh]', maxWidth, className)}>
+      <div className={cn('w-full bg-card border border-border-l rounded-xl shadow-modal overflow-y-auto max-h-[90vh]', maxWidth, className)}>
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border-default">
-            <span className="font-display font-semibold text-lg text-text-primary tracking-tight">{title}</span>
-            <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors p-1 rounded-md">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border-l">
+            <span className="font-display font-semibold text-lg text-tx-primary tracking-tight">{title}</span>
+            <button onClick={onClose} className="text-tx-muted hover:text-tx-primary transition-colors p-1 rounded-md">
               <X size={20} />
             </button>
           </div>

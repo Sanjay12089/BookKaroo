@@ -58,10 +58,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                   ? 'top-1.5 text-[10px] font-semibold tracking-wider uppercase'
                   : 'top-1/2 -translate-y-1/2 text-sm font-normal',
                 error
-                  ? 'text-semantic-error'
+                  ? 'text-error'
                   : focused
-                  ? 'text-accent-indigo'
-                  : 'text-text-muted'
+                  ? 'text-brand'
+                  : 'text-tx-muted'
               )}
             >
               {label}
@@ -83,12 +83,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             onFocus={(e) => { setFocused(true); onFocus?.(e); }}
             onBlur={(e) => { setFocused(false); onBlur?.(e); }}
             className={cn(
-              'absolute inset-0 w-full h-full bg-bg-surface rounded-md font-sans text-sm text-text-primary outline-none transition-all duration-150',
+              'absolute inset-0 w-full h-full bg-card rounded-lg font-sans text-sm text-tx-primary outline-none transition-all duration-150 placeholder:text-tx-muted',
               label ? 'pt-5 pb-1.5 px-3.5' : 'px-3.5',
               rightElement && 'pr-10',
               error
-                ? 'border border-semantic-error focus:ring-2 focus:ring-semantic-error/15'
-                : 'border border-border-default focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15'
+                ? 'border border-error bg-error-bg'
+                : 'border border-border-l focus:border-border-focus focus:shadow-input-focus'
             )}
             {...inputRest}
           />
@@ -98,8 +98,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {error && <p className="text-xs text-semantic-error font-sans">{error}</p>}
-        {hint && !error && <p className="text-xs text-text-muted font-sans">{hint}</p>}
+        {error && <p className="text-xs text-error font-sans">{error}</p>}
+        {hint && !error && <p className="text-xs text-tx-muted font-sans">{hint}</p>}
       </div>
     );
   }
