@@ -1,4 +1,4 @@
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/shared/lib/utils';
 import type { Movie } from '@/shared/types';
@@ -10,23 +10,17 @@ interface MovieCardProps {
 }
 
 function MovieCardComponent({ movie, coming = false }: MovieCardProps) {
-  const [hovered, setHovered] = useState(false);
   const posterUrl = movie.posterUrl ? TMDB_POSTER(movie.posterUrl) : null;
 
   return (
     <Link
-      to={coming ? ROUTES.MOVIE_DETAIL(movie.slug) : ROUTES.MOVIE_DETAIL(movie.slug)}
-      className="block"
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      to={ROUTES.MOVIE_DETAIL(movie.slug)}
+      className="group cursor-pointer block"
     >
       {/* Poster */}
       <div
         className={cn(
-          'relative aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 border transition-all duration-[220ms] isolate',
-          hovered
-            ? 'border-border-strong -translate-y-1 shadow-[0_8px_24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(229,9,20,0.3)]'
-            : 'border-border-default'
+          'relative aspect-[2/3] rounded-lg overflow-hidden bg-section shadow-card group-hover:shadow-card-hover transition-all duration-200 group-hover:-translate-y-1 isolate'
         )}
       >
         {posterUrl ? (
@@ -41,46 +35,43 @@ function MovieCardComponent({ movie, coming = false }: MovieCardProps) {
           />
         ) : null}
         {/* Fallback always rendered behind the image */}
-        <div className="absolute inset-0 bg-gradient-to-br from-bg-surface2 to-bg-surface3 flex flex-col items-center justify-center gap-2 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-section to-border-l flex flex-col items-center justify-center gap-2 -z-10">
           <span className="text-3xl">🎬</span>
-          <span className="text-[10px] text-text-muted text-center px-2 font-sans leading-snug">{movie.title}</span>
+          <span className="text-[10px] text-tx-muted text-center px-2 font-sans leading-snug">{movie.title}</span>
         </div>
 
         {/* Rating badge */}
         {movie.imdbRating && (
-          <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-sm text-[11px] font-semibold text-[#FCD34D] font-sans">
+          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs font-semibold px-1.5 py-0.5 rounded flex items-center gap-0.5">
             ⭐ {movie.imdbRating}
           </div>
         )}
 
-        {/* Coming soon badge */}
+        {/* Coming soon date badge */}
         {coming && movie.releaseDate && (
-          <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-accent-indigo/85 backdrop-blur-sm text-[11px] font-semibold text-white font-sans">
+          <div className="absolute top-2 left-2 bg-black/70 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
             {new Date(movie.releaseDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
           </div>
         )}
-
-        {/* Hover overlay */}
-        <div
-          className={cn(
-            'absolute inset-0 bg-gradient-to-t from-bg-base/95 via-bg-base/40 to-transparent flex flex-col justify-end p-3 transition-opacity duration-[220ms]',
-            hovered ? 'opacity-100' : 'opacity-0'
-          )}
-        >
-          <button className="w-full py-2 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white text-xs font-semibold font-sans">
-            {coming ? '🔔 Remind Me' : '🎟 Book Now'}
-          </button>
-        </div>
       </div>
 
-      {/* Meta */}
-      <div className="pt-2.5 space-y-0.5">
-        <p className="font-display font-semibold text-sm text-text-primary leading-snug line-clamp-1">
+      {/* Meta below poster */}
+      <div className="pt-2 pb-1 px-0.5">
+        <p className="text-sm font-semibold text-tx-primary line-clamp-2 leading-tight mb-1">
           {movie.title}
         </p>
-        <p className="text-xs text-text-muted font-sans line-clamp-1">
+        <p className="text-[11px] text-tx-muted mb-1.5 line-clamp-1">
           {movie.genres?.slice(0, 2).join(' · ')}
         </p>
+
+        {/* Hover Book Now */}
+        <button
+          type="button"
+          tabIndex={-1}
+          className="opacity-0 group-hover:opacity-100 transition-opacity w-full bg-brand text-white text-xs font-semibold py-2 rounded text-center cursor-pointer hover:bg-brand-dark"
+        >
+          {coming ? '🔔 Remind Me' : '🎟 Book Now'}
+        </button>
       </div>
     </Link>
   );
