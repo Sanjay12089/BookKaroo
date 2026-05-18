@@ -231,28 +231,28 @@ export default function SeatSelectionPage() {
   const showInfo = data?.show;
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg-base text-text-primary font-sans">
+    <div className="min-h-screen flex flex-col bg-page text-tx-primary font-sans">
       {/* Sticky header */}
-      <header className="sticky top-0 z-40 h-16 flex items-center justify-between gap-4 px-4 md:px-6 bg-bg-surface/90 backdrop-blur-md border-b border-border-default">
+      <header className="sticky top-0 z-40 h-16 flex items-center justify-between gap-4 px-4 md:px-6 bg-card/90 backdrop-blur-md border-b border-border-l">
         <div className="flex items-center gap-3">
           <Link to={-1 as never}>
-            <button className="px-3 py-1.5 rounded-full bg-bg-surface2 border border-border-default text-text-secondary text-sm hover:text-text-primary transition-colors">
+            <button className="px-3 py-1.5 rounded-full bg-section border border-border-l text-tx-secondary text-sm hover:text-tx-primary transition-colors">
               ← Back
             </button>
           </Link>
           <div className="hidden sm:block">
-            <p className="text-[10px] text-text-muted uppercase tracking-wider">Seat Selection</p>
+            <p className="text-[10px] text-tx-muted uppercase tracking-wider">Seat Selection</p>
             {showInfo
-              ? <p className="font-semibold text-sm text-text-primary">{showInfo.movieTitle} · {showInfo.format} · {showInfo.language}</p>
-              : <p className="font-semibold text-sm text-text-primary">Show ID: {showId.slice(0, 8)}…</p>
+              ? <p className="font-semibold text-sm text-tx-primary">{showInfo.movieTitle} · {showInfo.format} · {showInfo.language}</p>
+              : <p className="font-semibold text-sm text-tx-primary">Show ID: {showId.slice(0, 8)}…</p>
             }
           </div>
         </div>
 
         {lockExpiresAt && (
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-surface border border-border-strong">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-card border border-border-m">
             <CountdownRing totalSeconds={lockTotalSeconds} remainingSeconds={remaining} size={44} strokeWidth={4} />
-            <div className="text-[10px] text-text-muted uppercase tracking-wider hidden sm:block">Hold expires</div>
+            <div className="text-[10px] text-tx-muted uppercase tracking-wider hidden sm:block">Hold expires</div>
           </div>
         )}
       </header>
@@ -260,10 +260,10 @@ export default function SeatSelectionPage() {
       <main className="flex-1 max-w-[1280px] mx-auto px-4 md:px-6 py-6 w-full pb-36 lg:pb-6">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
           {/* Seat grid */}
-          <section className="p-4 md:p-8 rounded-xl bg-[radial-gradient(80%_60%_at_50%_0%,rgba(99,102,241,0.14),transparent_60%)] bg-bg-surface border border-border-default">
+          <section className="p-4 md:p-8 rounded-xl bg-[radial-gradient(80%_60%_at_50%_0%,rgba(99,102,241,0.14),transparent_60%)] bg-card border border-border-l">
             {/* Quick pick */}
             <div className="flex items-center gap-2 mb-6 flex-wrap">
-              <span className="text-xs text-text-muted">Quick pick:</span>
+              <span className="text-xs text-tx-muted">Quick pick:</span>
               {Array.from({ length: MAX_SEATS }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
@@ -272,7 +272,7 @@ export default function SeatSelectionPage() {
                     'w-7 h-7 rounded-md text-xs font-semibold transition-all',
                     selectedSeats.length === n
                       ? 'bg-gradient-to-br from-accent-indigo to-accent-purple text-white'
-                      : 'bg-bg-surface2 border border-border-default text-text-secondary hover:text-text-primary'
+                      : 'bg-section border border-border-l text-tx-secondary hover:text-tx-primary'
                   )}
                 >
                   {n}
@@ -296,15 +296,15 @@ export default function SeatSelectionPage() {
 
           {/* Desktop sidebar */}
           <aside className="hidden lg:block sticky top-20 self-start">
-            <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
+            <div className="p-5 rounded-xl bg-card border border-border-l">
               <h4 className="font-semibold text-sm mb-4">Selected Seats</h4>
 
               {/* Seat chips */}
               <div className="flex flex-wrap gap-1.5 min-h-[32px] mb-4">
                 {selectedSeats.length === 0
-                  ? <p className="text-xs text-text-muted">Tap seats to select</p>
+                  ? <p className="text-xs text-tx-muted">Tap seats to select</p>
                   : selectedSeats.map((label) => (
-                    <span key={label} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-accent-indigo/14 text-[#A5B4FC] border border-accent-indigo/28 text-[11px] font-semibold font-mono">
+                    <span key={label} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-brand/14 text-[#A5B4FC] border border-brand/28 text-[11px] font-semibold font-mono">
                       {label}
                       <button
                         onClick={() => void handleSeatClick(label, 'selected')}
@@ -320,29 +320,29 @@ export default function SeatSelectionPage() {
 
               {/* Price breakdown */}
               {selectedSeats.length > 0 && (
-                <div className="text-sm font-sans p-3 rounded-lg bg-bg-base border border-border-default mb-4 space-y-3">
+                <div className="text-sm font-sans p-3 rounded-lg bg-page border border-border-l mb-4 space-y-3">
                   {/* Ticket Amount */}
                   <div>
-                    <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+                    <div className="flex justify-between font-semibold text-tx-primary text-[11px] uppercase tracking-wider">
                       <span>Ticket Amount</span>
                       <span>₹{ticketTotal}</span>
                     </div>
-                    <p className="text-[11px] text-text-muted mt-0.5">
+                    <p className="text-[11px] text-tx-muted mt-0.5">
                       {selectedSeats.length} ticket{selectedSeats.length !== 1 ? 's' : ''}
                     </p>
                   </div>
                   {/* Convenience Fees */}
                   <div>
-                    <div className="flex justify-between font-semibold text-text-primary text-[11px] uppercase tracking-wider">
+                    <div className="flex justify-between font-semibold text-tx-primary text-[11px] uppercase tracking-wider">
                       <span>Convenience Fees</span>
                       <span>₹{convFee + gst}</span>
                     </div>
                     <div className="mt-1 space-y-0.5">
-                      <div className="flex justify-between text-[11px] text-text-muted">
+                      <div className="flex justify-between text-[11px] text-tx-muted">
                         <span>Base Amount</span>
                         <span>₹{convFee}</span>
                       </div>
-                      <div className="flex justify-between text-[11px] text-text-muted">
+                      <div className="flex justify-between text-[11px] text-tx-muted">
                         <span>
                           {isIntraState
                             ? `CGST @ 9% + SGST @ 9%`
@@ -353,7 +353,7 @@ export default function SeatSelectionPage() {
                     </div>
                   </div>
                   {/* Total */}
-                  <div className="flex justify-between border-t border-border-default pt-2 font-semibold text-base text-text-primary">
+                  <div className="flex justify-between border-t border-border-l pt-2 font-semibold text-base text-tx-primary">
                     <span>Total</span>
                     <span className="font-display text-xl">{formatCurrency(grand)}</span>
                   </div>
@@ -367,24 +367,24 @@ export default function SeatSelectionPage() {
                   'w-full py-3.5 rounded-full font-semibold text-base transition-all',
                   selectedSeats.length > 0
                     ? 'bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)] hover:-translate-y-0.5'
-                    : 'bg-bg-surface3 text-text-muted cursor-not-allowed'
+                    : 'bg-section text-tx-muted cursor-not-allowed'
                 )}
               >
                 {selectedSeats.length > 0 ? `Pay Now · ${formatCurrency(grand)} →` : 'Select seats'}
               </button>
 
-              <p className="text-[10px] text-text-muted text-center mt-3 leading-relaxed">
+              <p className="text-[10px] text-tx-muted text-center mt-3 leading-relaxed">
                 Free reschedule up to 4h before show. Convenience fee non-refundable.
               </p>
             </div>
 
             {/* Countdown on desktop */}
             {lockExpiresAt && (
-              <div className="mt-4 p-4 rounded-xl bg-bg-surface border border-border-default flex items-center gap-3">
+              <div className="mt-4 p-4 rounded-xl bg-card border border-border-l flex items-center gap-3">
                 <CountdownRing totalSeconds={lockTotalSeconds} remainingSeconds={remaining} size={56} strokeWidth={5} />
                 <div>
-                  <p className="text-xs font-semibold text-text-primary">Seats held for</p>
-                  <p className="text-[11px] text-text-muted">Hold expires in {Math.floor(remaining / 60)}m {remaining % 60}s</p>
+                  <p className="text-xs font-semibold text-tx-primary">Seats held for</p>
+                  <p className="text-[11px] text-tx-muted">Hold expires in {Math.floor(remaining / 60)}m {remaining % 60}s</p>
                 </div>
               </div>
             )}

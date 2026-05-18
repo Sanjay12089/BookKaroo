@@ -13,8 +13,8 @@ interface Props {
 export function SeatBottomBar({ selectedSeats, getCategory, onPay, onDeselect, convFeePerTicket, gstRate }: Props) {
   if (selectedSeats.length === 0) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-bg-surface/95 backdrop-blur-md border-t border-border-default lg:hidden">
-        <p className="text-center text-text-muted text-sm font-sans">Select seats to continue</p>
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-card/95 backdrop-blur-md border-t border-border-l lg:hidden">
+        <p className="text-center text-tx-muted text-sm font-sans">Select seats to continue</p>
       </div>
     );
   }
@@ -25,13 +25,13 @@ export function SeatBottomBar({ selectedSeats, getCategory, onPay, onDeselect, c
   const grand       = ticketTotal + convFee + gst;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-bg-surface/95 backdrop-blur-md border-t border-border-default lg:hidden">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-card/95 backdrop-blur-md border-t border-border-l lg:hidden">
       {/* Seat chips */}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {selectedSeats.map((label) => (
           <span
             key={label}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent-crimson/20 border border-accent-crimson/40 text-[11px] font-semibold font-mono text-accent-crimson"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-brand/20 border border-brand/40 text-[11px] font-semibold font-mono text-brand"
           >
             {label}
             <button
@@ -47,11 +47,11 @@ export function SeatBottomBar({ selectedSeats, getCategory, onPay, onDeselect, c
 
       <div className="flex items-end justify-between gap-3">
         <div>
-          <p className="text-[11px] text-text-muted font-sans">
+          <p className="text-[11px] text-tx-muted font-sans">
             {selectedSeats.length} seat{selectedSeats.length !== 1 ? 's' : ''} selected
           </p>
-          <p className="text-xl font-bold text-text-primary font-display">₹{grand}</p>
-          <p className="text-[10px] text-text-muted font-sans">incl. ₹{convFee + gst} fees & GST</p>
+          <p className="text-xl font-bold text-tx-primary font-display">₹{grand}</p>
+          <p className="text-[10px] text-tx-muted font-sans">incl. ₹{convFee + gst} fees & GST</p>
         </div>
 
         <button

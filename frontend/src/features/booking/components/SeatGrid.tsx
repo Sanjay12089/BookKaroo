@@ -39,26 +39,26 @@ export function SeatGrid({ layout, bookedSeats, lockedSeats, selectedSeats, onSe
             transform: 'perspective(400px) rotateX(40deg)',
           }}
         />
-        <p className="font-mono text-[10px] tracking-widest text-text-muted mt-4 uppercase">All eyes this way 👀</p>
+        <p className="font-mono text-[10px] tracking-widest text-tx-muted mt-4 uppercase">All eyes this way 👀</p>
       </div>
 
       {/* Category legend */}
       <div className="flex flex-wrap gap-3 justify-center mb-6 text-xs font-sans">
         {categories.map((cat) => (
-          <span key={cat.name} className="flex items-center gap-1.5 text-text-secondary">
+          <span key={cat.name} className="flex items-center gap-1.5 text-tx-secondary">
             <span className="w-3.5 h-3.5 rounded-[3px] inline-block" style={{ background: cat.color + '44', border: `1px solid ${cat.color}88` }} />
             {cat.name} · ₹{cat.price}
           </span>
         ))}
-        <span className="flex items-center gap-1.5 text-text-secondary">
+        <span className="flex items-center gap-1.5 text-tx-secondary">
           <span className="w-3.5 h-3.5 rounded-[3px] inline-block bg-[#232C44] border border-[#3f3f46] opacity-50" />
           Booked
         </span>
-        <span className="flex items-center gap-1.5 text-text-secondary">
+        <span className="flex items-center gap-1.5 text-tx-secondary">
           <span className="w-3.5 h-3.5 rounded-[3px] inline-block" style={{ background: 'rgba(245,158,11,0.5)', border: '1px solid rgba(245,158,11,0.7)' }} />
           Held
         </span>
-        <span className="flex items-center gap-1.5 text-text-secondary">
+        <span className="flex items-center gap-1.5 text-tx-secondary">
           <span className="w-3.5 h-3.5 rounded-[3px] inline-block" style={{ background: '#E5091420', border: '1px solid #E5091480' }} />
           Selected
         </span>
@@ -76,14 +76,14 @@ export function SeatGrid({ layout, bookedSeats, lockedSeats, selectedSeats, onSe
                 {isFirstInCat && (
                   <div className="flex items-center gap-2 my-3 pl-6">
                     <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: cat.color }} />
-                    <span className="font-mono text-[10px] text-text-secondary uppercase tracking-wider">
+                    <span className="font-mono text-[10px] text-tx-secondary uppercase tracking-wider">
                       {cat.name}
                     </span>
-                    <span className="font-mono text-[10px] text-text-muted ml-auto pr-2">₹{cat.price}</span>
+                    <span className="font-mono text-[10px] text-tx-muted ml-auto pr-2">₹{cat.price}</span>
                   </div>
                 )}
                 <div className="flex items-center gap-1 mb-1.5 px-1">
-                  <span className="font-mono text-[10px] text-text-muted w-5 text-center flex-shrink-0">{rowLetter}</span>
+                  <span className="font-mono text-[10px] text-tx-muted w-5 text-center flex-shrink-0">{rowLetter}</span>
                   <div className="flex gap-1">
                     {Array.from({ length: cols }, (_, colIdx) => {
                       const col   = colIdx + 1;
@@ -104,7 +104,7 @@ export function SeatGrid({ layout, bookedSeats, lockedSeats, selectedSeats, onSe
                       );
                     })}
                   </div>
-                  <span className="font-mono text-[10px] text-text-muted w-5 text-center flex-shrink-0">{rowLetter}</span>
+                  <span className="font-mono text-[10px] text-tx-muted w-5 text-center flex-shrink-0">{rowLetter}</span>
                 </div>
               </div>
             );
