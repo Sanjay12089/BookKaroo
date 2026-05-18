@@ -260,13 +260,13 @@ export default function CheckoutPage() {
   if (selectedSeats.length === 0) return null;
 
   return (
-    <div className="min-h-screen bg-bg-base text-text-primary font-sans pb-10">
+    <div className="min-h-screen bg-page text-tx-primary font-sans pb-10">
       {/* Header */}
-      <header className="sticky top-0 z-40 h-14 flex items-center gap-3 px-4 md:px-6 bg-bg-surface/90 backdrop-blur-md border-b border-border-default">
+      <header className="sticky top-0 z-40 h-14 flex items-center gap-3 px-4 md:px-6 bg-card/90 backdrop-blur-md border-b border-border-l">
         <Link to={-1 as never}>
-          <button className="px-3 py-1.5 rounded-full bg-bg-surface2 border border-border-default text-text-secondary text-sm">← Back</button>
+          <button className="px-3 py-1.5 rounded-full bg-section border border-border-l text-tx-secondary text-sm">← Back</button>
         </Link>
-        <span className="font-semibold text-sm text-text-primary flex-1">Checkout</span>
+        <span className="font-semibold text-sm text-tx-primary flex-1">Checkout</span>
         {lockExpiresAt && (
           <CountdownRing totalSeconds={8 * 60} remainingSeconds={remaining} size={44} strokeWidth={4} />
         )}
@@ -276,8 +276,8 @@ export default function CheckoutPage() {
         {/* ── LEFT PANEL ── */}
         <div className="space-y-4">
           {/* Movie card */}
-          <div className="p-5 rounded-xl bg-bg-surface border border-border-default flex gap-4">
-            <div className="w-14 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 flex-shrink-0">
+          <div className="p-5 rounded-xl bg-card border border-border-l flex gap-4">
+            <div className="w-14 aspect-[2/3] rounded-lg overflow-hidden bg-section flex-shrink-0">
               {show?.posterUrl
                 ? <img src={TMDB_POSTER(show.posterUrl, 'w185')} alt={show.movieTitle} className="w-full h-full object-cover" />
                 : <div className="w-full h-full bg-gradient-to-br from-accent-indigo/20 to-accent-purple/20" />}
@@ -286,18 +286,18 @@ export default function CheckoutPage() {
               <p className="font-display font-bold text-lg leading-tight truncate">
                 {show?.movieTitle ?? (seatsData === undefined ? 'Loading…' : 'Movie')}
               </p>
-              <p className="text-sm text-text-secondary font-sans mt-0.5">
+              <p className="text-sm text-tx-secondary font-sans mt-0.5">
                 {show?.format} · {show?.language}
               </p>
-              <p className="text-sm text-text-secondary font-sans">
+              <p className="text-sm text-tx-secondary font-sans">
                 {show?.showDate} · {show?.showTime}
               </p>
-              <p className="text-sm text-text-muted font-sans mt-1">{show?.venueName}</p>
+              <p className="text-sm text-tx-muted font-sans mt-1">{show?.venueName}</p>
 
               {/* Seat groups */}
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {seatGroups.map(({ category, seats }) => (
-                  <span key={category} className="text-xs bg-bg-surface2 border border-border-default rounded px-2 py-0.5 font-mono text-text-secondary uppercase tracking-wide">
+                  <span key={category} className="text-xs bg-section border border-border-l rounded px-2 py-0.5 font-mono text-tx-secondary uppercase tracking-wide">
                     {category} — {seats.join(', ')}
                   </span>
                 ))}
@@ -306,29 +306,29 @@ export default function CheckoutPage() {
           </div>
 
           {/* Contact details */}
-          <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
+          <div className="p-5 rounded-xl bg-card border border-border-l">
             <h3 className="font-semibold text-sm mb-1 font-sans">Contact Details</h3>
-            <p className="text-xs text-text-muted font-sans mb-4">Booking confirmation will be sent here</p>
+            <p className="text-xs text-tx-muted font-sans mb-4">Booking confirmation will be sent here</p>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs text-text-muted font-sans mb-1">Mobile number</label>
+                <label className="block text-xs text-tx-muted font-sans mb-1">Mobile number</label>
                 <input
                   type="tel"
                   value={mobile}
                   onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   placeholder="10-digit mobile"
-                  className="w-full px-3 py-2.5 rounded-lg bg-bg-base border border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-indigo font-sans"
+                  className="w-full px-3 py-2.5 rounded-lg bg-page border border-border-l text-sm text-tx-primary placeholder:text-tx-muted focus:outline-none focus:ring-1 focus:ring-accent-indigo font-sans"
                 />
               </div>
               <div>
-                <label className="block text-xs text-text-muted font-sans mb-1">Email address</label>
+                <label className="block text-xs text-tx-muted font-sans mb-1">Email address</label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full px-3 py-2.5 rounded-lg bg-bg-base border border-border-default text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-indigo font-sans"
+                  className="w-full px-3 py-2.5 rounded-lg bg-page border border-border-l text-sm text-tx-primary placeholder:text-tx-muted focus:outline-none focus:ring-1 focus:ring-accent-indigo font-sans"
                 />
               </div>
             </div>
@@ -363,14 +363,14 @@ export default function CheckoutPage() {
       )}
 
       {isVerifying && (
-        <div className="fixed inset-0 z-[9999] bg-bg-base/95 backdrop-blur-sm flex flex-col items-center justify-center gap-6">
-          <div className="font-display font-bold text-2xl text-text-primary">
-            Book<span className="text-accent-crimson">Karoo</span>
+        <div className="fixed inset-0 z-[9999] bg-page/95 backdrop-blur-sm flex flex-col items-center justify-center gap-6">
+          <div className="font-display font-bold text-2xl text-tx-primary">
+            Book<span className="text-brand">Karoo</span>
           </div>
-          <div className="w-12 h-12 rounded-full border-4 border-accent-crimson/20 border-t-accent-crimson animate-spin" />
+          <div className="w-12 h-12 rounded-full border-4 border-brand/20 border-t-accent-crimson animate-spin" />
           <div className="text-center">
-            <p className="font-semibold text-text-primary font-sans">Verifying your payment...</p>
-            <p className="text-sm text-text-muted font-sans mt-1">Please do not close this window</p>
+            <p className="font-semibold text-tx-primary font-sans">Verifying your payment...</p>
+            <p className="text-sm text-tx-muted font-sans mt-1">Please do not close this window</p>
           </div>
         </div>
       )}

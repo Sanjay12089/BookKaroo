@@ -45,42 +45,42 @@ export function MockPaymentModal({ providerOrderId, amount, onSuccess, onClose }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-sm bg-bg-surface border border-border-default rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-sm bg-card border border-border-l rounded-2xl shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
           <div>
-            <h2 className="font-display font-bold text-lg text-text-primary">Test Payment Gateway</h2>
-            <p className="text-[11px] text-text-muted font-sans mt-0.5">
+            <h2 className="font-display font-bold text-lg text-tx-primary">Test Payment Gateway</h2>
+            <p className="text-[11px] text-tx-muted font-sans mt-0.5">
               This is a simulated payment — no real money
             </p>
           </div>
           <button
             onClick={onClose}
             disabled={capture.isPending}
-            className="w-8 h-8 rounded-full bg-bg-surface2 hover:bg-bg-surface3 flex items-center justify-center text-text-muted hover:text-text-primary transition-colors disabled:opacity-40"
+            className="w-8 h-8 rounded-full bg-section hover:bg-section flex items-center justify-center text-tx-muted hover:text-tx-primary transition-colors disabled:opacity-40"
           >
             ×
           </button>
         </div>
 
         {/* Amount */}
-        <div className="mx-5 mb-4 p-4 rounded-xl bg-bg-base border border-border-default text-center">
-          <p className="text-[11px] text-text-muted font-sans uppercase tracking-widest mb-1">Amount to Pay</p>
-          <p className="font-display font-black text-3xl text-accent-crimson">₹{amount}</p>
+        <div className="mx-5 mb-4 p-4 rounded-xl bg-page border border-border-l text-center">
+          <p className="text-[11px] text-tx-muted font-sans uppercase tracking-widest mb-1">Amount to Pay</p>
+          <p className="font-display font-black text-3xl text-brand">₹{amount}</p>
         </div>
 
         {/* Inline error */}
         {errorMsg && (
-          <div className="mx-5 mb-3 p-3 rounded-lg bg-semantic-error/10 border border-semantic-error/30 flex items-center gap-2">
-            <span className="text-semantic-error text-sm">✗</span>
-            <p className="text-sm text-semantic-error font-sans flex-1">{errorMsg}</p>
-            <button onClick={() => setErrorMsg(null)} className="text-semantic-error/60 hover:text-semantic-error text-xs">✕</button>
+          <div className="mx-5 mb-3 p-3 rounded-lg bg-error-bg/10 border border-error/30 flex items-center gap-2">
+            <span className="text-error text-sm">✗</span>
+            <p className="text-sm text-error font-sans flex-1">{errorMsg}</p>
+            <button onClick={() => setErrorMsg(null)} className="text-error/60 hover:text-error text-xs">✕</button>
           </div>
         )}
 
         {/* Method selector */}
         <div className="px-5 mb-4">
-          <p className="text-[11px] text-text-muted font-sans uppercase tracking-wider mb-2">Payment Method</p>
+          <p className="text-[11px] text-tx-muted font-sans uppercase tracking-wider mb-2">Payment Method</p>
           <div className="space-y-2">
             {METHODS.map((m) => (
               <label
@@ -88,8 +88,8 @@ export function MockPaymentModal({ providerOrderId, amount, onSuccess, onClose }
                 className={cn(
                   'flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all',
                   method === m.id
-                    ? 'border-accent-indigo bg-accent-indigo/10'
-                    : 'border-border-default bg-bg-base hover:border-border-strong'
+                    ? 'border-brand bg-brand/10'
+                    : 'border-border-l bg-page hover:border-border-m'
                 )}
               >
                 <input
@@ -101,7 +101,7 @@ export function MockPaymentModal({ providerOrderId, amount, onSuccess, onClose }
                   className="accent-accent-indigo"
                 />
                 <span className="text-lg">{m.icon}</span>
-                <span className="text-sm font-sans text-text-primary">{m.label}</span>
+                <span className="text-sm font-sans text-tx-primary">{m.label}</span>
               </label>
             ))}
           </div>
@@ -127,7 +127,7 @@ export function MockPaymentModal({ providerOrderId, amount, onSuccess, onClose }
             disabled={capture.isPending}
             className={cn(
               'w-full py-2.5 rounded-xl text-sm font-sans font-medium transition-colors',
-              'border border-semantic-error/40 text-semantic-error hover:bg-semantic-error/5',
+              'border border-error/40 text-error hover:bg-error-bg/5',
               capture.isPending && 'opacity-40 cursor-not-allowed'
             )}
           >
@@ -137,7 +137,7 @@ export function MockPaymentModal({ providerOrderId, amount, onSuccess, onClose }
 
         {/* Footer note */}
         <div className="px-5 pb-4 text-center">
-          <p className="text-[10px] text-text-muted font-sans leading-relaxed">
+          <p className="text-[10px] text-tx-muted font-sans leading-relaxed">
             In production, Razorpay will handle UPI, Cards &amp; Net Banking
           </p>
         </div>

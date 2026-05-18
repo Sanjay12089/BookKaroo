@@ -40,7 +40,7 @@ function Confetti() {
 function TicketNotch({ side }: { side: 'left' | 'right' }) {
   return (
     <div
-      className="absolute w-6 h-6 rounded-full bg-bg-base z-10"
+      className="absolute w-6 h-6 rounded-full bg-page z-10"
       style={{ top: 'calc(45% - 12px)', [side]: '-12px' }}
     />
   );
@@ -166,7 +166,7 @@ export default function ConfirmationPage() {
       `}</style>
 
       <Helmet><title>Booking Confirmed | BookKaroo</title></Helmet>
-      <div className="min-h-screen bg-bg-base text-text-primary font-sans pb-16 overflow-x-hidden">
+      <div className="min-h-screen bg-page text-tx-primary font-sans pb-16 overflow-x-hidden">
         <motion.div
           className="max-w-[480px] mx-auto px-4 pt-10 relative"
           variants={containerVariants}
@@ -179,7 +179,7 @@ export default function ConfirmationPage() {
           {/* ── Hero ── */}
           <motion.div className="flex flex-col items-center mb-8" variants={itemVariants}>
             <motion.div
-              className="w-20 h-20 rounded-full bg-semantic-success/20 border-[3px] border-semantic-success flex items-center justify-center text-4xl text-semantic-success mb-5"
+              className="w-20 h-20 rounded-full bg-success-bg/20 border-[3px] border-success-border flex items-center justify-center text-4xl text-success mb-5"
               initial={{ scale: 0 }}
               animate={{ scale: [0, 1.15, 1] }}
               transition={{ duration: 0.5, times: [0, 0.7, 1] }}
@@ -188,20 +188,20 @@ export default function ConfirmationPage() {
             </motion.div>
 
             <div className="font-display font-bold text-xl mb-4">
-              <span className="text-text-primary">Book</span>
-              <span className="text-accent-crimson">Karoo</span>
+              <span className="text-tx-primary">Book</span>
+              <span className="text-brand">Karoo</span>
             </div>
 
-            <h1 className="font-display font-black text-3xl text-semantic-success text-center leading-tight mb-3">
+            <h1 className="font-display font-black text-3xl text-success text-center leading-tight mb-3">
               Booking Confirmed!
             </h1>
 
-            <div className="px-4 py-1.5 rounded-full bg-bg-surface2 border border-border-default font-mono text-sm text-text-primary tracking-widest">
+            <div className="px-4 py-1.5 rounded-full bg-section border border-border-l font-mono text-sm text-tx-primary tracking-widest">
               {ref || '…'}
             </div>
 
             {contactEmail && (
-              <p className="text-[11px] text-text-muted font-sans mt-2 text-center">
+              <p className="text-[11px] text-tx-muted font-sans mt-2 text-center">
                 Confirmation & invoice sent to {contactEmail}
               </p>
             )}
@@ -210,7 +210,7 @@ export default function ConfirmationPage() {
           {/* ── Ticket card ── */}
           <motion.div variants={itemVariants} className="mb-5">
             <div
-              className="relative rounded-[20px] overflow-visible border border-border-default"
+              className="relative rounded-[20px] overflow-visible border border-border-l"
               style={{
                 background: 'linear-gradient(135deg, #16213e, #1a1a2e)',
                 boxShadow: '0 24px 60px rgba(0,0,0,0.5)',
@@ -221,7 +221,7 @@ export default function ConfirmationPage() {
 
               {/* Dashed tear line */}
               <div
-                className="absolute left-4 right-4 border-t-2 border-dashed border-border-default"
+                className="absolute left-4 right-4 border-t-2 border-dashed border-border-l"
                 style={{ top: '45%' }}
               />
 
@@ -229,7 +229,7 @@ export default function ConfirmationPage() {
               <div className="rounded-t-[20px] overflow-hidden p-6 pb-8">
                 <div className="flex gap-4">
                   {/* Poster */}
-                  <div className="w-[68px] flex-shrink-0 aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2">
+                  <div className="w-[68px] flex-shrink-0 aspect-[2/3] rounded-lg overflow-hidden bg-section">
                     {detail?.movie.posterUrl
                       ? <img src={TMDB_POSTER(detail.movie.posterUrl, 'w185')} alt={detail.movie.title} className="w-full h-full object-cover" />
                       : <div className="w-full h-full bg-gradient-to-br from-accent-indigo/40 to-accent-purple/40 flex items-center justify-center text-2xl">🎬</div>
@@ -238,28 +238,28 @@ export default function ConfirmationPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0 pr-2">
-                    <p className="font-display font-black text-base text-text-primary leading-tight mb-1 line-clamp-2">
+                    <p className="font-display font-black text-base text-tx-primary leading-tight mb-1 line-clamp-2">
                       {detail?.movie.title ?? (isEventBooking ? 'Event Ticket' : 'Movie Ticket')}
                     </p>
-                    <p className="text-[12px] text-text-secondary font-sans">
+                    <p className="text-[12px] text-tx-secondary font-sans">
                       {detail?.show.date} · {detail?.show.time}
                     </p>
-                    <p className="text-[12px] text-text-muted font-sans mt-0.5 leading-snug line-clamp-2">
+                    <p className="text-[12px] text-tx-muted font-sans mt-0.5 leading-snug line-clamp-2">
                       {detail?.show.venueName}
                     </p>
                     {isEventBooking ? (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        <span className="px-1.5 py-0.5 rounded bg-accent-indigo/10 border border-accent-indigo/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
+                        <span className="px-1.5 py-0.5 rounded bg-brand/10 border border-brand/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
                           {detail?.show.screenName}
                         </span>
                       </div>
                     ) : (
                       <div className="mt-2 flex flex-wrap gap-1">
-                        <span className="px-1.5 py-0.5 rounded bg-bg-surface border border-border-default text-[10px] font-mono text-text-secondary uppercase">
+                        <span className="px-1.5 py-0.5 rounded bg-card border border-border-l text-[10px] font-mono text-tx-secondary uppercase">
                           {detail?.show.screenName ?? 'SCREEN'}
                         </span>
                         {detail?.seats.map(s => (
-                          <span key={s.label} className="px-1.5 py-0.5 rounded bg-accent-indigo/10 border border-accent-indigo/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
+                          <span key={s.label} className="px-1.5 py-0.5 rounded bg-brand/10 border border-brand/20 text-[10px] font-mono text-[#A5B4FC] uppercase">
                             {s.label}
                           </span>
                         ))}
@@ -297,9 +297,9 @@ export default function ConfirmationPage() {
                     />
                   </div>
                 ) : (
-                  <div className="w-[164px] h-[164px] rounded-xl bg-bg-surface2 animate-pulse" />
+                  <div className="w-[164px] h-[164px] rounded-xl bg-section animate-pulse" />
                 )}
-                <p className="text-[10px] text-text-muted font-sans tracking-widest uppercase mt-3">
+                <p className="text-[10px] text-tx-muted font-sans tracking-widest uppercase mt-3">
                   Scan at entry counter
                 </p>
               </div>
@@ -311,88 +311,88 @@ export default function ConfirmationPage() {
             <button
               onClick={handleDownloadInvoice}
               disabled={invoiceLoading || !ref}
-              className="flex flex-col items-center gap-1 p-3 rounded-xl bg-bg-surface border border-border-default text-center hover:border-border-strong transition-colors disabled:opacity-40"
+              className="flex flex-col items-center gap-1 p-3 rounded-xl bg-card border border-border-l text-center hover:border-border-m transition-colors disabled:opacity-40"
             >
               <span className="text-xl">{invoiceLoading ? '⏳' : '📄'}</span>
-              <span className="text-[10px] font-sans text-text-secondary leading-tight">
+              <span className="text-[10px] font-sans text-tx-secondary leading-tight">
                 {invoiceLoading ? 'Generating…' : 'Download\nInvoice'}
               </span>
             </button>
 
             <button
               onClick={handleAddToCalendar}
-              className="flex flex-col items-center gap-1 p-3 rounded-xl bg-bg-surface border border-border-default text-center hover:border-border-strong transition-colors"
+              className="flex flex-col items-center gap-1 p-3 rounded-xl bg-card border border-border-l text-center hover:border-border-m transition-colors"
             >
               <span className="text-xl">📅</span>
-              <span className="text-[10px] font-sans text-text-secondary leading-tight">Add to{'\n'}Calendar</span>
+              <span className="text-[10px] font-sans text-tx-secondary leading-tight">Add to{'\n'}Calendar</span>
             </button>
 
             <button
               onClick={handleWhatsApp}
-              className="flex flex-col items-center gap-1 p-3 rounded-xl bg-bg-surface border border-border-default text-center hover:border-border-strong transition-colors"
+              className="flex flex-col items-center gap-1 p-3 rounded-xl bg-card border border-border-l text-center hover:border-border-m transition-colors"
             >
               <span className="text-xl">💬</span>
-              <span className="text-[10px] font-sans text-text-secondary leading-tight">Share on{'\n'}WhatsApp</span>
+              <span className="text-[10px] font-sans text-tx-secondary leading-tight">Share on{'\n'}WhatsApp</span>
             </button>
           </motion.div>
 
           {/* ── Order summary ── */}
           {pricing && (
-            <motion.div variants={itemVariants} className="mb-5 p-5 rounded-xl bg-bg-surface border border-border-default">
+            <motion.div variants={itemVariants} className="mb-5 p-5 rounded-xl bg-card border border-border-l">
               <div className="flex justify-between items-center mb-4">
-                <span className="text-sm font-semibold font-sans text-text-primary">Amount Paid</span>
-                <span className="font-display font-bold text-2xl text-accent-crimson">
+                <span className="text-sm font-semibold font-sans text-tx-primary">Amount Paid</span>
+                <span className="font-display font-bold text-2xl text-brand">
                   {formatCurrency(pricing.amountPaid)}
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-2 text-center mb-4">
                 <div>
-                  <p className="text-[10px] text-text-muted font-sans uppercase tracking-wider mb-1">Booked</p>
-                  <p className="text-xs font-sans text-text-secondary">
+                  <p className="text-[10px] text-tx-muted font-sans uppercase tracking-wider mb-1">Booked</p>
+                  <p className="text-xs font-sans text-tx-secondary">
                     {detail?.createdAt
                       ? new Date(detail.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
                       : '-'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-text-muted font-sans uppercase tracking-wider mb-1">Payment</p>
-                  <p className="text-xs font-sans text-text-secondary">{detail?.payment.method ?? 'Mock'}</p>
+                  <p className="text-[10px] text-tx-muted font-sans uppercase tracking-wider mb-1">Payment</p>
+                  <p className="text-xs font-sans text-tx-secondary">{detail?.payment.method ?? 'Mock'}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] text-text-muted font-sans uppercase tracking-wider mb-1">Ref #</p>
-                  <p className="text-xs font-mono text-text-secondary">{ref.slice(-6)}</p>
+                  <p className="text-[10px] text-tx-muted font-sans uppercase tracking-wider mb-1">Ref #</p>
+                  <p className="text-xs font-mono text-tx-secondary">{ref.slice(-6)}</p>
                 </div>
               </div>
 
-              <div className="border-t border-border-default pt-4 space-y-2">
+              <div className="border-t border-border-l pt-4 space-y-2">
                 <div className="flex justify-between text-sm font-sans">
-                  <span className="text-text-muted">Ticket Amount</span>
-                  <span className="text-text-secondary">{formatCurrency(pricing.ticketAmount)}</span>
+                  <span className="text-tx-muted">Ticket Amount</span>
+                  <span className="text-tx-secondary">{formatCurrency(pricing.ticketAmount)}</span>
                 </div>
                 <div className="flex justify-between text-sm font-sans">
-                  <span className="text-text-muted">Convenience Fee + GST</span>
-                  <span className="text-text-secondary">
+                  <span className="text-tx-muted">Convenience Fee + GST</span>
+                  <span className="text-tx-secondary">
                     {formatCurrency(pricing.convenienceFee + pricing.convenienceFeeGst)}
                   </span>
                 </div>
                 {pricing.offerProcessingFee > 0 && (
                   <div className="flex justify-between text-sm font-sans">
-                    <span className="text-text-muted">Offer Processing Fee + GST</span>
-                    <span className="text-text-secondary">
+                    <span className="text-tx-muted">Offer Processing Fee + GST</span>
+                    <span className="text-tx-secondary">
                       {formatCurrency(pricing.offerProcessingFee + pricing.offerProcessingFeeGst)}
                     </span>
                   </div>
                 )}
                 {pricing.discount > 0 && (
                   <div className="flex justify-between text-sm font-sans">
-                    <span className="text-semantic-success">Discount</span>
-                    <span className="text-semantic-success">-{formatCurrency(pricing.discount)}</span>
+                    <span className="text-success">Discount</span>
+                    <span className="text-success">-{formatCurrency(pricing.discount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm font-sans font-semibold pt-1 border-t border-border-default">
-                  <span className="text-text-primary">Total Paid</span>
-                  <span className="text-accent-crimson">{formatCurrency(pricing.amountPaid)}</span>
+                <div className="flex justify-between text-sm font-sans font-semibold pt-1 border-t border-border-l">
+                  <span className="text-tx-primary">Total Paid</span>
+                  <span className="text-brand">{formatCurrency(pricing.amountPaid)}</span>
                 </div>
               </div>
             </motion.div>
@@ -400,24 +400,24 @@ export default function ConfirmationPage() {
 
           {/* ── Invoice number ── */}
           {detail?.invoiceNumber && (
-            <motion.div variants={itemVariants} className="mb-5 px-4 py-3 rounded-lg bg-bg-surface2 border border-border-default flex justify-between items-center">
-              <span className="text-[11px] text-text-muted font-sans uppercase tracking-wider">Invoice No.</span>
-              <span className="text-xs font-mono text-text-secondary">{detail.invoiceNumber}</span>
+            <motion.div variants={itemVariants} className="mb-5 px-4 py-3 rounded-lg bg-section border border-border-l flex justify-between items-center">
+              <span className="text-[11px] text-tx-muted font-sans uppercase tracking-wider">Invoice No.</span>
+              <span className="text-xs font-mono text-tx-secondary">{detail.invoiceNumber}</span>
             </motion.div>
           )}
 
           {/* ── Important instructions ── */}
-          <motion.div variants={itemVariants} className="mb-5 p-5 rounded-xl bg-bg-surface border border-border-default">
-            <p className="text-[11px] text-text-muted font-sans uppercase tracking-widest mb-3">Important Instructions</p>
-            <ul className="space-y-2 text-sm text-text-secondary font-sans list-disc list-inside leading-relaxed">
+          <motion.div variants={itemVariants} className="mb-5 p-5 rounded-xl bg-card border border-border-l">
+            <p className="text-[11px] text-tx-muted font-sans uppercase tracking-widest mb-3">Important Instructions</p>
+            <ul className="space-y-2 text-sm text-tx-secondary font-sans list-disc list-inside leading-relaxed">
               <li>Carry a valid government-issued photo ID — checked at the venue.</li>
               <li>Cancellation allowed if show is more than 2 hours away. Convenience fee non-refundable.</li>
               <li>Outside food and beverages not allowed inside the venue.</li>
               <li>Show QR code at the entry counter.</li>
             </ul>
-            <p className="text-sm text-text-muted font-sans mt-4">
+            <p className="text-sm text-tx-muted font-sans mt-4">
               Need help with this booking?{' '}
-              <Link to="/help#contact-section" className="text-accent-crimson hover:underline">
+              <Link to="/help#contact-section" className="text-brand hover:underline">
                 Contact Support →
               </Link>
             </p>
@@ -432,7 +432,7 @@ export default function ConfirmationPage() {
             </Link>
             <button
               onClick={handleDone}
-              className="w-full py-3 rounded-xl border border-border-default bg-bg-surface text-sm font-semibold font-sans text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors"
+              className="w-full py-3 rounded-xl border border-border-l bg-card text-sm font-semibold font-sans text-tx-secondary hover:border-border-m hover:text-tx-primary transition-colors"
             >
               ← Back to Home
             </button>
