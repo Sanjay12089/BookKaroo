@@ -6,6 +6,8 @@ export interface LogoProps {
   variant?: 'full-horizontal' | 'full-stacked' | 'icon-only' | 'wordmark-only';
   theme?: 'dark' | 'light' | 'mono-white' | 'mono-black';
   glow?: boolean;
+  /** When true, render wordmark in white (for use on dark navbar/sidebar). */
+  onDark?: boolean;
   className?: string;
   style?: React.CSSProperties;
 }
@@ -169,11 +171,13 @@ export const LogoIcon: React.FC<LogoIconProps> = ({
 export const Logo: React.FC<LogoProps> = ({
   size = 40,
   variant = 'full-horizontal',
-  theme = 'dark',
+  theme: themeProp,
   glow = false,
+  onDark = false,
   className,
   style,
 }) => {
+  const theme: LogoProps['theme'] = themeProp ?? (onDark ? 'mono-white' : 'light');
   const wordmarkSize = Math.round(size * 0.65);
 
   if (variant === 'icon-only') {

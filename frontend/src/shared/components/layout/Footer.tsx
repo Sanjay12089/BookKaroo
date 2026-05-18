@@ -1,11 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ROUTES } from '@/shared/constants';
-
-const LOGO = (
-  <span className="font-display font-bold text-xl tracking-tight text-text-primary">
-    Book<span className="text-accent-crimson">Karoo</span>
-  </span>
-);
+import { Logo } from '@/design/Logo';
 
 const NAV_COLS = [
   {
@@ -28,21 +23,21 @@ const NAV_COLS = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border-default pt-14 pb-8 mt-20 bg-[radial-gradient(80%_60%_at_50%_0%,rgba(99,102,241,0.08),transparent_60%)]">
+    <footer className="bg-nav border-t border-nav-border pt-14 pb-8 mt-20">
       <div className="max-w-[1280px] mx-auto px-6">
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
           <div className="col-span-2 lg:col-span-1">
-            {LOGO}
-            <p className="mt-3 text-sm text-text-muted leading-relaxed font-sans">
+            <Logo size={32} onDark variant="full-horizontal" />
+            <p className="mt-3 text-sm text-nav-muted leading-relaxed font-sans">
               Book the moment. Karo it now.
             </p>
-            <p className="mt-2 text-xs text-text-muted font-sans">
+            <p className="mt-2 text-xs text-nav-muted font-sans">
               India's premier entertainment booking platform.
             </p>
           </div>
           {NAV_COLS.map((col) => (
             <div key={col.heading}>
-              <h4 className="text-[11px] font-semibold text-text-muted tracking-widest uppercase mb-4 font-sans">
+              <h4 className="text-[11px] font-semibold text-nav-muted tracking-widest uppercase mb-4 font-sans">
                 {col.heading}
               </h4>
               <ul className="space-y-2.5">
@@ -50,7 +45,7 @@ export function Footer() {
                   <li key={label}>
                     <Link
                       to={href}
-                      className="text-sm text-text-secondary hover:text-text-primary transition-colors font-sans"
+                      className="text-sm text-nav-muted hover:text-white transition-colors font-sans"
                     >
                       {label}
                     </Link>
@@ -61,7 +56,7 @@ export function Footer() {
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-6 border-t border-border-default text-xs text-text-muted font-sans">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-3 pt-6 border-t border-nav-border text-xs text-nav-muted font-sans">
           <span>© 2026 BookKaroo Pvt Ltd. All rights reserved.</span>
           <span>GST collected is remitted to the department. GSTIN: 24XXXXX0000X1Z5</span>
         </div>

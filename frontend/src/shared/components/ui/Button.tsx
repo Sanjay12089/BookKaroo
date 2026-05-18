@@ -13,22 +13,22 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)] hover:-translate-y-px hover:shadow-[0_14px_50px_-10px_rgba(229,9,20,0.7)]',
+    'bg-brand hover:bg-brand-dark text-white font-semibold shadow-btn-brand hover:shadow-btn-hover hover:-translate-y-0.5 active:translate-y-0',
   secondary:
-    'bg-gradient-to-r from-accent-indigo to-accent-purple text-white shadow-[0_10px_40px_-10px_rgba(99,102,241,0.55)] hover:-translate-y-px',
+    'border border-brand text-brand bg-transparent hover:bg-brand-light font-medium',
   ghost:
-    'bg-bg-surface border border-border-default text-text-primary hover:bg-bg-surface2 hover:border-border-strong',
+    'bg-transparent text-tx-secondary hover:bg-section font-medium',
   gradient:
-    'bg-gradient-to-r from-accent-indigo via-accent-purple to-accent-crimson text-white hover:-translate-y-px',
+    'bg-brand hover:bg-brand-dark text-white font-semibold shadow-btn-brand hover:shadow-btn-hover hover:-translate-y-0.5',
   destructive:
-    'bg-gradient-to-r from-semantic-error to-red-700 text-white hover:-translate-y-px',
+    'bg-error hover:opacity-90 text-white font-semibold',
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'h-8 px-3 text-xs rounded-full',
-  md: 'h-10 px-5 text-sm rounded-full',
-  lg: 'h-12 px-7 text-base rounded-full',
-  xl: 'h-14 px-9 text-base rounded-full',
+  sm: 'px-3 py-1.5 text-xs rounded-md',
+  md: 'px-5 py-2.5 text-sm rounded-md',
+  lg: 'px-7 py-3 text-base rounded-md',
+  xl: 'px-9 py-4 text-base rounded-md',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -37,11 +37,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       ref={ref}
       disabled={disabled || loading}
       className={cn(
-        'inline-flex items-center justify-center gap-2 font-semibold font-sans transition-all duration-[220ms] ease-in-out whitespace-nowrap select-none',
+        'inline-flex items-center justify-center gap-2 font-sans transition-all duration-200 ease-in-out whitespace-nowrap select-none',
         variantClasses[variant],
         sizeClasses[size],
         fullWidth && 'w-full',
-        (disabled || loading) && 'opacity-50 cursor-not-allowed',
+        (disabled || loading) && 'opacity-50 cursor-not-allowed shadow-none hover:translate-y-0',
         className
       )}
       {...rest}
