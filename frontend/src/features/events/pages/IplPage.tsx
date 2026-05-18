@@ -66,10 +66,10 @@ export default function IplPage() {
           <p className="font-mono text-[11px] tracking-widest uppercase text-[#F5C56B] mb-3">
             ◆ TATA IPL 2026 · Indian Premier League
           </p>
-          <h1 className="font-display font-bold text-4xl md:text-6xl text-text-primary mb-4 tracking-tight">
+          <h1 className="font-display font-bold text-4xl md:text-6xl text-tx-primary mb-4 tracking-tight">
             Cricket.<br />Passion.<br /><span style={{ color: '#F5C56B' }}>Live.</span>
           </h1>
-          <p className="text-text-secondary font-sans max-w-md mb-8">
+          <p className="text-tx-secondary font-sans max-w-md mb-8">
             Book seats for TATA IPL 2026 — Narendra Modi Stadium, Wankhede, Eden Gardens and more iconic venues.
           </p>
           <Link to={ROUTES.EVENTS + '?type=ipl'}>
@@ -102,14 +102,14 @@ export default function IplPage() {
                   className="w-20 h-20 rounded-xl border flex flex-col items-center justify-center gap-0.5"
                   style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(245,197,107,0.3)' }}
                 >
-                  <span className="font-mono text-2xl font-bold text-text-primary">
+                  <span className="font-mono text-2xl font-bold text-tx-primary">
                     {String(value).padStart(2, '0')}
                   </span>
-                  <span className="text-[10px] text-text-muted font-sans uppercase tracking-wider">{label}</span>
+                  <span className="text-[10px] text-tx-muted font-sans uppercase tracking-wider">{label}</span>
                 </div>
               ))}
             </div>
-            <p className="mt-3 text-sm text-text-secondary font-sans">
+            <p className="mt-3 text-sm text-tx-secondary font-sans">
               {nextMatch.title} — {nextMatch.eventDateLabel}
             </p>
           </section>
@@ -130,7 +130,7 @@ export default function IplPage() {
                 >
                   {t.abbr}
                 </div>
-                <span className="text-[10px] text-text-muted font-sans text-center leading-tight max-w-[64px]">
+                <span className="text-[10px] text-tx-muted font-sans text-center leading-tight max-w-[64px]">
                   {t.abbr}
                 </span>
               </div>
@@ -151,15 +151,15 @@ export default function IplPage() {
               ))}
             </div>
           ) : !iplMatches || iplMatches.length === 0 ? (
-            <div className="p-6 rounded-xl bg-bg-surface border border-border-default text-center font-sans">
-              <p className="text-text-muted">Schedule not yet announced. Check back soon.</p>
+            <div className="p-6 rounded-xl bg-card border border-border-l text-center font-sans">
+              <p className="text-tx-muted">Schedule not yet announced. Check back soon.</p>
             </div>
           ) : (
             <div className="space-y-4">
               {iplMatches.map((match) => (
                 <div
                   key={match.id}
-                  className="p-5 rounded-xl bg-bg-surface border-l-4 border-t border-r border-b border-border-default hover:border-[#D4A017] transition-colors"
+                  className="p-5 rounded-xl bg-card border-l-4 border-t border-r border-b border-border-l hover:border-[#D4A017] transition-colors"
                   style={{ borderLeftColor: '#D4A017' }}
                 >
                   <div className="flex items-center justify-between gap-4">
@@ -167,16 +167,16 @@ export default function IplPage() {
                       <p className="text-[11px] font-semibold font-sans mb-1" style={{ color: '#F5C56B' }}>
                         {match.eventDateLabel} · {match.eventTimeLabel}
                       </p>
-                      <p className="font-display font-semibold text-lg text-text-primary line-clamp-1">
+                      <p className="font-display font-semibold text-lg text-tx-primary line-clamp-1">
                         {match.title}
                       </p>
-                      <p className="text-sm text-text-muted font-sans mt-0.5 line-clamp-1">
+                      <p className="text-sm text-tx-muted font-sans mt-0.5 line-clamp-1">
                         {match.venueName}, {match.cityName}
                       </p>
                     </div>
                     <div className="flex-shrink-0 text-right">
                       {match.lowestPrice > 0 && (
-                        <p className="text-xs text-semantic-success font-semibold mb-2">
+                        <p className="text-xs text-success font-semibold mb-2">
                           from ₹{match.lowestPrice.toLocaleString('en-IN')}
                         </p>
                       )}
@@ -196,9 +196,9 @@ export default function IplPage() {
           )}
 
           {/* Booking note */}
-          <div className="mt-8 p-5 rounded-xl bg-semantic-warning/10 border border-semantic-warning/30 font-sans">
-            <p className="font-semibold text-semantic-warning mb-1">⚠️ IPL tickets sell out fast!</p>
-            <p className="text-sm text-text-secondary">Book early to avoid disappointment. Physical ID required at stadium entry.</p>
+          <div className="mt-8 p-5 rounded-xl bg-warning-bg/10 border border-warning/30 font-sans">
+            <p className="font-semibold text-warning mb-1">⚠️ IPL tickets sell out fast!</p>
+            <p className="text-sm text-tx-secondary">Book early to avoid disappointment. Physical ID required at stadium entry.</p>
           </div>
         </section>
       </div>

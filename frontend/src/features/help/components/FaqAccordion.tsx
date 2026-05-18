@@ -16,8 +16,8 @@ function FaqAccordionItem({ item, isOpen, onToggle }: FaqAccordionItemProps) {
       className={cn(
         'rounded-lg border transition-colors duration-200',
         isOpen
-          ? 'border-l-[3px] border-l-accent-crimson border-t-border-default border-r-border-default border-b-border-default bg-bg-surface2'
-          : 'border-border-default bg-bg-surface'
+          ? 'border-l-[3px] border-l-accent-crimson border-t-border-default border-r-border-default border-b-border-default bg-section'
+          : 'border-border-l bg-card'
       )}
     >
       <button
@@ -26,13 +26,13 @@ function FaqAccordionItem({ item, isOpen, onToggle }: FaqAccordionItemProps) {
         aria-expanded={isOpen}
         className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left"
       >
-        <span className="font-semibold font-sans text-sm text-text-primary leading-snug">
+        <span className="font-semibold font-sans text-sm text-tx-primary leading-snug">
           {item.q}
         </span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="flex-shrink-0 text-text-muted"
+          className="flex-shrink-0 text-tx-muted"
         >
           <ChevronDown size={18} />
         </motion.span>
@@ -48,7 +48,7 @@ function FaqAccordionItem({ item, isOpen, onToggle }: FaqAccordionItemProps) {
             transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <p className="px-5 pb-5 text-sm font-sans text-text-secondary leading-relaxed">
+            <p className="px-5 pb-5 text-sm font-sans text-tx-secondary leading-relaxed">
               {item.a}
             </p>
           </motion.div>

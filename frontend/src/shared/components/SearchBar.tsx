@@ -71,7 +71,7 @@ export function SearchBar({ className }: SearchBarProps) {
   }
 
   const dropdownNode = (
-    <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-bg-surface border border-border-default rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] overflow-hidden min-w-[360px] max-h-[480px] overflow-y-auto">
+    <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-card border border-border-l rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.35)] overflow-hidden min-w-[360px] max-h-[480px] overflow-y-auto">
       <SearchDropdown
         query={debouncedQuery}
         data={data}
@@ -94,13 +94,13 @@ export function SearchBar({ className }: SearchBarProps) {
         <form
           onSubmit={handleSubmit}
           className={cn(
-            'flex items-center gap-2 px-4 py-2 rounded-full bg-bg-surface border font-sans text-sm transition-all duration-[220ms]',
+            'flex items-center gap-2 px-4 py-2 rounded-full bg-card border font-sans text-sm transition-all duration-[220ms]',
             isOpen
-              ? 'border-accent-indigo ring-2 ring-accent-indigo/15'
-              : 'border-border-default hover:border-border-strong'
+              ? 'border-brand ring-2 ring-accent-indigo/15'
+              : 'border-border-l hover:border-border-m'
           )}
         >
-          <Search size={15} className="text-text-muted flex-shrink-0" />
+          <Search size={15} className="text-tx-muted flex-shrink-0" />
           <input
             ref={inputRef}
             value={query}
@@ -108,13 +108,13 @@ export function SearchBar({ className }: SearchBarProps) {
             onFocus={() => setIsOpen(true)}
             onKeyDown={handleKeyDown}
             placeholder="Search movies, events"
-            className="flex-1 bg-transparent outline-none text-text-primary placeholder:text-text-muted w-52 lg:w-72"
+            className="flex-1 bg-transparent outline-none text-tx-primary placeholder:text-tx-muted w-52 lg:w-72"
           />
           {query && (
             <button
               type="button"
               onClick={() => { setQuery(''); inputRef.current?.focus(); }}
-              className="text-text-muted hover:text-text-secondary"
+              className="text-tx-muted hover:text-tx-secondary"
             >
               <X size={14} />
             </button>
@@ -126,7 +126,7 @@ export function SearchBar({ className }: SearchBarProps) {
 
       {/* Mobile: icon button to open overlay */}
       <button
-        className="md:hidden text-text-secondary hover:text-text-primary"
+        className="md:hidden text-tx-secondary hover:text-tx-primary"
         onClick={() => setMobileOpen(true)}
         aria-label="Search"
       >
@@ -135,12 +135,12 @@ export function SearchBar({ className }: SearchBarProps) {
 
       {/* Mobile full-screen overlay */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 bg-bg-base flex flex-col">
+        <div className="fixed inset-0 z-50 bg-page flex flex-col">
           {/* Top bar */}
-          <div className="flex items-center gap-3 px-4 py-3 border-b border-border-default">
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border-l">
             <button
               onClick={() => { setMobileOpen(false); setQuery(''); }}
-              className="text-text-secondary hover:text-text-primary flex-shrink-0"
+              className="text-tx-secondary hover:text-tx-primary flex-shrink-0"
             >
               <ArrowLeft size={20} />
             </button>
@@ -151,7 +151,7 @@ export function SearchBar({ className }: SearchBarProps) {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Search movies, events"
-                className="flex-1 bg-transparent outline-none text-text-primary placeholder:text-text-muted font-sans text-sm"
+                className="flex-1 bg-transparent outline-none text-tx-primary placeholder:text-tx-muted font-sans text-sm"
                 autoFocus
               />
             </form>
@@ -159,7 +159,7 @@ export function SearchBar({ className }: SearchBarProps) {
               <button
                 type="button"
                 onClick={() => setQuery('')}
-                className="text-text-muted hover:text-text-secondary flex-shrink-0"
+                className="text-tx-muted hover:text-tx-secondary flex-shrink-0"
               >
                 <X size={16} />
               </button>

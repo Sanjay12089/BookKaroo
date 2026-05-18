@@ -40,8 +40,8 @@ function AppInit({ children }: { children: React.ReactNode }) {
 
   if (!isInitialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-bg-base">
-        <div className="w-10 h-10 rounded-full border-2 border-accent-indigo/20 border-t-accent-indigo animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-page">
+        <div className="w-10 h-10 rounded-full border-2 border-brand/20 border-t-accent-indigo animate-spin" />
       </div>
     );
   }
@@ -55,7 +55,7 @@ export default function App() {
       <AppInit>
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-accent-crimson focus:text-white focus:px-4 focus:py-2 focus:rounded-lg font-sans text-sm font-semibold"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:bg-brand focus:text-white focus:px-4 focus:py-2 focus:rounded-lg font-sans text-sm font-semibold"
         >
           Skip to main content
         </a>

@@ -73,7 +73,7 @@ export function CityModal({ open, onClose }: CityModalProps) {
       {/* Modal */}
       <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-4 pointer-events-none">
         <div
-          className="pointer-events-auto w-full max-w-lg bg-bg-surface border border-border-default shadow-2xl rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh] sm:max-h-[80vh]"
+          className="pointer-events-auto w-full max-w-lg bg-card border border-border-l shadow-2xl rounded-t-2xl sm:rounded-2xl flex flex-col max-h-[90vh] sm:max-h-[80vh]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Drag handle (mobile) */}
@@ -82,11 +82,11 @@ export function CityModal({ open, onClose }: CityModalProps) {
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between px-5 py-4 border-b border-border-default flex-shrink-0">
-            <h2 className="font-semibold text-lg text-text-primary font-sans">Select your city</h2>
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border-l flex-shrink-0">
+            <h2 className="font-semibold text-lg text-tx-primary font-sans">Select your city</h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full hover:bg-bg-surface2 text-text-muted hover:text-text-primary transition-colors"
+              className="p-1.5 rounded-full hover:bg-section text-tx-muted hover:text-tx-primary transition-colors"
               aria-label="Close"
             >
               <X size={18} />
@@ -96,23 +96,23 @@ export function CityModal({ open, onClose }: CityModalProps) {
           {/* Scrollable content */}
           <div className="flex-1 overflow-y-auto">
             {/* Auto-detect strip */}
-            <div className="px-5 pt-4 pb-3 border-b border-border-default">
+            <div className="px-5 pt-4 pb-3 border-b border-border-l">
               {isDetecting ? (
-                <div className="flex items-center gap-2.5 text-sm text-text-muted font-sans">
-                  <div className="w-4 h-4 border-2 border-accent-indigo/30 border-t-accent-indigo rounded-full animate-spin flex-shrink-0" />
+                <div className="flex items-center gap-2.5 text-sm text-tx-muted font-sans">
+                  <div className="w-4 h-4 border-2 border-brand/30 border-t-accent-indigo rounded-full animate-spin flex-shrink-0" />
                   Detecting your location…
                 </div>
               ) : detectedCity ? (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm font-sans">
-                    <MapPin size={15} className="text-accent-crimson flex-shrink-0" />
-                    <span className="text-text-muted">Detected:</span>
-                    <span className="text-text-primary font-medium">{detectedCity.name}</span>
-                    <span className="text-text-muted text-xs">{detectedCity.state}</span>
+                    <MapPin size={15} className="text-brand flex-shrink-0" />
+                    <span className="text-tx-muted">Detected:</span>
+                    <span className="text-tx-primary font-medium">{detectedCity.name}</span>
+                    <span className="text-tx-muted text-xs">{detectedCity.state}</span>
                   </div>
                   <button
                     onClick={() => handleSelect(detectedCity)}
-                    className="text-xs font-semibold font-sans text-accent-indigo hover:underline ml-3 flex-shrink-0"
+                    className="text-xs font-semibold font-sans text-brand hover:underline ml-3 flex-shrink-0"
                   >
                     Use {detectedCity.name} →
                   </button>
@@ -120,11 +120,11 @@ export function CityModal({ open, onClose }: CityModalProps) {
               ) : (
                 <button
                   onClick={() => detect()}
-                  className="flex items-center gap-2 text-sm font-sans text-text-secondary hover:text-text-primary transition-colors group"
+                  className="flex items-center gap-2 text-sm font-sans text-tx-secondary hover:text-tx-primary transition-colors group"
                 >
                   <Navigation
                     size={15}
-                    className="text-accent-indigo group-hover:text-accent-indigo/80 flex-shrink-0"
+                    className="text-brand group-hover:text-brand/80 flex-shrink-0"
                   />
                   Detect my location
                 </button>
@@ -132,20 +132,20 @@ export function CityModal({ open, onClose }: CityModalProps) {
             </div>
 
             {/* Search */}
-            <div className="px-5 py-3 border-b border-border-default">
+            <div className="px-5 py-3 border-b border-border-l">
               <div className="relative">
-                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-tx-muted pointer-events-none" />
                 <input
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search cities…"
                   autoFocus
-                  className="w-full pl-9 pr-9 py-2.5 bg-bg-base border border-border-default rounded-lg text-sm font-sans text-text-primary placeholder:text-text-muted outline-none focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15 transition-all"
+                  className="w-full pl-9 pr-9 py-2.5 bg-page border border-border-l rounded-lg text-sm font-sans text-tx-primary placeholder:text-tx-muted outline-none focus:border-brand focus:ring-2 focus:ring-accent-indigo/15 transition-all"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-tx-muted hover:text-tx-primary"
                   >
                     <X size={14} />
                   </button>
@@ -154,11 +154,11 @@ export function CityModal({ open, onClose }: CityModalProps) {
             </div>
 
             {isLoading ? (
-              <div className="flex items-center justify-center py-12 text-text-muted text-sm font-sans">
+              <div className="flex items-center justify-center py-12 text-tx-muted text-sm font-sans">
                 Loading cities…
               </div>
             ) : filteredCities.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-text-muted text-sm font-sans gap-1">
+              <div className="flex flex-col items-center justify-center py-12 text-tx-muted text-sm font-sans gap-1">
                 <MapPin size={28} className="text-border-strong mb-1" />
                 No cities match "{debouncedQuery}"
               </div>
@@ -167,7 +167,7 @@ export function CityModal({ open, onClose }: CityModalProps) {
                 {/* Popular cities (only when not searching) */}
                 {!isSearching && popularCities.length > 0 && (
                   <div className="px-5 pt-4 pb-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted font-sans mb-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-tx-muted font-sans mb-3">
                       Popular Cities
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -178,12 +178,12 @@ export function CityModal({ open, onClose }: CityModalProps) {
                           className={cn(
                             'flex flex-col items-start p-3 rounded-xl border text-left transition-colors duration-150',
                             selectedCity?.id === city.id
-                              ? 'border-accent-crimson/40 bg-accent-crimson/8 text-accent-crimson'
-                              : 'border-border-default hover:border-accent-indigo/40 hover:bg-bg-surface2 text-text-secondary hover:text-text-primary'
+                              ? 'border-brand/40 bg-brand/8 text-brand'
+                              : 'border-border-l hover:border-brand/40 hover:bg-section text-tx-secondary hover:text-tx-primary'
                           )}
                         >
                           <span className="font-semibold text-sm font-sans leading-tight">{city.name}</span>
-                          <span className="text-xs text-text-muted font-sans mt-0.5">{city.state}</span>
+                          <span className="text-xs text-tx-muted font-sans mt-0.5">{city.state}</span>
                         </button>
                       ))}
                     </div>
@@ -192,7 +192,7 @@ export function CityModal({ open, onClose }: CityModalProps) {
 
                 {/* All cities list */}
                 <div className="px-5 pt-3 pb-2">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted font-sans mb-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-tx-muted font-sans mb-1">
                     {isSearching ? 'Results' : 'All Cities'}
                   </p>
                 </div>
@@ -204,12 +204,12 @@ export function CityModal({ open, onClose }: CityModalProps) {
                       className={cn(
                         'w-full flex items-center justify-between px-5 py-3 border-l-2 transition-colors duration-150 text-left',
                         selectedCity?.id === city.id
-                          ? 'border-l-accent-crimson bg-accent-crimson/6 text-text-primary'
-                          : 'border-l-transparent hover:bg-bg-surface2 text-text-secondary hover:text-text-primary'
+                          ? 'border-l-accent-crimson bg-brand/6 text-tx-primary'
+                          : 'border-l-transparent hover:bg-section text-tx-secondary hover:text-tx-primary'
                       )}
                     >
                       <span className="text-sm font-sans font-medium">{city.name}</span>
-                      <span className="text-xs text-text-muted font-sans">{city.state}</span>
+                      <span className="text-xs text-tx-muted font-sans">{city.state}</span>
                     </button>
                   ))}
                 </div>

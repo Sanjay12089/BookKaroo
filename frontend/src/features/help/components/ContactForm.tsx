@@ -65,15 +65,15 @@ export function ContactForm({ defaultEmail = '' }: ContactFormProps) {
     return (
       <GlassCard className="max-w-xl mx-auto p-8 text-center">
         <div className="text-5xl mb-4">✅</div>
-        <h3 className="font-display font-bold text-xl text-text-primary mb-2">
+        <h3 className="font-display font-bold text-xl text-tx-primary mb-2">
           Message sent!
         </h3>
-        <p className="text-sm font-sans text-text-muted mb-6">
+        <p className="text-sm font-sans text-tx-muted mb-6">
           We've received your query and will respond within 24 hours to your email.
         </p>
         <Link
           to="/help"
-          className="inline-block px-6 py-2.5 rounded-full bg-accent-crimson text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all"
+          className="inline-block px-6 py-2.5 rounded-full bg-brand text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all"
         >
           Back to Help
         </Link>
@@ -83,15 +83,15 @@ export function ContactForm({ defaultEmail = '' }: ContactFormProps) {
 
   return (
     <GlassCard className="max-w-xl mx-auto p-6 md:p-8">
-      <h2 className="font-display font-bold text-xl text-text-primary mb-6">
+      <h2 className="font-display font-bold text-xl text-tx-primary mb-6">
         Contact Support
       </h2>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
         {/* Name */}
         <div>
-          <label htmlFor="contact-name" className="block text-sm font-semibold font-sans text-text-secondary mb-1.5">
-            Full Name <span className="text-accent-crimson" aria-hidden>*</span>
+          <label htmlFor="contact-name" className="block text-sm font-semibold font-sans text-tx-secondary mb-1.5">
+            Full Name <span className="text-brand" aria-hidden>*</span>
           </label>
           <input
             id="contact-name"
@@ -99,17 +99,17 @@ export function ContactForm({ defaultEmail = '' }: ContactFormProps) {
             autoComplete="name"
             placeholder="Your name"
             {...register('name')}
-            className="w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-default text-text-primary placeholder-text-muted text-sm font-sans focus:outline-none focus:border-accent-crimson transition-colors"
+            className="w-full px-4 py-2.5 rounded-lg bg-card border border-border-l text-tx-primary placeholder-text-muted text-sm font-sans focus:outline-none focus:border-brand transition-colors"
           />
           {errors.name && (
-            <p className="mt-1 text-xs text-semantic-error font-sans">{errors.name.message}</p>
+            <p className="mt-1 text-xs text-error font-sans">{errors.name.message}</p>
           )}
         </div>
 
         {/* Email */}
         <div>
-          <label htmlFor="contact-email" className="block text-sm font-semibold font-sans text-text-secondary mb-1.5">
-            Email Address <span className="text-accent-crimson" aria-hidden>*</span>
+          <label htmlFor="contact-email" className="block text-sm font-semibold font-sans text-tx-secondary mb-1.5">
+            Email Address <span className="text-brand" aria-hidden>*</span>
           </label>
           <input
             id="contact-email"
@@ -117,22 +117,22 @@ export function ContactForm({ defaultEmail = '' }: ContactFormProps) {
             autoComplete="email"
             placeholder="you@example.com"
             {...register('email')}
-            className="w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-default text-text-primary placeholder-text-muted text-sm font-sans focus:outline-none focus:border-accent-crimson transition-colors"
+            className="w-full px-4 py-2.5 rounded-lg bg-card border border-border-l text-tx-primary placeholder-text-muted text-sm font-sans focus:outline-none focus:border-brand transition-colors"
           />
           {errors.email && (
-            <p className="mt-1 text-xs text-semantic-error font-sans">{errors.email.message}</p>
+            <p className="mt-1 text-xs text-error font-sans">{errors.email.message}</p>
           )}
         </div>
 
         {/* Subject */}
         <div>
-          <label htmlFor="contact-subject" className="block text-sm font-semibold font-sans text-text-secondary mb-1.5">
-            Subject <span className="text-accent-crimson" aria-hidden>*</span>
+          <label htmlFor="contact-subject" className="block text-sm font-semibold font-sans text-tx-secondary mb-1.5">
+            Subject <span className="text-brand" aria-hidden>*</span>
           </label>
           <select
             id="contact-subject"
             {...register('subject')}
-            className="w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-default text-text-primary text-sm font-sans focus:outline-none focus:border-accent-crimson transition-colors"
+            className="w-full px-4 py-2.5 rounded-lg bg-card border border-border-l text-tx-primary text-sm font-sans focus:outline-none focus:border-brand transition-colors"
           >
             <option value="">Select a subject…</option>
             {SUBJECT_OPTIONS.map((opt) => (
@@ -140,43 +140,43 @@ export function ContactForm({ defaultEmail = '' }: ContactFormProps) {
             ))}
           </select>
           {errors.subject && (
-            <p className="mt-1 text-xs text-semantic-error font-sans">{errors.subject.message}</p>
+            <p className="mt-1 text-xs text-error font-sans">{errors.subject.message}</p>
           )}
         </div>
 
         {/* Booking Ref (optional) */}
         <div>
-          <label htmlFor="contact-ref" className="block text-sm font-semibold font-sans text-text-secondary mb-1.5">
-            Booking Reference <span className="text-text-muted text-xs font-normal">(optional)</span>
+          <label htmlFor="contact-ref" className="block text-sm font-semibold font-sans text-tx-secondary mb-1.5">
+            Booking Reference <span className="text-tx-muted text-xs font-normal">(optional)</span>
           </label>
           <input
             id="contact-ref"
             type="text"
             placeholder="BK-XXXXXXXX"
             {...register('bookingRef')}
-            className="w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-default text-text-primary placeholder-text-muted text-sm font-mono focus:outline-none focus:border-accent-crimson transition-colors"
+            className="w-full px-4 py-2.5 rounded-lg bg-card border border-border-l text-tx-primary placeholder-text-muted text-sm font-mono focus:outline-none focus:border-brand transition-colors"
           />
         </div>
 
         {/* Message */}
         <div>
-          <label htmlFor="contact-message" className="block text-sm font-semibold font-sans text-text-secondary mb-1.5">
-            Message <span className="text-accent-crimson" aria-hidden>*</span>
+          <label htmlFor="contact-message" className="block text-sm font-semibold font-sans text-tx-secondary mb-1.5">
+            Message <span className="text-brand" aria-hidden>*</span>
           </label>
           <textarea
             id="contact-message"
             rows={5}
             placeholder="Describe your issue in detail…"
             {...register('message')}
-            className="w-full px-4 py-2.5 rounded-lg bg-bg-surface border border-border-default text-text-primary placeholder-text-muted text-sm font-sans focus:outline-none focus:border-accent-crimson transition-colors resize-none"
+            className="w-full px-4 py-2.5 rounded-lg bg-card border border-border-l text-tx-primary placeholder-text-muted text-sm font-sans focus:outline-none focus:border-brand transition-colors resize-none"
           />
           <div className="flex justify-between mt-1">
             <span>
               {errors.message && (
-                <span className="text-xs text-semantic-error font-sans">{errors.message.message}</span>
+                <span className="text-xs text-error font-sans">{errors.message.message}</span>
               )}
             </span>
-            <span className={`text-xs font-sans ${messageValue.length > 1900 ? 'text-semantic-warning' : 'text-text-muted'}`}>
+            <span className={`text-xs font-sans ${messageValue.length > 1900 ? 'text-warning' : 'text-tx-muted'}`}>
               {messageValue.length}/2000
             </span>
           </div>

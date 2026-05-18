@@ -69,7 +69,7 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
       <Helmet><title>Events &amp; Shows | BookKaroo</title></Helmet>
       {/* Sticky filter bar — hidden when fixedType locks the page to a single type */}
       {!fixedType && (
-        <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
+        <div className="sticky top-16 z-30 bg-page/95 backdrop-blur-md border-b border-border-l">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none">
             <div className="flex gap-1.5 flex-nowrap">
               {TABS.map((t) => (
@@ -89,14 +89,14 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
       {/* Content */}
       <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8">
         <div className="mb-6">
-          <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">
+          <p className="text-[11px] font-semibold text-tx-muted tracking-widest uppercase font-sans mb-1">
             {headingTitle}{cityName && !noCityFilter ? ` · ${cityName}` : ''}
           </p>
           <h1 className="font-display font-semibold text-3xl md:text-4xl tracking-tight">
             {headingTitle === 'All' ? 'Events & Shows' : headingTitle}
           </h1>
           {!isLoading && (
-            <p className="text-text-secondary text-sm mt-2 font-sans">
+            <p className="text-tx-secondary text-sm mt-2 font-sans">
               {total} event{total === 1 ? '' : 's'}
               {cityName && !noCityFilter ? ` in ${cityName}` : ''}
             </p>
@@ -116,10 +116,10 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
         ) : events.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <span className="text-5xl mb-4">🎪</span>
-            <h3 className="font-display text-xl text-text-secondary mb-2">
+            <h3 className="font-display text-xl text-tx-secondary mb-2">
               No {headingTitle === 'All' ? 'events' : headingTitle.toLowerCase()} right now
             </h3>
-            <p className="text-text-muted text-sm font-sans">
+            <p className="text-tx-muted text-sm font-sans">
               {cityName && !noCityFilter ? `Try changing your city or c` : 'C'}heck back soon — events are added regularly.
             </p>
           </div>
@@ -138,7 +138,7 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
             <PaginationBtn label="←" disabled={page === 1} onClick={() => goPage(page - 1)} />
             {buildPageRange(page, totalPages).map((p, i) =>
               p === '…' ? (
-                <span key={`e${i}`} className="w-9 h-9 flex items-center justify-center text-text-muted text-sm">…</span>
+                <span key={`e${i}`} className="w-9 h-9 flex items-center justify-center text-tx-muted text-sm">…</span>
               ) : (
                 <PaginationBtn key={p} label={String(p)} active={p === page} onClick={() => goPage(p as number)} />
               )
@@ -163,8 +163,8 @@ function PaginationBtn({ label, active, disabled, onClick }: {
         active
           ? 'bg-gradient-to-r from-accent-indigo to-accent-purple text-white'
           : disabled
-          ? 'text-text-muted cursor-default bg-bg-surface'
-          : 'bg-bg-surface text-text-secondary hover:text-text-primary border border-border-default',
+          ? 'text-tx-muted cursor-default bg-card'
+          : 'bg-card text-tx-secondary hover:text-tx-primary border border-border-l',
       )}
     >
       {label}

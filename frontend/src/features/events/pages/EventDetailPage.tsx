@@ -130,7 +130,7 @@ export default function EventDetailPage() {
 
   if (!event) return (
     <PublicLayout>
-      <div className="flex items-center justify-center min-h-[60vh] text-text-muted font-sans">
+      <div className="flex items-center justify-center min-h-[60vh] text-tx-muted font-sans">
         Event not found.
       </div>
     </PublicLayout>
@@ -150,7 +150,7 @@ export default function EventDetailPage() {
             style={{ backgroundImage: `url(${backdropUrl})`, filter: 'blur(2px) brightness(0.28)' }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-bg-base/55 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-page via-page/55 to-transparent" />
         <div className="absolute inset-0 bg-[radial-gradient(65%_55%_at_60%_25%,rgba(99,102,241,0.22),transparent)]" />
       </div>
 
@@ -158,11 +158,11 @@ export default function EventDetailPage() {
         <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-8 -mt-40 md:-mt-48 relative z-10">
           {/* Poster */}
           <div className="flex justify-center md:block">
-            <div className="w-32 md:w-full aspect-[3/4] rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10 bg-bg-surface2">
+            <div className="w-32 md:w-full aspect-[3/4] rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10 bg-section">
               {posterUrl
                 ? <img src={posterUrl} alt={event.title} className="w-full h-full object-cover" />
                 : (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-text-muted">
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-tx-muted">
                     <span className="text-4xl">🎪</span>
                     <span className="text-xs font-sans text-center px-2">{event.title}</span>
                   </div>
@@ -172,7 +172,7 @@ export default function EventDetailPage() {
 
           {/* Metadata */}
           <section className="pt-0 md:pt-10">
-            <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-2">
+            <p className="text-[11px] font-semibold text-tx-muted tracking-widest uppercase font-sans mb-2">
               {event.type}
               {event.language ? ` · ${event.language}` : ''}
               {event.durationMin ? ` · ${event.durationMin} mins` : ''}
@@ -189,8 +189,8 @@ export default function EventDetailPage() {
               {event.language && <Badge>{event.language}</Badge>}
             </div>
 
-            <div className="flex items-center gap-1.5 text-sm text-text-secondary font-sans mb-6">
-              <MapPin size={14} className="text-accent-crimson flex-shrink-0" />
+            <div className="flex items-center gap-1.5 text-sm text-tx-secondary font-sans mb-6">
+              <MapPin size={14} className="text-brand flex-shrink-0" />
               <span>{event.venueName}, {event.cityName}</span>
             </div>
 
@@ -214,7 +214,7 @@ export default function EventDetailPage() {
 
         {/* ── TIER SELECTOR / BOOKING SECTION */}
         {hasTickets && (
-          <div id="tier-selector" className="mt-10 p-6 rounded-xl bg-bg-surface border border-border-default">
+          <div id="tier-selector" className="mt-10 p-6 rounded-xl bg-card border border-border-l">
             <h2 className="font-display font-semibold text-xl mb-5">Select Tickets</h2>
 
             {availLoading && displayTiers.length === 0 ? (
@@ -255,21 +255,21 @@ export default function EventDetailPage() {
 
         {/* ── PRICE TIERS CARD (shown when no availability data but has priceTiers) */}
         {!hasTickets && event.allPriceTiers.length > 0 && (
-          <div className="mt-10 p-6 rounded-xl bg-bg-surface border border-border-default">
+          <div className="mt-10 p-6 rounded-xl bg-card border border-border-l">
             <h2 className="font-display font-semibold text-xl mb-4">Ticket Prices</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {event.allPriceTiers.map((tier) => (
                 <TierCard key={tier.name} tier={tier} />
               ))}
             </div>
-            <p className="text-sm text-text-muted font-sans mt-3">
+            <p className="text-sm text-tx-muted font-sans mt-3">
               Booking opens soon — set a reminder to be notified.
             </p>
           </div>
         )}
 
         {/* ── TABS */}
-        <div className="mt-10 border-b border-border-default">
+        <div className="mt-10 border-b border-border-l">
           <div className="flex gap-1">
             {(['about', 'artists', 'venue'] as Tab[]).map((t) => (
               <button
@@ -278,8 +278,8 @@ export default function EventDetailPage() {
                 className={cn(
                   'px-5 py-3 text-sm font-semibold font-sans capitalize border-b-2 -mb-px transition-colors',
                   activeTab === t
-                    ? 'border-accent-crimson text-text-primary'
-                    : 'border-transparent text-text-muted hover:text-text-secondary',
+                    ? 'border-brand text-tx-primary'
+                    : 'border-transparent text-tx-muted hover:text-tx-secondary',
                 )}
               >
                 {t === 'artists' ? 'Artists / Lineup' : t.charAt(0).toUpperCase() + t.slice(1)}
@@ -298,10 +298,10 @@ export default function EventDetailPage() {
       {/* ── STICKY BAR */}
       {stickyVisible && hasTickets && (
         <div className="fixed bottom-0 left-0 right-0 z-50 flex items-center gap-4 px-6 py-3
-          bg-bg-surface/95 backdrop-blur-xl border-t border-border-default shadow-lg mb-[56px] md:mb-0">
+          bg-card/95 backdrop-blur-xl border-t border-border-l shadow-lg mb-[56px] md:mb-0">
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-text-primary text-sm truncate font-sans">{event.title}</p>
-            <p className="text-xs text-text-muted font-sans">
+            <p className="font-semibold text-tx-primary text-sm truncate font-sans">{event.title}</p>
+            <p className="text-xs text-tx-muted font-sans">
               from ₹{event.lowestPrice.toLocaleString('en-IN')}
             </p>
           </div>
@@ -323,13 +323,13 @@ export default function EventDetailPage() {
 
 function TierCard({ tier }: { tier: PriceTier }) {
   return (
-    <div className="p-4 rounded-lg bg-bg-surface2 border border-border-default text-center">
+    <div className="p-4 rounded-lg bg-section border border-border-l text-center">
       <div className="w-3 h-3 rounded-full mx-auto mb-2" style={{ background: tier.color }} />
-      <p className="text-sm font-semibold text-text-primary font-sans">{tier.name}</p>
-      <p className="text-xl font-bold text-accent-indigo font-display mt-1">
+      <p className="text-sm font-semibold text-tx-primary font-sans">{tier.name}</p>
+      <p className="text-xl font-bold text-brand font-display mt-1">
         ₹{tier.price.toLocaleString('en-IN')}
       </p>
-      <p className="text-[11px] text-text-muted font-sans mt-1">{tier.capacity} seats</p>
+      <p className="text-[11px] text-tx-muted font-sans mt-1">{tier.capacity} seats</p>
     </div>
   );
 }
@@ -340,20 +340,20 @@ function AboutTab({ event }: { event: EventDetail }) {
       {event.description && (
         <div>
           <h3 className="font-display font-semibold text-xl mb-3">About the Event</h3>
-          <p className="text-text-secondary leading-relaxed font-sans">{event.description}</p>
+          <p className="text-tx-secondary leading-relaxed font-sans">{event.description}</p>
         </div>
       )}
 
       {event.organizer && (
         <div>
           <h3 className="font-display font-semibold text-xl mb-3">Organizer</h3>
-          <div className="p-4 rounded-xl bg-bg-surface border border-border-default font-sans text-sm space-y-1">
-            <p className="font-semibold text-text-primary">{event.organizer.name}</p>
+          <div className="p-4 rounded-xl bg-card border border-border-l font-sans text-sm space-y-1">
+            <p className="font-semibold text-tx-primary">{event.organizer.name}</p>
             {event.organizer.stadium && (
-              <p className="text-text-muted">Venue: {event.organizer.stadium}</p>
+              <p className="text-tx-muted">Venue: {event.organizer.stadium}</p>
             )}
             {event.organizer.contact && (
-              <p className="text-text-muted">Contact: {event.organizer.contact}</p>
+              <p className="text-tx-muted">Contact: {event.organizer.contact}</p>
             )}
           </div>
         </div>
@@ -361,7 +361,7 @@ function AboutTab({ event }: { event: EventDetail }) {
 
       <div>
         <h3 className="font-display font-semibold text-xl mb-4">Event Details</h3>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-5 rounded-xl bg-bg-surface border border-border-default">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-5 rounded-xl bg-card border border-border-l">
           {[
             { label: 'Date',     value: event.eventDateLabel },
             { label: 'Time',     value: event.eventTimeLabel },
@@ -371,8 +371,8 @@ function AboutTab({ event }: { event: EventDetail }) {
             { label: 'Type',     value: event.type },
           ].map((f) => (
             <div key={f.label}>
-              <p className="text-[10px] font-semibold text-text-muted tracking-wider uppercase font-sans">{f.label}</p>
-              <p className="text-sm font-semibold text-text-primary mt-1 font-sans">{f.value}</p>
+              <p className="text-[10px] font-semibold text-tx-muted tracking-wider uppercase font-sans">{f.label}</p>
+              <p className="text-sm font-semibold text-tx-primary mt-1 font-sans">{f.value}</p>
             </div>
           ))}
         </div>
@@ -383,7 +383,7 @@ function AboutTab({ event }: { event: EventDetail }) {
 
 function ArtistsTab({ event }: { event: EventDetail }) {
   if (event.artists.length === 0) {
-    return <p className="text-text-muted font-sans text-sm">Artist lineup not available yet.</p>;
+    return <p className="text-tx-muted font-sans text-sm">Artist lineup not available yet.</p>;
   }
   return (
     <div>
@@ -394,8 +394,8 @@ function ArtistsTab({ event }: { event: EventDetail }) {
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white font-bold text-xl">
               {artist.name.charAt(0)}
             </div>
-            <p className="text-xs font-semibold text-text-primary font-sans line-clamp-1">{artist.name}</p>
-            <p className="text-[11px] text-text-muted font-sans line-clamp-1">{artist.type}</p>
+            <p className="text-xs font-semibold text-tx-primary font-sans line-clamp-1">{artist.name}</p>
+            <p className="text-[11px] text-tx-muted font-sans line-clamp-1">{artist.type}</p>
           </div>
         ))}
       </div>
@@ -413,18 +413,18 @@ function VenueTab({ event }: { event: EventDetail }) {
     <div className="space-y-6">
       <div>
         <h3 className="font-display font-semibold text-xl mb-3">Venue</h3>
-        <div className="p-5 rounded-xl bg-bg-surface border border-border-default space-y-3 font-sans">
-          <p className="font-semibold text-text-primary text-base">{event.venueName}</p>
+        <div className="p-5 rounded-xl bg-card border border-border-l space-y-3 font-sans">
+          <p className="font-semibold text-tx-primary text-base">{event.venueName}</p>
           {event.venueAddress && (
-            <div className="flex items-start gap-2 text-text-muted text-sm">
-              <MapPin size={14} className="mt-0.5 flex-shrink-0 text-accent-crimson" />
+            <div className="flex items-start gap-2 text-tx-muted text-sm">
+              <MapPin size={14} className="mt-0.5 flex-shrink-0 text-brand" />
               <span>{event.venueAddress}, {event.cityName}</span>
             </div>
           )}
           {event.venueAmenities.length > 0 && (
             <div className="flex flex-wrap gap-2 pt-1">
               {event.venueAmenities.map((a) => (
-                <span key={a} className="px-2.5 py-1 rounded-full bg-bg-surface2 text-text-secondary text-xs font-sans border border-border-default">
+                <span key={a} className="px-2.5 py-1 rounded-full bg-section text-tx-secondary text-xs font-sans border border-border-l">
                   {a}
                 </span>
               ))}
@@ -435,7 +435,7 @@ function VenueTab({ event }: { event: EventDetail }) {
               href={mapsHref}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm text-accent-indigo hover:underline font-semibold"
+              className="inline-flex items-center gap-1.5 text-sm text-brand hover:underline font-semibold"
             >
               <MapPin size={13} /> View on Google Maps →
             </a>

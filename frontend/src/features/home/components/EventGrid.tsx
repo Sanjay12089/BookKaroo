@@ -40,22 +40,22 @@ function EventCard({ evt }: { evt: EventData }) {
   return (
     <Link
       to={evt.href}
-      className={cn('block rounded-xl overflow-hidden bg-bg-surface border transition-all duration-[220ms]', hovered ? 'border-border-strong -translate-y-1' : 'border-border-default')}
+      className={cn('block rounded-xl overflow-hidden bg-card border transition-all duration-[220ms]', hovered ? 'border-border-m -translate-y-1' : 'border-border-l')}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <div className="aspect-[4/3] relative flex items-center justify-center" style={{ background: evt.gradient }}>
         <span className="text-5xl">{evt.emoji}</span>
-        <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-accent-indigo/85 text-white text-[11px] font-semibold font-sans">
+        <div className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-brand/85 text-white text-[11px] font-semibold font-sans">
           {evt.type}
         </div>
       </div>
       <div className="p-4">
-        <h4 className="font-semibold text-base text-text-primary">{evt.title}</h4>
-        <p className="text-xs text-text-muted mt-1">{evt.subtitle}</p>
+        <h4 className="font-semibold text-base text-tx-primary">{evt.title}</h4>
+        <p className="text-xs text-tx-muted mt-1">{evt.subtitle}</p>
         <div className="flex justify-between mt-3 text-xs font-sans">
-          <span className="text-text-secondary">{evt.date}</span>
-          <span className="text-semantic-success font-semibold">{evt.price}</span>
+          <span className="text-tx-secondary">{evt.date}</span>
+          <span className="text-success font-semibold">{evt.price}</span>
         </div>
       </div>
     </Link>
@@ -70,10 +70,10 @@ export function EventGrid({ isLoading }: EventGridProps) {
   return (
     <section className="mb-16">
       <div className="flex items-end justify-between mb-5">
-        <h2 className="font-display font-semibold text-2xl md:text-3xl text-text-primary tracking-tight">
+        <h2 className="font-display font-semibold text-2xl md:text-3xl text-tx-primary tracking-tight">
           Live Events & Concerts
         </h2>
-        <Link to={ROUTES.EVENTS} className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors font-sans">
+        <Link to={ROUTES.EVENTS} className="text-sm font-medium text-tx-secondary hover:text-tx-primary transition-colors font-sans">
           All events →
         </Link>
       </div>

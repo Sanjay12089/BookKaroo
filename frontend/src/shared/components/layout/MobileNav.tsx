@@ -15,7 +15,7 @@ export function MobileNav() {
   const { pathname } = useLocation();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border-default bg-bg-surface/90 backdrop-blur-md pb-[env(safe-area-inset-bottom,0)]">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-border-l bg-card/90 backdrop-blur-md pb-[env(safe-area-inset-bottom,0)]">
       <ul className="grid grid-cols-5">
         {NAV_ITEMS.map(({ label, icon: Icon, href }) => {
           const active = pathname === href;
@@ -25,10 +25,10 @@ export function MobileNav() {
                 to={href}
                 className={cn(
                   'flex flex-col items-center gap-1 py-2 text-[10px] font-medium font-sans transition-colors',
-                  active ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary'
+                  active ? 'text-tx-primary' : 'text-tx-muted hover:text-tx-secondary'
                 )}
               >
-                <Icon size={22} className={active ? 'text-accent-crimson' : undefined} />
+                <Icon size={22} className={active ? 'text-brand' : undefined} />
                 {label}
               </Link>
             </li>

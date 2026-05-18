@@ -79,10 +79,10 @@ export default function SearchResultsPage() {
     return (
       <div className="flex flex-col items-center py-20 text-center">
         <p className="text-5xl mb-4">🔍</p>
-        <p className="text-text-secondary font-sans font-medium text-base">
+        <p className="text-tx-secondary font-sans font-medium text-base">
           No {type} found for &ldquo;{query}&rdquo;
         </p>
-        <p className="text-sm text-text-muted font-sans mt-1">Try a different search term</p>
+        <p className="text-sm text-tx-muted font-sans mt-1">Try a different search term</p>
         <button
           onClick={() => navigate(ROUTES.SEARCH)}
           className="mt-5 px-6 py-2.5 rounded-full bg-gradient-to-r from-accent-indigo to-accent-purple text-white text-sm font-semibold font-sans"
@@ -98,7 +98,7 @@ export default function SearchResultsPage() {
       <PublicLayout>
         <div className="max-w-3xl mx-auto px-6 py-16 text-center">
           <p className="text-4xl mb-4">🎬</p>
-          <p className="text-text-secondary font-sans">Enter a search term in the bar above</p>
+          <p className="text-tx-secondary font-sans">Enter a search term in the bar above</p>
         </div>
       </PublicLayout>
     );
@@ -107,13 +107,13 @@ export default function SearchResultsPage() {
   return (
     <PublicLayout>
       {/* Header */}
-      <div className="bg-gradient-to-b from-bg-surface2 to-bg-base border-b border-border-default">
+      <div className="bg-gradient-to-b from-section to-page border-b border-border-l">
         <div className="max-w-5xl mx-auto px-6 py-8">
-          <h1 className="font-display font-bold text-2xl text-text-primary mb-1">
+          <h1 className="font-display font-bold text-2xl text-tx-primary mb-1">
             Search results for &ldquo;{query}&rdquo;
           </h1>
           {!isLoading && data && (
-            <p className="text-sm text-text-muted font-sans">
+            <p className="text-sm text-tx-muted font-sans">
               {data.totalResults} result{data.totalResults !== 1 ? 's' : ''} found
             </p>
           )}
@@ -122,23 +122,23 @@ export default function SearchResultsPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-6">
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-border-default mb-6">
+        <div className="flex gap-1 border-b border-border-l mb-6">
           {tabs.map(({ key, label, count }) => (
             <button
               key={key}
               onClick={() => setTab(key)}
               className={`relative px-4 py-3 text-sm font-medium font-sans capitalize transition-colors ${
-                tab === key ? 'text-accent-crimson' : 'text-text-muted hover:text-text-secondary'
+                tab === key ? 'text-brand' : 'text-tx-muted hover:text-tx-secondary'
               }`}
             >
               {label}
               {count > 0 && (
-                <span className="ml-2 text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-bg-surface2 text-text-muted">
+                <span className="ml-2 text-[11px] font-mono px-1.5 py-0.5 rounded-full bg-section text-tx-muted">
                   {count}
                 </span>
               )}
               {tab === key && (
-                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-accent-crimson rounded-full" />
+                <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-brand rounded-full" />
               )}
             </button>
           ))}
@@ -160,7 +160,7 @@ export default function SearchResultsPage() {
             {showMovies && data.movies.length > 0 && (
               <section>
                 {tab === 'all' && (
-                  <h2 className="font-display font-semibold text-base text-text-primary mb-4">
+                  <h2 className="font-display font-semibold text-base text-tx-primary mb-4">
                     Movies
                   </h2>
                 )}
@@ -180,7 +180,7 @@ export default function SearchResultsPage() {
             {showEvents && data.events.length > 0 && (
               <section>
                 {tab === 'all' && (
-                  <h2 className="font-display font-semibold text-base text-text-primary mb-4">
+                  <h2 className="font-display font-semibold text-base text-tx-primary mb-4">
                     Events &amp; Shows
                   </h2>
                 )}
@@ -189,9 +189,9 @@ export default function SearchResultsPage() {
                     <Link
                       key={e.id}
                       to={ROUTES.EVENT_DETAIL(e.slug)}
-                      className="flex items-center gap-4 p-4 rounded-xl bg-bg-surface border border-border-default hover:border-border-strong transition-colors"
+                      className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border-l hover:border-border-m transition-colors"
                     >
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-bg-surface2 flex-shrink-0">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-section flex-shrink-0">
                         {e.posterUrl ? (
                           <img
                             src={TMDB_POSTER(e.posterUrl, 'w185')}
@@ -206,10 +206,10 @@ export default function SearchResultsPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-display font-semibold text-base text-text-primary line-clamp-1">
+                        <p className="font-display font-semibold text-base text-tx-primary line-clamp-1">
                           {e.title}
                         </p>
-                        <p className="text-sm text-text-muted font-sans mt-0.5">
+                        <p className="text-sm text-tx-muted font-sans mt-0.5">
                           {e.eventType}{e.eventDate ? ` · ${e.eventDate}` : ''}
                         </p>
                       </div>
@@ -227,7 +227,7 @@ export default function SearchResultsPage() {
             {showVenues && data.venues.length > 0 && (
               <section>
                 {tab === 'all' && (
-                  <h2 className="font-display font-semibold text-base text-text-primary mb-4">
+                  <h2 className="font-display font-semibold text-base text-tx-primary mb-4">
                     Cinemas &amp; Venues
                   </h2>
                 )}
@@ -235,16 +235,16 @@ export default function SearchResultsPage() {
                   {data.venues.map((v) => (
                     <div
                       key={v.id}
-                      className="flex items-center gap-4 p-4 rounded-xl bg-bg-surface border border-border-default"
+                      className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border-l"
                     >
-                      <div className="w-12 h-12 rounded-full bg-bg-surface2 flex items-center justify-center flex-shrink-0">
-                        <Building2 size={20} className="text-text-muted" />
+                      <div className="w-12 h-12 rounded-full bg-section flex items-center justify-center flex-shrink-0">
+                        <Building2 size={20} className="text-tx-muted" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-sans font-semibold text-base text-text-primary line-clamp-1">
+                        <p className="font-sans font-semibold text-base text-tx-primary line-clamp-1">
                           {v.name}
                         </p>
-                        <p className="text-sm text-text-muted font-sans">
+                        <p className="text-sm text-tx-muted font-sans">
                           {[v.chain, v.cityName].filter(Boolean).join(' · ')}
                         </p>
                       </div>
@@ -261,7 +261,7 @@ export default function SearchResultsPage() {
             {/* Cities section (only in All tab) */}
             {tab === 'all' && data.cities.length > 0 && (
               <section>
-                <h2 className="font-display font-semibold text-base text-text-primary mb-4">
+                <h2 className="font-display font-semibold text-base text-tx-primary mb-4">
                   Cities
                 </h2>
                 <div className="flex flex-wrap gap-2">
@@ -269,11 +269,11 @@ export default function SearchResultsPage() {
                     <button
                       key={c.id}
                       onClick={() => handleCityClick(c)}
-                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-bg-surface border border-border-default hover:border-border-strong text-sm font-sans text-text-secondary hover:text-text-primary transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-card border border-border-l hover:border-border-m text-sm font-sans text-tx-secondary hover:text-tx-primary transition-colors"
                     >
-                      <MapPin size={13} className="text-accent-crimson" />
+                      <MapPin size={13} className="text-brand" />
                       {c.name}
-                      <span className="text-text-muted text-xs">{c.state}</span>
+                      <span className="text-tx-muted text-xs">{c.state}</span>
                     </button>
                   ))}
                 </div>

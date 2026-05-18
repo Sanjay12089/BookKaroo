@@ -19,16 +19,16 @@ const STATUS_TEXT: Record<AvailabilityStatus, (n: number) => string> = {
 };
 
 const STATUS_COLOR_CLASS: Record<AvailabilityStatus, string> = {
-  green:    'text-semantic-success',
-  orange:   'text-semantic-warning',
-  red:      'text-accent-crimson',
-  sold_out: 'text-text-muted',
+  green:    'text-success',
+  orange:   'text-warning',
+  red:      'text-brand',
+  sold_out: 'text-tx-muted',
 };
 
 const BAR_COLOR_CLASS: Record<AvailabilityStatus, string> = {
-  green:    'bg-semantic-success',
-  orange:   'bg-semantic-warning',
-  red:      'bg-accent-crimson',
+  green:    'bg-success-bg',
+  orange:   'bg-warning-bg',
+  red:      'bg-brand',
   sold_out: 'bg-border-default',
 };
 
@@ -53,8 +53,8 @@ export function TierSelector({
 }: TierSelectorProps) {
   if (tiers.length === 0) {
     return (
-      <div className="p-5 rounded-xl bg-bg-surface border border-border-default">
-        <p className="text-sm text-text-muted font-sans text-center">
+      <div className="p-5 rounded-xl bg-card border border-border-l">
+        <p className="text-sm text-tx-muted font-sans text-center">
           No ticket tiers available.
         </p>
       </div>
@@ -79,10 +79,10 @@ export function TierSelector({
               className={cn(
                 'w-full text-left p-4 rounded-xl border transition-all',
                 isSelected
-                  ? 'border-accent-crimson bg-accent-crimson/5'
+                  ? 'border-brand bg-brand/5'
                   : isSoldOut
-                    ? 'border-border-default bg-bg-surface opacity-60 cursor-not-allowed'
-                    : 'border-border-default bg-bg-surface hover:border-border-strong cursor-pointer',
+                    ? 'border-border-l bg-card opacity-60 cursor-not-allowed'
+                    : 'border-border-l bg-card hover:border-border-m cursor-pointer',
               )}
             >
               <div className="flex items-center gap-3 mb-2">
@@ -91,16 +91,16 @@ export function TierSelector({
                   className="w-3 h-3 rounded-full flex-shrink-0"
                   style={{ background: tier.color }}
                 />
-                <span className="font-semibold text-sm text-text-primary font-sans flex-1">
+                <span className="font-semibold text-sm text-tx-primary font-sans flex-1">
                   {tier.tierName}
                 </span>
-                <span className="font-display font-bold text-base text-accent-indigo">
+                <span className="font-display font-bold text-base text-brand">
                   {formatCurrency(tierPrices[tier.tierName.toLowerCase()] ?? unitPrice)}
                 </span>
               </div>
 
               {/* Availability bar */}
-              <div className="w-full h-1.5 rounded-full bg-bg-surface2 mb-1.5 overflow-hidden">
+              <div className="w-full h-1.5 rounded-full bg-section mb-1.5 overflow-hidden">
                 <div
                   className={cn('h-full rounded-full transition-all', BAR_COLOR_CLASS[status])}
                   style={{ width: `${Math.min(100, tier.availabilityPct)}%` }}
@@ -118,8 +118,8 @@ export function TierSelector({
 
       {/* Quantity selector */}
       {selectedTier && (
-        <div className="p-4 rounded-xl bg-bg-surface border border-border-default">
-          <p className="text-xs font-semibold text-text-muted font-sans uppercase tracking-wider mb-3">
+        <div className="p-4 rounded-xl bg-card border border-border-l">
+          <p className="text-xs font-semibold text-tx-muted font-sans uppercase tracking-wider mb-3">
             Number of Tickets
           </p>
           <div className="flex flex-wrap gap-2">
@@ -132,10 +132,10 @@ export function TierSelector({
                 className={cn(
                   'w-10 h-10 rounded-lg text-sm font-bold font-sans transition-all',
                   selectedQty === n
-                    ? 'bg-accent-crimson text-white shadow-[0_0_0_2px_rgba(229,9,20,0.35)] scale-105'
+                    ? 'bg-brand text-white shadow-[0_0_0_2px_rgba(229,9,20,0.35)] scale-105'
                     : n > selectedTier.available
-                      ? 'bg-bg-surface2 text-text-muted border-2 border-border-default cursor-not-allowed opacity-30'
-                      : 'bg-bg-surface3 text-text-primary border-2 border-border-strong hover:border-accent-crimson hover:text-accent-crimson',
+                      ? 'bg-section text-tx-muted border-2 border-border-l cursor-not-allowed opacity-30'
+                      : 'bg-section text-tx-primary border-2 border-border-m hover:border-brand hover:text-brand',
                 )}
               >
                 {n}
@@ -145,16 +145,16 @@ export function TierSelector({
 
           {/* Pricing preview */}
           {selectedQty > 0 && unitPrice > 0 && (
-            <div className="mt-4 pt-3 border-t border-border-default">
+            <div className="mt-4 pt-3 border-t border-border-l">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-text-muted font-sans">
+                <span className="text-sm text-tx-muted font-sans">
                   {selectedQty} × {formatCurrency(unitPrice)}
                 </span>
-                <span className="font-display font-bold text-base text-accent-crimson">
+                <span className="font-display font-bold text-base text-brand">
                   {formatCurrency(selectedQty * unitPrice)}
                 </span>
               </div>
-              <p className="text-[10px] text-text-muted font-sans mt-1">
+              <p className="text-[10px] text-tx-muted font-sans mt-1">
                 + convenience fee & taxes applicable
               </p>
             </div>

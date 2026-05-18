@@ -59,7 +59,7 @@ export function HeroCarousel({ movies, isLoading }: HeroCarouselProps) {
       >
         <div className="space-y-5">
           <Badge color="crimson" className="gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-accent-crimson animate-pulse-glow inline-block" />
+            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse-glow inline-block" />
             Now Showing
           </Badge>
 
@@ -119,7 +119,7 @@ export function HeroCarousel({ movies, isLoading }: HeroCarouselProps) {
                 loading="eager"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
-              <div className="absolute inset-0 bg-gradient-to-br from-bg-surface2 to-bg-surface3 flex items-center justify-center -z-10">
+              <div className="absolute inset-0 bg-gradient-to-br from-section to-border-l flex items-center justify-center -z-10">
                 <span className="text-5xl">🎬</span>
               </div>
             </div>
