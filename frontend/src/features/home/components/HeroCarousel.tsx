@@ -47,8 +47,8 @@ export function HeroCarousel({ movies, isLoading }: HeroCarouselProps) {
         />
       )}
       {/* Gradient overlays */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#0A0E1A_35%,transparent_100%)]" />
-      <div className="absolute inset-0 bg-[linear-gradient(to_top,#0A0E1A_10%,transparent_60%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.55)_35%,transparent_100%)]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(0,0,0,0.55)_10%,transparent_60%)]" />
 
       {/* Content */}
       <div
@@ -63,12 +63,12 @@ export function HeroCarousel({ movies, isLoading }: HeroCarouselProps) {
             Now Showing
           </Badge>
 
-          <h1 className="font-display font-bold text-4xl md:text-6xl lg:text-7xl text-text-primary leading-[1.05] tracking-tight">
+          <h1 className="font-display font-bold text-4xl md:text-6xl lg:text-7xl text-white leading-[1.05] tracking-tight drop-shadow-lg">
             {movie.title}
           </h1>
 
           {movie.description && (
-            <p className="text-text-secondary text-base md:text-lg leading-relaxed max-w-lg line-clamp-2">
+            <p className="text-white/85 text-base md:text-lg leading-relaxed max-w-lg line-clamp-2 drop-shadow">
               {movie.description}
             </p>
           )}

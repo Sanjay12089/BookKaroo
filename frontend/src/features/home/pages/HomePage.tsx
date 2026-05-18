@@ -18,12 +18,12 @@ function BannerStrip({ banners }: { banners: BannerItem[] }) {
           const inner = (
             <div
               key={b.id}
-              className="flex-shrink-0 relative rounded-xl overflow-hidden bg-bg-surface2 border border-border-default"
+              className="flex-shrink-0 relative rounded-xl overflow-hidden bg-section border border-border-l shadow-card"
               style={{ width: 280, height: 120 }}
             >
               {b.imageUrl
                 ? <img src={b.imageUrl} alt={b.title} className="w-full h-full object-cover" />
-                : <div className="flex items-center justify-center h-full text-text-muted text-sm font-sans">{b.title}</div>
+                : <div className="flex items-center justify-center h-full text-tx-muted text-sm font-sans">{b.title}</div>
               }
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
               <span className="absolute bottom-2 left-3 text-white text-xs font-semibold font-sans drop-shadow">{b.title}</span>
@@ -120,11 +120,11 @@ export default function HomePage() {
         />
 
         {/* Trust band */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 py-8 border-t border-b border-border-default mb-0">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 py-8 border-t border-b border-border-l mb-0">
           {STATS.map(({ num, label }) => (
             <div key={label} className="text-center">
-              <div className="font-display font-semibold text-3xl text-text-primary">{num}</div>
-              <div className="text-xs text-text-muted uppercase tracking-wider mt-1 font-sans">{label}</div>
+              <div className="font-display font-semibold text-3xl text-tx-primary">{num}</div>
+              <div className="text-xs text-tx-muted uppercase tracking-wider mt-1 font-sans">{label}</div>
             </div>
           ))}
         </section>

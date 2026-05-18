@@ -23,18 +23,18 @@ export function EventRail({
       <div className="flex items-end justify-between mb-5">
         <div>
           {eyebrow && (
-            <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-1">
+            <p className="text-[11px] font-semibold text-tx-muted tracking-widest uppercase font-sans mb-1">
               {eyebrow}
             </p>
           )}
-          <h2 className="font-display font-semibold text-2xl md:text-3xl text-text-primary tracking-tight">
+          <h2 className="font-display font-semibold text-2xl md:text-3xl text-tx-primary tracking-tight">
             {title}
           </h2>
         </div>
         {seeAllHref && (
           <Link
             to={seeAllHref}
-            className="text-sm font-medium text-text-secondary hover:text-text-primary transition-colors font-sans"
+            className="text-brand text-sm font-medium hover:underline cursor-pointer transition-colors font-sans"
           >
             {seeAllLabel}
           </Link>

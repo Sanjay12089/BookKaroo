@@ -30,10 +30,10 @@ export function IplStrip({ matches }: IplStripProps) {
           <p className="font-mono text-[11px] tracking-widest uppercase text-[#F5C56B] mb-2">
             ◆ TATA IPL 2026 · Indian Premier League
           </p>
-          <h3 className="font-display font-bold text-2xl md:text-3xl text-text-primary mb-2">
+          <h3 className="font-display font-bold text-2xl md:text-3xl text-white mb-2">
             The season is on. Tickets are live.
           </h3>
-          <p className="text-text-secondary text-sm mb-5">
+          <p className="text-white/80 text-sm mb-5">
             {displayMatches.length > 0
               ? `${displayMatches.length}+ upcoming matches across iconic stadiums`
               : 'Narendra Modi Stadium, Eden Gardens, Wankhede & more.'}
@@ -71,8 +71,8 @@ export function IplStrip({ matches }: IplStripProps) {
                   className="px-4 py-2.5 rounded-lg border border-white/10 text-sm font-sans hover:border-[#F5C56B]/40 transition-colors"
                   style={{ background: 'rgba(255,255,255,0.06)' }}
                 >
-                  <p className="font-semibold text-text-primary line-clamp-1">{m.title}</p>
-                  <p className="text-text-muted text-xs mt-0.5">{m.eventDateLabel} · {m.eventTimeLabel}</p>
+                  <p className="font-semibold text-white line-clamp-1">{m.title}</p>
+                  <p className="text-white/65 text-xs mt-0.5">{m.eventDateLabel} · {m.eventTimeLabel}</p>
                 </Link>
               ))
             : (
@@ -87,8 +87,8 @@ export function IplStrip({ matches }: IplStripProps) {
                     className="px-4 py-2.5 rounded-lg border border-white/10 text-sm font-sans"
                     style={{ background: 'rgba(255,255,255,0.06)' }}
                   >
-                    <p className="font-semibold text-text-primary">{f.title}</p>
-                    <p className="text-text-muted text-xs mt-0.5">{f.date}</p>
+                    <p className="font-semibold text-white">{f.title}</p>
+                    <p className="text-white/65 text-xs mt-0.5">{f.date}</p>
                   </div>
                 ))}
               </>
