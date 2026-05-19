@@ -150,32 +150,86 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
         {/* Movie / Event selector */}
         {type === 'movie' ? (
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Movie *</label>
+            <label className="block text-sm font-medium text-text-primary mb-1.5">Movie *</label>
             <input
               value={movieSearch}
               onChange={(e) => setMovieSearch(e.target.value)}
               placeholder="Type to filter movies…"
               className={inputCls + ' mb-2'}
             />
-            <select value={selectedMovieId} onChange={(e) => setSelectedMovieId(e.target.value)} className={selectCls}>
-              <option value="">— Select Movie —</option>
-              {filteredMovies.map((m) => (
-                <option key={m.id} value={m.id}>{m.title}{m.certificate ? ` [${m.certificate}]` : ''}</option>
-              ))}
-            </select>
-            {filteredMovies.length === 0 && movieSearch && (
-              <p className="text-xs text-text-muted mt-1">No published movies match "{movieSearch}"</p>
+            {/* Custom scrollable list with highlighted selected item */}
+            <div className="max-h-44 overflow-y-auto rounded-lg border border-border-default bg-bg-surface divide-y divide-border-default">
+              {filteredMovies.length === 0 ? (
+                <p className="px-3 py-3 text-xs text-text-muted text-center">
+                  {movieSearch ? `No movies match "${movieSearch}"` : 'No published movies found'}
+                </p>
+              ) : filteredMovies.map((m) => {
+                const isSelected = selectedMovieId === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setSelectedMovieId(m.id)}
+                    className={`w-full text-left px-3 py-2.5 flex items-center justify-between gap-2 text-sm transition-colors ${
+                      isSelected
+                        ? 'bg-accent-indigo/10 text-accent-indigo font-semibold'
+                        : 'text-text-primary hover:bg-bg-surface2'
+                    }`}
+                  >
+                    <span className="truncate">{m.title}</span>
+                    <span className="flex items-center gap-2 flex-shrink-0">
+                      {m.certificate && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${isSelected ? 'bg-accent-indigo/20 text-accent-indigo' : 'bg-bg-surface2 text-text-muted'}`}>
+                          {m.certificate}
+                        </span>
+                      )}
+                      {isSelected && <span className="text-accent-indigo text-base">✓</span>}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {selectedMovieId && (
+              <p className="text-xs text-accent-indigo mt-1.5 font-medium">
+                ✓ Selected: {filteredMovies.find(m => m.id === selectedMovieId)?.title ?? allMovies?.items?.find(m => m.id === selectedMovieId)?.title}
+              </p>
             )}
           </div>
         ) : (
           <div>
-            <label className="block text-sm font-medium text-text-primary mb-1">Event *</label>
-            <select value={selectedEventId} onChange={(e) => setSelectedEventId(e.target.value)} className={selectCls}>
-              <option value="">— Select Event —</option>
-              {events?.items?.map((ev) => (
-                <option key={ev.id} value={ev.id}>{ev.title} [{ev.type}]</option>
-              ))}
-            </select>
+            <label className="block text-sm font-medium text-text-primary mb-1.5">Event *</label>
+            <div className="max-h-44 overflow-y-auto rounded-lg border border-border-default bg-bg-surface divide-y divide-border-default">
+              {!events?.items?.length ? (
+                <p className="px-3 py-3 text-xs text-text-muted text-center">No published events found</p>
+              ) : events.items.map((ev) => {
+                const isSelected = selectedEventId === ev.id;
+                return (
+                  <button
+                    key={ev.id}
+                    type="button"
+                    onClick={() => setSelectedEventId(ev.id)}
+                    className={`w-full text-left px-3 py-2.5 flex items-center justify-between gap-2 text-sm transition-colors ${
+                      isSelected
+                        ? 'bg-accent-indigo/10 text-accent-indigo font-semibold'
+                        : 'text-text-primary hover:bg-bg-surface2'
+                    }`}
+                  >
+                    <span className="truncate">{ev.title}</span>
+                    <span className="flex items-center gap-2 flex-shrink-0">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono capitalize ${isSelected ? 'bg-accent-indigo/20 text-accent-indigo' : 'bg-bg-surface2 text-text-muted'}`}>
+                        {ev.type}
+                      </span>
+                      {isSelected && <span className="text-accent-indigo text-base">✓</span>}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {selectedEventId && (
+              <p className="text-xs text-accent-indigo mt-1.5 font-medium">
+                ✓ Selected: {events?.items?.find(e => e.id === selectedEventId)?.title}
+              </p>
+            )}
           </div>
         )}
 

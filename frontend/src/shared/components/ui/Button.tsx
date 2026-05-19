@@ -13,15 +13,15 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)] hover:-translate-y-px hover:shadow-[0_14px_50px_-10px_rgba(229,9,20,0.7)]',
+    'bg-accent-crimson hover:bg-accent-crimson-dark text-white shadow-[0_4px_14px_rgba(229,25,55,0.35)] hover:shadow-[0_6px_20px_rgba(229,25,55,0.5)] hover:-translate-y-px active:translate-y-0',
   secondary:
-    'bg-gradient-to-r from-accent-indigo to-accent-purple text-white shadow-[0_10px_40px_-10px_rgba(99,102,241,0.55)] hover:-translate-y-px',
+    'bg-accent-indigo hover:bg-accent-purple text-white shadow-[0_4px_14px_rgba(79,70,229,0.35)] hover:-translate-y-px',
   ghost:
     'bg-bg-surface border border-border-default text-text-primary hover:bg-bg-surface2 hover:border-border-strong',
   gradient:
-    'bg-gradient-to-r from-accent-indigo via-accent-purple to-accent-crimson text-white hover:-translate-y-px',
+    'bg-accent-crimson hover:bg-accent-crimson-dark text-white hover:-translate-y-px',
   destructive:
-    'bg-gradient-to-r from-semantic-error to-red-700 text-white hover:-translate-y-px',
+    'bg-semantic-error hover:opacity-90 text-white hover:-translate-y-px',
 };
 
 const sizeClasses: Record<Size, string> = {

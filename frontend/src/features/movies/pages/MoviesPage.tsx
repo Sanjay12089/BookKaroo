@@ -118,7 +118,7 @@ export default function MoviesPage() {
     <PublicLayout>
       <Helmet><title>Movies | BookKaroo</title></Helmet>
       {/* ── Sticky filter bar ─────────────────────────────────────────────── */}
-      <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
+      <div className="sticky top-[105px] z-30 bg-bg-surface/95 backdrop-blur-md border-b border-border-default">
         <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 space-y-2">
 
           {/* Category tabs */}

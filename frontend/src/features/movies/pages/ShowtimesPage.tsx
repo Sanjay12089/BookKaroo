@@ -86,7 +86,7 @@ export default function ShowtimesPage() {
         </header>
 
         {/* Date strip (sticky) */}
-        <div className="sticky top-16 z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 bg-bg-base/95 backdrop-blur-md border-b border-border-default mb-6">
+        <div className="sticky top-[105px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 bg-bg-surface/95 backdrop-blur-md border-b border-border-default mb-6">
           <div className="flex gap-2 overflow-x-auto pt-3 pb-1 [scrollbar-width:none]">
             {DATES.map((d, i) => (
               <button

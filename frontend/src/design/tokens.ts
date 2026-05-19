@@ -17,26 +17,26 @@ export const DESIGN_TOKENS = {
       muted:     'var(--bk-text-muted)',
     },
     accent: {
-      crimson: '#E50914',
-      crimsonLight: '#FF2D3A',
-      crimsonDark: '#A8000A',
-      indigo: '#6366F1',
-      purple: '#A855F7',
+      crimson: '#E51937',
+      crimsonLight: '#FF3F56',
+      crimsonDark: '#B5111F',
+      indigo: '#4F46E5',
+      purple: '#7C3AED',
     },
     semantic: {
-      success: '#10B981',
+      success: '#18BC60',
       warning: '#F59E0B',
-      error: '#EF4444',
+      error: '#E51937',
     },
     seat: {
       available: 'var(--bk-seat-available-bg)',
-      selected: '#E50914',
-      booked: 'var(--bk-bg-surface3)',
+      selected: '#E51937',
+      booked: '#CCCCCC',
       locked: '#F59E0B',
       recliner: '#FFD700',
-      gold: '#C0C0C0',
+      gold: '#C8A951',
       executive: '#4169E1',
-      normal: '#E4E4E7',
+      normal: '#E8E8E8',
     },
     // Light tints — legible on dark gradients; NOT bg colors
     tint: {
@@ -60,6 +60,7 @@ export const DESIGN_TOKENS = {
     heroDark: 'linear-gradient(135deg, #1a0e2e 0%, #0A0E1A 70%)',
     iplStrip: 'linear-gradient(110deg, #1a0a05 0%, #2d0a0e 60%, #1a0535 100%)',
     iplGoldCta: 'linear-gradient(135deg, #F5C56B, #D4A017)',
+    navBg: '#2B3148',
   },
 
   fonts: {
@@ -92,11 +93,11 @@ export const DESIGN_TOKENS = {
   },
 
   shadows: {
-    sm: '0 1px 3px rgba(0, 0, 0, 0.4)',
-    md: '0 8px 24px rgba(0, 0, 0, 0.35)',
-    lg: '0 20px 50px -12px rgba(0, 0, 0, 0.6)',
-    glowCrimson: '0 10px 40px -10px rgba(229, 9, 20, 0.55)',
-    glowIndigo: '0 10px 40px -10px rgba(99, 102, 241, 0.55)',
+    sm: '0 1px 3px rgba(0, 0, 0, 0.08)',
+    md: '0 4px 16px rgba(0, 0, 0, 0.10)',
+    lg: '0 12px 40px rgba(0, 0, 0, 0.14)',
+    glowCrimson: '0 6px 24px rgba(229, 25, 55, 0.30)',
+    glowIndigo: '0 6px 24px rgba(79, 70, 229, 0.30)',
   },
 
   motion: {
