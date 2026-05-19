@@ -116,6 +116,10 @@
     from { transform: translateY(-10px) rotate(0deg); opacity: 1; }
     to   { transform: translateY(80px) rotate(720deg); opacity: 0; }
   }
+  @keyframes slideInRight {
+    from { transform: translateX(8%); opacity: 0.4; }
+    to   { transform: translateX(0);  opacity: 1; }
+  }
 }
 
 /* ── Global resets ───────────────────────────────────────────────────────── */
