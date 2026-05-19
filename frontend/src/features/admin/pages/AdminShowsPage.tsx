@@ -26,6 +26,7 @@ export default function AdminShowsPage() {
   const [venueId, setVenueId]       = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [cancellingShow, setCancellingShow] = useState<AdminShow | null>(null);
+  const [deletingShow,   setDeletingShow]   = useState<AdminShow | null>(null);
 
   const filters: AdminShowFilters = {
     status:   statusTab === 'All' ? undefined : statusTab,
@@ -156,7 +157,7 @@ export default function AdminShowsPage() {
             )}
             {s.bookedSeats === 0 && (
               <button
-                onClick={() => deleteShow.mutate(s.showId)}
+                onClick={() => setDeletingShow(s)}
                 className="px-2 py-1 rounded-lg border border-border-default text-text-muted text-[11px] hover:border-semantic-error hover:text-semantic-error transition-colors"
               >
                 Del
@@ -296,6 +297,15 @@ export default function AdminShowsPage() {
           onConfirm={() => cancelShow.mutate(cancellingShow.showId, { onSuccess: () => setCancellingShow(null) })}
         />
       )}
+
+      {deletingShow && (
+        <DeleteShowModal
+          show={deletingShow}
+          isLoading={deleteShow.isPending}
+          onClose={() => setDeletingShow(null)}
+          onConfirm={() => deleteShow.mutate(deletingShow.showId, { onSuccess: () => setDeletingShow(null) })}
+        />
+      )}
     </AdminLayout>
   );
 }
@@ -305,6 +315,47 @@ interface CancelModalProps {
   isLoading: boolean;
   onClose:   () => void;
   onConfirm: () => void;
+}
+
+function DeleteShowModal({ show, isLoading, onClose, onConfirm }: CancelModalProps) {
+  return (
+    <Modal open onClose={onClose} maxWidth="max-w-sm">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-semantic-error">
+          <AlertTriangle size={20} />
+          <h3 className="font-display font-bold text-lg">Delete Show?</h3>
+        </div>
+
+        <div>
+          <p className="font-semibold text-text-primary text-[15px]">{show.movieTitle ?? show.eventTitle}</p>
+          <p className="text-text-muted text-sm mt-0.5">{show.showDateLabel} · {show.showTimeLabel} · {show.venueName}</p>
+        </div>
+
+        <div className="rounded-lg border border-semantic-error/30 bg-semantic-error/10 p-3">
+          <p className="text-sm font-medium text-semantic-error">
+            ⚠️ This action cannot be undone
+          </p>
+          <p className="text-xs text-text-muted mt-1">The show and all its seat locks will be permanently deleted.</p>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm"
+          >
+            Keep Show
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="w-full px-4 py-2 rounded-lg bg-semantic-error text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+          >
+            {isLoading ? 'Deleting…' : 'Delete Show'}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
 }
 
 function CancelShowModal({ show, isLoading, onClose, onConfirm }: CancelModalProps) {

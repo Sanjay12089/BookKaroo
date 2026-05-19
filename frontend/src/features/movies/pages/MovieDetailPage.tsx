@@ -48,13 +48,19 @@ export default function MovieDetailPage() {
     <PublicLayout>
       <Helmet><title>{movie.title} | BookKaroo</title></Helmet>
       {/* ── HERO BACKDROP ──────────────────────────────────────────────── */}
-      <div className="relative h-[400px] md:h-[500px] overflow-hidden">
+      <div className="relative h-[420px] md:h-[500px] overflow-hidden bg-[#111827]">
         {backdropUrl && (
-          <div className="absolute inset-0 bg-cover bg-center scale-105"
-               style={{ backgroundImage: `url(${backdropUrl})`, filter: 'blur(2px) brightness(0.28)' }} />
+          <img
+            src={backdropUrl}
+            alt={movie.title}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ filter: 'brightness(0.55) saturate(1.15)' }}
+          />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-bg-base via-bg-base/55 to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(65%_55%_at_60%_25%,rgba(168,85,247,0.22),transparent)]" />
+        {/* Left-side dark vignette for readability of poster + title */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/65 via-black/25 to-transparent" />
+        {/* Bottom fade to dark — content overlaps with negative margin */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
       </div>
 
       <main className="max-w-[1280px] mx-auto px-4 sm:px-6 pb-28">
@@ -71,13 +77,13 @@ export default function MovieDetailPage() {
 
           {/* Metadata */}
           <section className="pt-0 md:pt-10">
-            <p className="text-[11px] font-semibold text-text-muted tracking-widest uppercase font-sans mb-2">
+            <p className="text-[11px] font-semibold text-white/60 tracking-widest uppercase font-sans mb-2">
               {isComingSoon ? 'Coming Soon' : 'Now Showing'}
               {movie.certificate && ` · ${movie.certificate}`}
               {` · ${formatDuration(movie.durationMin)}`}
             </p>
 
-            <h1 className="font-display font-bold text-3xl md:text-5xl tracking-tight leading-[1.08] mb-4">
+            <h1 className="font-display font-bold text-3xl md:text-5xl tracking-tight leading-[1.08] mb-4 text-white drop-shadow-sm">
               {movie.title}
             </h1>
 
@@ -86,11 +92,11 @@ export default function MovieDetailPage() {
               {movie.averageRating > 0 && (
                 <span className="flex items-center gap-1 font-semibold text-[#FCD34D]">
                   <Star size={14} fill="currentColor" /> {movie.averageRating.toFixed(1)}
-                  <span className="text-text-muted font-normal text-xs">/10 · {movie.totalReviews} reviews</span>
+                  <span className="text-white/55 font-normal text-xs">/10 · {movie.totalReviews} reviews</span>
                 </span>
               )}
               {movie.imdbRating && (
-                <span className="text-text-muted text-xs">IMDb {movie.imdbRating}</span>
+                <span className="text-white/55 text-xs">IMDb {movie.imdbRating}</span>
               )}
             </div>
 
@@ -107,15 +113,51 @@ export default function MovieDetailPage() {
               </p>
             )}
 
-            {/* CTAs */}
+            {/* CTAs — inline styles guarantee visibility on any background */}
             <div ref={heroCTARef} className="flex gap-3 flex-wrap">
               {isComingSoon ? (
                 <RemindMeButton movieId={movie.id} />
               ) : (
-                <Link to={showtimesHref}><Button size="lg">🎟 Book Tickets</Button></Link>
+                <Link to={showtimesHref}>
+                  <button
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                      height: 48, padding: '0 28px', borderRadius: 9999,
+                      background: '#E51937', color: '#fff',
+                      fontSize: 15, fontWeight: 700, border: 'none',
+                      cursor: 'pointer', letterSpacing: '0.01em',
+                      boxShadow: '0 4px 16px rgba(229,25,55,0.4)',
+                      transition: 'background 150ms',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#B5111F')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '#E51937')}
+                  >
+                    🎟 Book Tickets
+                  </button>
+                </Link>
               )}
               {movie.trailerUrl && (
-                <Button size="lg" variant="ghost" onClick={() => setTrailerOpen(true)}>▶ Watch Trailer</Button>
+                <button
+                  onClick={() => setTrailerOpen(true)}
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    height: 48, padding: '0 28px', borderRadius: 9999,
+                    background: 'transparent', color: '#E51937',
+                    fontSize: 15, fontWeight: 600,
+                    border: '2px solid #E51937', cursor: 'pointer',
+                    transition: 'all 150ms',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#E51937';
+                    e.currentTarget.style.color = '#fff';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#E51937';
+                  }}
+                >
+                  ▶ Watch Trailer
+                </button>
               )}
             </div>
           </section>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { MapPin, User, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { ROUTES } from '@/shared/constants';
@@ -9,19 +9,21 @@ import { useCities } from '@/features/cities/api/useCities';
 import { CityModal } from '@/shared/components/CityModal';
 import { SearchBar } from '@/shared/components/SearchBar';
 import { Button } from '@/shared/components/ui/Button';
-import { ThemeToggle } from '@/design/ThemeContext';
 import { api } from '@/shared/lib/api';
 
-const LOGO_TEXT = (
-  <span className="font-display font-bold text-xl tracking-tight text-text-primary">
-    Book<span className="text-accent-crimson">Karoo</span>
-  </span>
-);
+const CATEGORY_LINKS = [
+  { label: 'Movies',     href: ROUTES.MOVIES },
+  { label: 'Events',     href: ROUTES.EVENTS },
+  { label: 'Plays',      href: ROUTES.PLAYS },
+  { label: 'Sports',     href: ROUTES.SPORTS },
+  { label: 'Activities', href: ROUTES.ACTIVITIES },
+  { label: 'IPL 2026',   href: ROUTES.IPL },
+] as const;
 
 export function Header() {
-  const [scrolled, setScrolled]         = useState(false);
-  const [cityModalOpen, setCityModalOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen]   = useState(false);
+  const [scrolled, setScrolled]           = useState(false);
+  const [cityModalOpen, setCityModalOpen]  = useState(false);
+  const [userMenuOpen, setUserMenuOpen]    = useState(false);
 
   const { isAuthenticated, user, clearAuth } = useAuthStore();
   const { selectedCity } = useCityStore();
@@ -54,70 +56,53 @@ export function Header() {
 
   return (
     <>
+      {/* ── Row 1: White main header (BMS-style) ───────────────────────── */}
       <header
         className={cn(
-          'sticky top-0 z-40 h-16 border-b transition-all duration-[220ms]',
-          scrolled
-            ? 'bg-bg-surface/90 backdrop-blur-md border-border-default'
-            : 'bg-transparent border-transparent'
+          'sticky top-0 z-40 h-16 bg-bg-surface border-b border-border-default transition-shadow duration-[220ms]',
+          scrolled ? 'shadow-md' : 'shadow-sm'
         )}
       >
-        <div className="max-w-[1280px] mx-auto px-6 h-full flex items-center gap-4">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 h-full flex items-center gap-3 md:gap-4">
           {/* Logo */}
           <Link to={ROUTES.HOME} className="flex-shrink-0">
-            {LOGO_TEXT}
+            <span className="font-display font-bold text-xl tracking-tight text-text-primary">
+              Book<span className="text-accent-crimson">Karoo</span>
+            </span>
           </Link>
 
-          {/* City pill */}
+          {/* City selector */}
           <button
             onClick={() => setCityModalOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-bg-surface border border-border-default text-text-secondary text-sm font-sans hover:border-border-strong transition-colors duration-150 flex-shrink-0"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border-default text-text-secondary text-sm font-sans hover:border-accent-crimson hover:text-accent-crimson transition-colors duration-150 flex-shrink-0 bg-bg-surface2"
           >
-            <MapPin size={13} className="text-accent-crimson" />
-            {selectedCity?.name ?? 'Select City'}
-            <ChevronDown size={13} />
+            <MapPin size={13} className="text-accent-crimson flex-shrink-0" />
+            <span className="max-w-[100px] truncate">{selectedCity?.name ?? 'Select City'}</span>
+            <ChevronDown size={13} className="flex-shrink-0" />
           </button>
 
-          {/* Search bar — handles desktop form + mobile icon internally */}
+          {/* Search bar */}
           <SearchBar className="flex-1" />
 
-          {/* Nav links */}
-          <nav className="hidden lg:flex items-center gap-1">
-            {[
-              ['Movies', ROUTES.MOVIES],
-              ['Events', ROUTES.EVENTS],
-              ['Sports', ROUTES.SPORTS],
-              ['Plays', ROUTES.PLAYS],
-            ].map(([label, href]) => (
-              <Link
-                key={label}
-                to={href}
-                className="px-3 py-2 rounded-md text-sm font-medium font-sans text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors duration-150"
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="ml-auto flex items-center gap-2">
-            <ThemeToggle />
-
+          {/* Right side */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             {isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setUserMenuOpen(!userMenuOpen)}
                   className="flex items-center gap-2 text-text-secondary hover:text-text-primary transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-indigo to-accent-purple flex items-center justify-center text-white text-sm font-semibold">
+                  <div className="w-8 h-8 rounded-full bg-accent-crimson flex items-center justify-center text-white text-sm font-semibold">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
+                  <span className="hidden md:inline text-sm font-medium text-text-secondary">{user.name.split(' ')[0]}</span>
                   <ChevronDown size={14} />
                 </button>
 
                 {userMenuOpen && (
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setUserMenuOpen(false)} />
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-bg-surface border border-border-default rounded-xl shadow-lg z-50 py-1 font-sans">
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-bg-surface border border-border-default rounded-xl shadow-lg z-50 py-1 font-sans">
                       <div className="px-4 py-3 border-b border-border-default">
                         <p className="text-sm font-semibold text-text-primary truncate">{user.name}</p>
                         <p className="text-xs text-text-muted truncate">{user.email}</p>
@@ -163,6 +148,31 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      {/* ── Row 2: Category nav strip ───────────────────────────────────── */}
+      <nav className="sticky top-16 z-39 bg-bg-surface border-b border-border-default">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6">
+          <ul className="flex items-center overflow-x-auto scroll-hide">
+            {CATEGORY_LINKS.map(({ label, href }) => (
+              <li key={label}>
+                <NavLink
+                  to={href}
+                  className={({ isActive }) =>
+                    cn(
+                      'block px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors duration-150',
+                      isActive
+                        ? 'text-accent-crimson border-accent-crimson'
+                        : 'text-text-secondary border-transparent hover:text-accent-crimson hover:border-accent-crimson/50'
+                    )
+                  }
+                >
+                  {label}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
 
       {/* City Modal */}
       <CityModal open={cityModalOpen} onClose={() => setCityModalOpen(false)} />
