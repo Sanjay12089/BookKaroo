@@ -66,10 +66,10 @@ export default function IplPage() {
           <p className="font-mono text-[11px] tracking-widest uppercase text-[#F5C56B] mb-3">
             ◆ TATA IPL 2026 · Indian Premier League
           </p>
-          <h1 className="font-display font-bold text-4xl md:text-6xl text-text-primary mb-4 tracking-tight">
+          <h1 className="font-display font-bold text-4xl md:text-6xl text-white mb-4 tracking-tight">
             Cricket.<br />Passion.<br /><span style={{ color: '#F5C56B' }}>Live.</span>
           </h1>
-          <p className="text-text-secondary font-sans max-w-md mb-8">
+          <p className="text-white/70 font-sans max-w-md mb-8">
             Book seats for TATA IPL 2026 — Narendra Modi Stadium, Wankhede, Eden Gardens and more iconic venues.
           </p>
           <Link to={ROUTES.EVENTS + '?type=ipl'}>
@@ -100,7 +100,7 @@ export default function IplPage() {
                 <div
                   key={label}
                   className="w-20 h-20 rounded-xl border flex flex-col items-center justify-center gap-0.5"
-                  style={{ background: 'rgba(255,255,255,0.05)', borderColor: 'rgba(245,197,107,0.3)' }}
+                  style={{ background: '#F9F9FB', borderColor: 'rgba(245,197,107,0.6)' }}
                 >
                   <span className="font-mono text-2xl font-bold text-text-primary">
                     {String(value).padStart(2, '0')}
