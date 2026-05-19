@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import type { Movie } from '@/shared/types';
 import { ROUTES, TMDB_BACKDROP } from '@/shared/constants';
-import { Button } from '@/shared/components/ui/Button';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 
 interface HeroCarouselProps {
@@ -69,7 +68,7 @@ export function HeroCarousel({ movies, isLoading }: HeroCarouselProps) {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.45) 40%, rgba(0,0,0,0.10) 70%, transparent 100%)',
+            background: 'linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.65) 35%, rgba(0,0,0,0.20) 65%, transparent 100%)',
           }}
         />
 
@@ -102,7 +101,29 @@ export function HeroCarousel({ movies, isLoading }: HeroCarouselProps) {
             </h2>
 
             <Link to={ROUTES.SHOWTIMES(movie.slug)}>
-              <Button size="md">🎟 Book Tickets</Button>
+              <button
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  height: '40px',
+                  padding: '0 20px',
+                  borderRadius: '9999px',
+                  background: '#E51937',
+                  color: '#FFFFFF',
+                  fontSize: '14px',
+                  fontWeight: 700,
+                  border: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(229,25,55,0.45)',
+                  transition: 'background 150ms ease',
+                  letterSpacing: '0.01em',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#B5111F')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#E51937')}
+              >
+                🎟 Book Tickets
+              </button>
             </Link>
           </div>
         </div>
