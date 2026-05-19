@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
+import { X, ArrowLeft } from 'lucide-react';
 import { useCheckoutStore } from '@/shared/store/checkoutStore';
 import { useBookingDetail, downloadInvoicePdf } from '../api/useBooking';
 import { ROUTES, TMDB_POSTER } from '@/shared/constants';
@@ -167,8 +168,26 @@ export default function ConfirmationPage() {
 
       <Helmet><title>Booking Confirmed | BookKaroo</title></Helmet>
       <div className="min-h-screen bg-bg-base text-text-primary font-sans pb-16 overflow-x-hidden">
+
+        {/* ── Top bar with close button ── */}
+        <div className="sticky top-0 z-50 bg-bg-base/95 backdrop-blur-sm border-b border-border-default px-4 py-3 flex items-center justify-between max-w-[480px] mx-auto">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center gap-1.5 text-sm font-medium font-sans text-text-secondary hover:text-text-primary transition-colors"
+          >
+            <ArrowLeft size={16} /> Go Back
+          </button>
+          <button
+            onClick={() => navigate(-1)}
+            className="w-8 h-8 rounded-full flex items-center justify-center bg-bg-surface2 border border-border-default text-text-muted hover:text-text-primary hover:border-border-strong transition-colors"
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
         <motion.div
-          className="max-w-[480px] mx-auto px-4 pt-10 relative"
+          className="max-w-[480px] mx-auto px-4 pt-6 relative"
           variants={containerVariants}
           initial="hidden"
           animate="show"
@@ -426,15 +445,26 @@ export default function ConfirmationPage() {
           {/* ── CTAs ── */}
           <motion.div variants={itemVariants} className="flex flex-col gap-3">
             <Link to={ROUTES.MY_BOOKINGS} className="w-full">
-              <button className="w-full py-3.5 rounded-xl bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all shadow-[0_8px_24px_-8px_rgba(229,9,20,0.45)]">
+              <button
+                className="w-full py-3.5 rounded-xl text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all"
+                style={{ background: '#E51937', boxShadow: '0 8px 24px -8px rgba(229,25,55,0.45)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#B5111F')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#E51937')}
+              >
                 View My Bookings →
               </button>
             </Link>
             <button
-              onClick={handleDone}
+              onClick={() => navigate(-1)}
               className="w-full py-3 rounded-xl border border-border-default bg-bg-surface text-sm font-semibold font-sans text-text-secondary hover:border-border-strong hover:text-text-primary transition-colors"
             >
-              ← Back to Home
+              ← Go Back
+            </button>
+            <button
+              onClick={handleDone}
+              className="w-full py-2.5 text-sm font-sans text-text-muted hover:text-text-secondary transition-colors"
+            >
+              Go to Home
             </button>
           </motion.div>
         </motion.div>
