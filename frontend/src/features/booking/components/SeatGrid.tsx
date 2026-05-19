@@ -59,7 +59,7 @@ export function SeatGrid({ layout, bookedSeats, lockedSeats, selectedSeats, onSe
           Held
         </span>
         <span className="flex items-center gap-1.5 text-text-secondary">
-          <span className="w-3.5 h-3.5 rounded-[3px] inline-block" style={{ background: '#E5091420', border: '1px solid #E5091480' }} />
+          <span className="w-3.5 h-3.5 rounded-[3px] inline-block" style={{ background: '#18BC60', border: 'none' }} />
           Selected
         </span>
       </div>
