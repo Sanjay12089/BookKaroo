@@ -69,7 +69,7 @@ export default function EventsPage({ defaultType, title, noCityFilter, fixedType
       <Helmet><title>Events &amp; Shows | BookKaroo</title></Helmet>
       {/* Sticky filter bar — hidden when fixedType locks the page to a single type */}
       {!fixedType && (
-        <div className="sticky top-16 z-30 bg-bg-base/95 backdrop-blur-md border-b border-border-default">
+        <div className="sticky top-[105px] z-30 bg-bg-surface/95 backdrop-blur-md border-b border-border-default">
           <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none">
             <div className="flex gap-1.5 flex-nowrap">
               {TABS.map((t) => (
