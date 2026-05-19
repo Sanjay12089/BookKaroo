@@ -72,7 +72,7 @@ export default function IplPage() {
           <p className="text-white/70 font-sans max-w-md mb-8">
             Book seats for TATA IPL 2026 — Narendra Modi Stadium, Wankhede, Eden Gardens and more iconic venues.
           </p>
-          <Link to={ROUTES.EVENTS + '?type=ipl'}>
+          <Link to={ROUTES.SPORTS}>
             <Button
               size="lg"
               style={{ background: 'linear-gradient(135deg, #F5C56B, #D4A017)', color: '#1a0a05', boxShadow: '0 8px 24px rgba(245,197,107,0.4)' }}
