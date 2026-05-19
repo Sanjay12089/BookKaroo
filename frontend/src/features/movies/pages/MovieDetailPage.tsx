@@ -108,27 +108,56 @@ export default function MovieDetailPage() {
             </div>
 
             {movie.description && (
-              <p className="text-white/70 text-sm leading-relaxed max-w-xl mb-6 font-sans line-clamp-3">
+              <p className="text-text-secondary text-sm leading-relaxed max-w-xl mb-6 font-sans line-clamp-3">
                 {movie.description}
               </p>
             )}
 
-            {/* CTAs */}
+            {/* CTAs — inline styles guarantee visibility on any background */}
             <div ref={heroCTARef} className="flex gap-3 flex-wrap">
               {isComingSoon ? (
                 <RemindMeButton movieId={movie.id} />
               ) : (
-                <Link to={showtimesHref}><Button size="lg">🎟 Book Tickets</Button></Link>
+                <Link to={showtimesHref}>
+                  <button
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 8,
+                      height: 48, padding: '0 28px', borderRadius: 9999,
+                      background: '#E51937', color: '#fff',
+                      fontSize: 15, fontWeight: 700, border: 'none',
+                      cursor: 'pointer', letterSpacing: '0.01em',
+                      boxShadow: '0 4px 16px rgba(229,25,55,0.4)',
+                      transition: 'background 150ms',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#B5111F')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '#E51937')}
+                  >
+                    🎟 Book Tickets
+                  </button>
+                </Link>
               )}
               {movie.trailerUrl && (
-                <Button
-                  size="lg"
-                  variant="ghost"
+                <button
                   onClick={() => setTrailerOpen(true)}
-                  className="!border-white/40 !text-white !bg-white/10 hover:!bg-white/20"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: 8,
+                    height: 48, padding: '0 28px', borderRadius: 9999,
+                    background: 'transparent', color: '#E51937',
+                    fontSize: 15, fontWeight: 600,
+                    border: '2px solid #E51937', cursor: 'pointer',
+                    transition: 'all 150ms',
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.background = '#E51937';
+                    e.currentTarget.style.color = '#fff';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = '#E51937';
+                  }}
                 >
                   ▶ Watch Trailer
-                </Button>
+                </button>
               )}
             </div>
           </section>
