@@ -38,6 +38,7 @@ function CreatePartnerModal({ onClose }: CreatePartnerModalProps) {
   const createPartner = useCreatePartner();
   const [created, setCreated] = useState<CreatePartnerResponse | null>(null);
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
+  const [venueSearch, setVenueSearch] = useState('');
   const [copied, setCopied] = useState(false);
 
   const { data: venues } = useQuery<VenueOption[]>({
@@ -182,20 +183,62 @@ function CreatePartnerModal({ onClose }: CreatePartnerModalProps) {
 
         {venues && venues.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">Grant Venue Access (optional)</p>
-            <div className="max-h-40 overflow-y-auto space-y-1 border border-border-default rounded-lg p-2">
-              {venues.map((v) => (
-                <label key={v.id} className="flex items-center gap-2 cursor-pointer hover:bg-bg-surface2 px-2 py-1 rounded-md">
-                  <input
-                    type="checkbox"
-                    checked={selectedVenueIds.includes(v.id)}
-                    onChange={() => toggleVenue(v.id)}
-                    className="accent-accent-indigo"
-                  />
-                  <span className="text-sm text-text-primary">{v.name}</span>
-                  <span className="text-xs text-text-muted ml-auto">{v.cityName}</span>
-                </label>
-              ))}
+            <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
+              Grant Venue Access (optional)
+              {selectedVenueIds.length > 0 && (
+                <span className="ml-2 text-accent-indigo normal-case font-medium">
+                  {selectedVenueIds.length} selected
+                </span>
+              )}
+            </p>
+
+            {/* Venue search box */}
+            <div className="relative mb-2">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                type="text"
+                value={venueSearch}
+                onChange={e => setVenueSearch(e.target.value)}
+                placeholder="Search venues…"
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border-default bg-bg-surface2 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-[#4F46E5] transition-colors"
+              />
+              {venueSearch && (
+                <button
+                  type="button"
+                  onClick={() => setVenueSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-40 overflow-y-auto space-y-0.5 border border-border-default rounded-lg p-1.5">
+              {venues
+                .filter(v =>
+                  !venueSearch.trim() ||
+                  v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
+                  v.cityName.toLowerCase().includes(venueSearch.toLowerCase())
+                )
+                .map((v) => (
+                  <label key={v.id} className="flex items-center gap-2 cursor-pointer hover:bg-bg-surface2 px-2 py-1.5 rounded-md transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedVenueIds.includes(v.id)}
+                      onChange={() => toggleVenue(v.id)}
+                      className="accent-accent-indigo flex-shrink-0"
+                    />
+                    <span className="text-sm text-text-primary flex-1 truncate">{v.name}</span>
+                    <span className="text-xs text-text-muted flex-shrink-0">{v.cityName}</span>
+                  </label>
+                ))}
+              {venues.filter(v =>
+                !venueSearch.trim() ||
+                v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
+                v.cityName.toLowerCase().includes(venueSearch.toLowerCase())
+              ).length === 0 && (
+                <p className="text-xs text-text-muted text-center py-3">No venues match "{venueSearch}"</p>
+              )}
             </div>
           </div>
         )}
