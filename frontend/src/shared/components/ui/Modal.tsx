@@ -35,19 +35,19 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg', c
         )}
         style={{ maxHeight: '90vh', transform: 'translateZ(0)' }}
       >
-        {/* Sticky header — never scrolls away */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-default flex-shrink-0">
-          <span className="font-sans font-semibold text-base text-text-primary">
-            {title ?? ''}
-          </span>
-          <button
-            onClick={onClose}
-            aria-label="Close dialog"
-            className="w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:text-text-primary hover:bg-bg-surface2 transition-colors"
-          >
-            <X size={18} />
-          </button>
-        </div>
+        {/* Sticky header — only rendered when title is provided */}
+        {title && (
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border-default flex-shrink-0">
+            <span className="font-sans font-semibold text-base text-text-primary">{title}</span>
+            <button
+              onClick={onClose}
+              aria-label="Close dialog"
+              className="w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:text-text-primary hover:bg-bg-surface2 transition-colors"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
         {/* Scrollable content — scrollbar stays inside rounded corners */}
         <div className="overflow-y-auto flex-1 min-h-0">
           <div className="p-6">{children}</div>
