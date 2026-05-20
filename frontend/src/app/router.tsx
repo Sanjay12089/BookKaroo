@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { PartnerRoute } from '@/features/partner/PartnerRoute';
 
 // ── Page-shape skeleton fallback ──────────────────────────────────────────────
 function PageSkeleton() {
@@ -66,6 +67,14 @@ const AdminUsersPage     = lazy(() => import('@/features/admin/pages/AdminUsersP
 const AdminReportsPage   = lazy(() => import('@/features/admin/pages/AdminReportsPage'));
 const AdminCmsPage       = lazy(() => import('@/features/admin/pages/AdminCmsPage'));
 const AdminSettingsPage  = lazy(() => import('@/features/admin/pages/AdminSettingsPage'));
+const AdminPartnersPage  = lazy(() => import('@/features/admin/pages/AdminPartnersPage'));
+// Partner Portal
+const PartnerDashboardPage = lazy(() => import('@/features/partner/pages/PartnerDashboardPage'));
+const PartnerVenuesPage    = lazy(() => import('@/features/partner/pages/PartnerVenuesPage'));
+const PartnerShowsPage     = lazy(() => import('@/features/partner/pages/PartnerShowsPage'));
+const PartnerBookingsPage  = lazy(() => import('@/features/partner/pages/PartnerBookingsPage'));
+const PartnerReportsPage   = lazy(() => import('@/features/partner/pages/PartnerReportsPage'));
+const PartnerReviewsPage   = lazy(() => import('@/features/partner/pages/PartnerReviewsPage'));
 const StaticPage         = lazy(() => import('@/features/static/pages/StaticPage'));
 
 // ── Guards ────────────────────────────────────────────────────────────────────
@@ -137,6 +146,20 @@ export const router = createBrowserRouter([
       { path: '/admin/reports',   element: S(AdminReportsPage) },
       { path: '/admin/cms',       element: S(AdminCmsPage) },
       { path: '/admin/settings',  element: S(AdminSettingsPage) },
+      { path: '/admin/partners',  element: S(AdminPartnersPage) },
+    ],
+  },
+
+  // Partner Portal
+  {
+    element: <PartnerRoute />,
+    children: [
+      { path: '/partner',           element: S(PartnerDashboardPage) },
+      { path: '/partner/venues',    element: S(PartnerVenuesPage) },
+      { path: '/partner/shows',     element: S(PartnerShowsPage) },
+      { path: '/partner/bookings',  element: S(PartnerBookingsPage) },
+      { path: '/partner/reports',   element: S(PartnerReportsPage) },
+      { path: '/partner/reviews',   element: S(PartnerReviewsPage) },
     ],
   },
 

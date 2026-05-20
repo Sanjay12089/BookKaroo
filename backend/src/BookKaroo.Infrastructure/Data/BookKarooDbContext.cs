@@ -30,6 +30,8 @@ public class BookKarooDbContext : DbContext
     public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<EventTicketLock> EventTicketLocks => Set<EventTicketLock>();
+    public DbSet<PartnerProfile> PartnerProfiles => Set<PartnerProfile>();
+    public DbSet<PartnerVenueAccess> PartnerVenueAccesses => Set<PartnerVenueAccess>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -269,6 +271,26 @@ public class BookKarooDbContext : DbContext
             e.HasIndex(c => c.UserId);
             e.HasIndex(c => c.BookingId);
             e.HasQueryFilter(c => c.DeletedAt == null);
+        });
+
+        // ── PartnerProfile ────────────────────────────────────────────────────
+        modelBuilder.Entity<PartnerProfile>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.HasQueryFilter(p => p.DeletedAt == null);
+            e.HasIndex(p => p.UserId)
+             .HasFilter("\"DeletedAt\" IS NULL")
+             .IsUnique();
+            e.HasIndex(p => p.IsActive);
+        });
+
+        // ── PartnerVenueAccess ────────────────────────────────────────────────
+        modelBuilder.Entity<PartnerVenueAccess>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.HasIndex(p => new { p.PartnerId, p.VenueId }).IsUnique();
+            e.HasIndex(p => p.PartnerId);
+            e.HasIndex(p => p.VenueId);
         });
     }
 
