@@ -62,7 +62,7 @@ export default function IplPage() {
           background: 'radial-gradient(60% 100% at 100% 50%, rgba(245,197,107,0.2), transparent), linear-gradient(135deg, #1a0a05 0%, #2d0a0e 50%, #1a0535 100%)',
         }}
       >
-        <div className="max-w-[1280px] mx-auto px-6 py-16 w-full">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-12 md:py-16 w-full">
           <p className="font-mono text-[11px] tracking-widest uppercase text-[#F5C56B] mb-3">
             ◆ TATA IPL 2026 · Indian Premier League
           </p>
@@ -83,7 +83,7 @@ export default function IplPage() {
         </div>
       </div>
 
-      <div className="max-w-[1280px] mx-auto px-6 py-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 py-12">
         {/* Countdown to next match */}
         {nextMatch && (
           <section className="mb-14">

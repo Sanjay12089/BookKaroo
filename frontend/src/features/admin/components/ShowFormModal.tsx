@@ -303,14 +303,21 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 pt-2 sticky bottom-0 bg-bg-surface pb-1">
-          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm">
+        <div className="flex gap-3 pt-2 sticky bottom-0 bg-white pb-1 border-t border-border-default mt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-md border border-border-strong text-text-secondary text-sm font-medium hover:bg-bg-surface2 transition-colors"
+          >
             Cancel
           </button>
           <button
             type="submit"
             disabled={!canSubmit() || createShow.isPending}
-            className="flex-1 px-4 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            className="flex-1 px-5 py-2.5 rounded-md text-white text-sm font-semibold disabled:opacity-50 transition-colors"
+            style={{ background: '#E51937' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
           >
             {createShow.isPending ? 'Creating…' : 'Create Show'}
           </button>

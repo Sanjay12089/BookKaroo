@@ -26,19 +26,25 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg', c
   if (!open) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-base/80 backdrop-blur-md animate-fade-up"
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div className={cn('w-full bg-bg-surface border border-border-default rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.6)] overflow-y-auto max-h-[90vh]', maxWidth, className)}>
-        {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border-default">
-            <span className="font-display font-semibold text-lg text-text-primary tracking-tight">{title}</span>
-            <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors p-1 rounded-md">
-              <X size={20} />
-            </button>
-          </div>
-        )}
+    // Backdrop — does NOT close on click (user must use × or Cancel)
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-up">
+      <div className={cn(
+        'w-full bg-white border border-border-default rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.18)] overflow-y-auto max-h-[90vh]',
+        maxWidth, className
+      )}>
+        {/* Header — always shown with close button */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-default">
+          <span className="font-sans font-semibold text-base text-text-primary">
+            {title ?? ''}
+          </span>
+          <button
+            onClick={onClose}
+            aria-label="Close dialog"
+            className="w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:text-text-primary hover:bg-bg-surface2 transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
         <div className="p-6">{children}</div>
       </div>
     </div>

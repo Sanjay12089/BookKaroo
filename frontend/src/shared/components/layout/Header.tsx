@@ -159,7 +159,7 @@ export function Header() {
       </header>
 
       {/* ── Row 2: Category nav strip ───────────────────────────────────── */}
-      <nav className="sticky top-16 z-39 bg-bg-surface border-b border-border-default">
+      <nav className="sticky top-16 z-39 bg-bg-surface2 border-b border-border-default shadow-sm">
         <div className="max-w-[1280px] mx-auto px-4 md:px-6">
           <ul className="flex items-center overflow-x-auto scroll-hide">
             {CATEGORY_LINKS.map(({ label, href }) => (

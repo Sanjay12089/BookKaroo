@@ -12,7 +12,7 @@ import type { BannerItem } from '@/features/events/types';
 function BannerStrip({ banners }: { banners: BannerItem[] }) {
   if (!banners.length) return null;
   return (
-    <div className="max-w-[1280px] mx-auto px-6 pt-6">
+    <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-6">
       <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
         {banners.map((b) => {
           const inner = (
@@ -64,7 +64,7 @@ export default function HomePage() {
         <BannerStrip banners={data.banners} />
       )}
 
-      <div className="max-w-[1280px] mx-auto px-6 pt-12">
+      <div className="max-w-[1280px] mx-auto px-4 md:px-6 pt-12">
         {/* Now Showing */}
         <MovieRail
           title="Now Showing"
