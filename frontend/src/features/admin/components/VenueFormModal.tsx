@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
 import { Modal } from '@/shared/components/ui/Modal';
 import { cn } from '@/shared/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -120,16 +119,8 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
   });
 
   return (
-    <Modal open onClose={onClose} maxWidth="max-w-2xl">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display font-bold text-xl text-text-primary">
-          {mode === 'create' ? 'Add New Venue' : 'Edit Venue'}
-        </h2>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
-          <X size={20} />
-        </button>
-      </div>
-
+    <Modal open onClose={onClose} maxWidth="max-w-2xl"
+      title={mode === 'create' ? 'Add New Venue' : 'Edit Venue'}>
       <form onSubmit={onSubmit} className="space-y-5">
         {/* Basic Information */}
         <section className="space-y-3">
