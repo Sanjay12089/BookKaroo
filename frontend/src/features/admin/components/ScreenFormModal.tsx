@@ -104,14 +104,17 @@ export function ScreenFormModal({ mode, venueId, venueName, screen, onClose, onS
         </section>
 
         {/* Footer */}
-        <div className="flex gap-3 pt-2 sticky bottom-0 bg-bg-surface pb-1">
-          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm">
+        <div className="flex gap-3 pt-2 sticky bottom-0 bg-white pb-1 border-t border-border-default mt-2">
+          <button type="button" onClick={onClose} className="bk-btn-cancel">
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading || !isValid}
-            className="flex-1 px-4 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            className="bk-btn-primary flex-1"
+            style={{ background: '#E51937' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
           >
             {isLoading ? 'Saving…' : mode === 'create' ? 'Create Screen' : 'Save Changes'}
           </button>

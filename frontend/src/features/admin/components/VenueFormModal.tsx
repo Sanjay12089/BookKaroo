@@ -274,18 +274,17 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
         </section>
 
         {/* Footer */}
-        <div className="flex gap-3 pt-3 border-t border-border-default sticky bottom-0 bg-bg-surface pb-1">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 hover:text-text-primary transition-colors text-sm font-semibold font-sans"
-          >
+        <div className="flex gap-3 pt-3 border-t border-border-default sticky bottom-0 bg-white pb-1">
+          <button type="button" onClick={onClose} className="bk-btn-cancel">
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="flex-1 px-5 py-2.5 rounded-lg bg-accent-crimson text-white text-sm font-bold font-sans disabled:opacity-60 hover:opacity-90 transition-opacity shadow-sm"
+            className="bk-btn-primary flex-1"
+            style={{ background: '#E51937' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
           >
             {isLoading ? 'Saving…' : mode === 'create' ? 'Create Venue' : 'Save Changes'}
           </button>
