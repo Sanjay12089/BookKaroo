@@ -36,7 +36,9 @@ public class AuthServiceTests
 
         var scopeFactory = new Mock<Microsoft.Extensions.DependencyInjection.IServiceScopeFactory>();
         var logger       = new Mock<ILogger<AuthService>>();
-        return new AuthService(userRepo.Object, tokenRepo.Object, email.Object, config, scopeFactory.Object, logger.Object);
+        var partners     = new Mock<IPartnerRepository>();
+        var venues       = new Mock<IVenueRepository>();
+        return new AuthService(userRepo.Object, tokenRepo.Object, email.Object, config, scopeFactory.Object, logger.Object, partners.Object, venues.Object);
     }
 
     // ── Signup ────────────────────────────────────────────────────────────────

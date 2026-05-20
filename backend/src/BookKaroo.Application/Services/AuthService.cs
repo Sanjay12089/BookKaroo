@@ -23,6 +23,8 @@ public class AuthService : IAuthService
     private readonly IConfiguration _config;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<AuthService> _logger;
+    private readonly IPartnerRepository _partners;
+    private readonly IVenueRepository _venues;
 
     public AuthService(
         IUserRepository users,
@@ -30,7 +32,9 @@ public class AuthService : IAuthService
         IEmailService email,
         IConfiguration config,
         IServiceScopeFactory scopeFactory,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        IPartnerRepository partners,
+        IVenueRepository venues)
     {
         _users        = users;
         _resetTokens  = resetTokens;
@@ -38,6 +42,8 @@ public class AuthService : IAuthService
         _config       = config;
         _scopeFactory = scopeFactory;
         _logger       = logger;
+        _partners     = partners;
+        _venues       = venues;
     }
 
     public async Task<AuthResponse> SignupAsync(SignupRequest request, CancellationToken ct = default)
@@ -180,6 +186,19 @@ public class AuthService : IAuthService
     {
         var user = await _users.GetByIdAsync(userId, ct)
             ?? throw new NotFoundException("User not found.");
+
+        if (user.Role == UserRole.Partner)
+        {
+            var profile = await _partners.GetByUserIdAsync(userId, ct);
+            if (profile != null)
+            {
+                var venueIds   = await _partners.GetVenueIdsAsync(profile.Id, ct);
+                var namesMap   = await _venues.GetNamesByIdsAsync(venueIds, ct);
+                var venueNames = venueIds.Select(id => namesMap.TryGetValue(id, out var n) ? n : id.ToString()).ToList();
+                return MapUser(user, isPartner: true, partnerVenueIds: venueIds, partnerVenueNames: venueNames);
+            }
+        }
+
         return MapUser(user);
     }
 
@@ -216,6 +235,12 @@ public class AuthService : IAuthService
     private int GetRefreshTtlDays() =>
         int.TryParse(_config["JWT_REFRESH_TTL_DAYS"], out var d) ? d : 30;
 
-    private static UserResponse MapUser(User u) => new(
-        u.Id, u.Email, u.Mobile, u.Name, u.Role, u.EmailVerified, u.CityId, u.StateCode, u.ProfilePicUrl, u.Gender, u.Dob, u.PasswordChangedAt);
+    private static UserResponse MapUser(
+        User u,
+        bool isPartner = false,
+        List<Guid>? partnerVenueIds = null,
+        List<string>? partnerVenueNames = null) => new(
+        u.Id, u.Email, u.Mobile, u.Name, u.Role, u.EmailVerified,
+        u.CityId, u.StateCode, u.ProfilePicUrl, u.Gender, u.Dob, u.PasswordChangedAt,
+        isPartner, partnerVenueIds, partnerVenueNames);
 }

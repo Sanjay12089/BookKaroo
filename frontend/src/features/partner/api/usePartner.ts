@@ -122,3 +122,23 @@ export function usePartnerReviews(query: { venueId?: string; status?: string; so
     },
   });
 }
+
+export function useHidePartnerReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (reviewId: string) => {
+      await api.post(`/api/partner/reviews/${reviewId}/hide`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['partner', 'reviews'] }),
+  });
+}
+
+export function useRestorePartnerReview() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (reviewId: string) => {
+      await api.post(`/api/partner/reviews/${reviewId}/restore`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['partner', 'reviews'] }),
+  });
+}

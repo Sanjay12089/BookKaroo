@@ -88,6 +88,14 @@ public class VenueRepository : Repository<Venue>, IVenueRepository
             screens.Count, venue.CreatedAt, screenDtos);
     }
 
+    public async Task<Dictionary<Guid, string>> GetNamesByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default)
+    {
+        var idList = ids.ToList();
+        return await _db.Venues
+            .Where(v => idList.Contains(v.Id))
+            .ToDictionaryAsync(v => v.Id, v => v.Name, ct);
+    }
+
     public async Task VenueDeleteAsync(Guid id, CancellationToken ct = default)
     {
         var activeShows = await _db.Shows

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { MapPin, User, LogOut, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { MapPin, User, LogOut, ChevronDown, LayoutDashboard, Building2 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -128,6 +128,15 @@ export function Header() {
                           className="flex items-center gap-2 px-4 py-2.5 text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors"
                         >
                           <LayoutDashboard size={15} /> Admin Panel
+                        </Link>
+                      )}
+                      {(user.role === 'Partner' || user.isPartner) && (
+                        <Link
+                          to="/partner"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-4 py-2.5 text-sm text-accent-indigo hover:bg-accent-indigo/10 transition-colors"
+                        >
+                          <Building2 size={15} /> Partner Portal
                         </Link>
                       )}
                       <button

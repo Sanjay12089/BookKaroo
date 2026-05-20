@@ -14,5 +14,8 @@ public record UserResponse(
     string? ProfilePicUrl,
     string? Gender,
     DateOnly? Dob,
-    DateTime? PasswordChangedAt
+    DateTime? PasswordChangedAt,
+    bool IsPartner = false,
+    List<Guid>? PartnerVenueIds = null,
+    List<string>? PartnerVenueNames = null
 );
