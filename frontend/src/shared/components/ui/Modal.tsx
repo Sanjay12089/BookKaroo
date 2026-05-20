@@ -30,10 +30,10 @@ export function Modal({ open, onClose, title, children, maxWidth = 'max-w-lg', c
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-up">
       <div
         className={cn(
-          'w-full bg-white border border-border-default rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.18)] flex flex-col',
+          'w-full bg-white border border-border-default rounded-xl shadow-[0_8px_40px_rgba(0,0,0,0.18)] flex flex-col overflow-hidden',
           maxWidth, className
         )}
-        style={{ maxHeight: '90vh' }}
+        style={{ maxHeight: '90vh', transform: 'translateZ(0)' }}
       >
         {/* Sticky header — never scrolls away */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border-default flex-shrink-0">
