@@ -3,26 +3,38 @@ using System.Text.Json;
 using BookKaroo.Application.DTOs.Cities;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BookKaroo.Application.Services;
 
 public class CityService : ICityService
 {
-    private readonly ICityRepository _cities;
+    private readonly ICityRepository    _cities;
     private readonly IHttpClientFactory _http;
+    private readonly IMemoryCache       _cache;
 
-    public CityService(ICityRepository cities, IHttpClientFactory http)
+    private const string CacheKey   = "cities:all";
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromHours(24);
+
+    public CityService(ICityRepository cities, IHttpClientFactory http, IMemoryCache cache)
     {
         _cities = cities;
-        _http = http;
+        _http   = http;
+        _cache  = cache;
     }
 
     public async Task<IEnumerable<CityResponse>> GetAllAsync(CancellationToken ct = default)
     {
-        var cities = await _cities.GetActiveAsync(ct);
-        return cities
-            .OrderBy(c => c.Name)
-            .Select(c => new CityResponse(c.Id, c.Name, c.Slug, c.State, c.StateCode, c.Latitude, c.Longitude));
+        return await _cache.GetOrCreateAsync(CacheKey, async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = CacheTtl;
+            var cities = await _cities.GetActiveAsync(ct);
+            return cities
+                .OrderBy(c => c.Name)
+                .Select(c => new CityResponse(c.Id, c.Name, c.Slug, c.State, c.StateCode, c.Latitude, c.Longitude))
+                .ToList()
+                .AsEnumerable();
+        }) ?? Enumerable.Empty<CityResponse>();
     }
 
     public async Task<CityResponse?> DetectFromIpAsync(string ip, CancellationToken ct = default)
@@ -49,21 +61,19 @@ public class CityService : ICityService
             var cityName = cityProp.GetString();
             if (string.IsNullOrWhiteSpace(cityName)) return null;
 
+            // Use cached cities list for lookups — avoids repeated DB hits
+            var allCities = (await GetAllAsync(ct)).ToList();
+
             // Exact match first
-            var city = await _cities.FindByNameAsync(cityName, ct);
+            var city = allCities.FirstOrDefault(c =>
+                c.Name.Equals(cityName, StringComparison.OrdinalIgnoreCase));
 
-            // Fallback: case-insensitive partial match (handles "New Delhi" → "Delhi-NCR" etc.)
-            if (city == null)
-            {
-                var all = await _cities.GetActiveAsync(ct);
-                city = all.FirstOrDefault(c =>
-                    c.Name.Contains(cityName, StringComparison.OrdinalIgnoreCase) ||
-                    cityName.Contains(c.Name, StringComparison.OrdinalIgnoreCase));
-            }
+            // Fallback: partial match (handles "New Delhi" → "Delhi-NCR" etc.)
+            city ??= allCities.FirstOrDefault(c =>
+                c.Name.Contains(cityName, StringComparison.OrdinalIgnoreCase) ||
+                cityName.Contains(c.Name, StringComparison.OrdinalIgnoreCase));
 
-            if (city == null) return null;
-
-            return new CityResponse(city.Id, city.Name, city.Slug, city.State, city.StateCode, city.Latitude, city.Longitude);
+            return city;
         }
         catch
         {
@@ -74,7 +84,7 @@ public class CityService : ICityService
     private static bool IsPrivateOrLoopback(string ip)
     {
         if (ip is "::1" or "127.0.0.1" or "0.0.0.0" or "::ffff:127.0.0.1") return true;
-        if (!IPAddress.TryParse(ip, out var addr)) return true; // unparseable → treat as private
+        if (!IPAddress.TryParse(ip, out var addr)) return true;
         var mapped = addr.MapToIPv4().GetAddressBytes();
         return mapped[0] == 10
             || (mapped[0] == 172 && mapped[1] >= 16 && mapped[1] <= 31)

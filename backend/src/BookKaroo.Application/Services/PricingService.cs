@@ -3,16 +3,22 @@ using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace BookKaroo.Application.Services;
 
 public class PricingService : IPricingService
 {
     private readonly ISettingRepository _settings;
+    private readonly IMemoryCache       _cache;
 
-    public PricingService(ISettingRepository settings)
+    private const string SettingsCacheKey = "settings:all";
+    private static readonly TimeSpan SettingsCacheTtl = TimeSpan.FromMinutes(5);
+
+    public PricingService(ISettingRepository settings, IMemoryCache cache)
     {
         _settings = settings;
+        _cache    = cache;
     }
 
     public async Task<PricingBreakdown> CalculateAsync(
@@ -22,16 +28,16 @@ public class PricingService : IPricingService
         Coupon? coupon,
         CancellationToken ct = default)
     {
-        var allSettings = await _settings.GetAllAsync(ct);
+        var allSettings = await GetSettingsAsync(ct);
 
         decimal convFeePerTicket = decimal.Parse(allSettings.GetValueOrDefault("convenience_fee_per_ticket", "59.00"));
-        decimal offerFeeBase = decimal.Parse(allSettings.GetValueOrDefault("offer_processing_fee", "15.00"));
-        string companyStateCode = allSettings.GetValueOrDefault("company_state_code", "24");
+        decimal offerFeeBase     = decimal.Parse(allSettings.GetValueOrDefault("offer_processing_fee",       "15.00"));
+        string  companyStateCode = allSettings.GetValueOrDefault("company_state_code", "24");
 
         bool isIntraState = customerStateCode == companyStateCode;
 
         decimal ticketAmount = Round(qty * seatPrice);
-        decimal convFee = Round(qty * convFeePerTicket);
+        decimal convFee      = Round(qty * convFeePerTicket);
 
         decimal discount = 0m;
         if (coupon != null)
@@ -47,7 +53,7 @@ public class PricingService : IPricingService
             discount = Round(discount);
         }
 
-        decimal offerFee = coupon != null ? offerFeeBase : 0m;
+        decimal offerFee      = coupon != null ? offerFeeBase : 0m;
         decimal taxableAmount = Round(convFee + offerFee);
 
         decimal cgst = 0m, sgst = 0m, igst = 0m;
@@ -61,25 +67,34 @@ public class PricingService : IPricingService
             igst = Round(taxableAmount * 0.18m);
         }
 
-        decimal convFeeGst = isIntraState ? Round(convFee * 0.18m) : Round(convFee * 0.18m);
+        decimal convFeeGst  = Round(convFee   * 0.18m);
         decimal offerFeeGst = offerFee > 0 ? Round(offerFee * 0.18m) : 0m;
 
         decimal amountPaid = Round(ticketAmount + convFee + offerFee + cgst + sgst + igst - discount);
 
         return new PricingBreakdown(
-            TicketAmount: ticketAmount,
-            ConvenienceFee: convFee,
-            ConvenienceFeeGst: convFeeGst,
-            OfferProcessingFee: offerFee,
-            OfferProcessingFeeGst: offerFeeGst,
-            TaxableAmount: taxableAmount,
-            Cgst: cgst,
-            Sgst: sgst,
-            Igst: igst,
-            Discount: discount,
-            AmountPaid: amountPaid,
-            IsIntraState: isIntraState
+            TicketAmount:         ticketAmount,
+            ConvenienceFee:       convFee,
+            ConvenienceFeeGst:    convFeeGst,
+            OfferProcessingFee:   offerFee,
+            OfferProcessingFeeGst:offerFeeGst,
+            TaxableAmount:        taxableAmount,
+            Cgst:                 cgst,
+            Sgst:                 sgst,
+            Igst:                 igst,
+            Discount:             discount,
+            AmountPaid:           amountPaid,
+            IsIntraState:         isIntraState
         );
+    }
+
+    private async Task<Dictionary<string, string>> GetSettingsAsync(CancellationToken ct)
+    {
+        return await _cache.GetOrCreateAsync(SettingsCacheKey, async entry =>
+        {
+            entry.AbsoluteExpirationRelativeToNow = SettingsCacheTtl;
+            return await _settings.GetAllAsync(ct);
+        }) ?? [];
     }
 
     private static decimal Round(decimal value) =>
