@@ -230,6 +230,7 @@ try
     builder.Services.AddScoped<IEventTicketLockRepository, EventTicketLockRepository>();
     builder.Services.AddScoped<ICmsBannerRepository, CmsBannerRepository>();
     builder.Services.AddScoped<IAdminRepository, AdminRepository>();
+    builder.Services.AddScoped<IPartnerRepository, PartnerRepository>();
 
     // 14. Services (Scoped)
     builder.Services.AddScoped<IAuthService, AuthService>();
@@ -254,6 +255,16 @@ try
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();
     builder.Services.AddScoped<BookKaroo.Application.Services.InvoiceBuilder>();
     builder.Services.AddScoped<SupabaseStorageService>();
+
+    // Partner Portal
+    builder.Services.AddHttpContextAccessor();
+    builder.Services.AddScoped<BookKaroo.Application.Common.IPartnerContext, BookKaroo.Infrastructure.Auth.PartnerContext>();
+    builder.Services.AddScoped<IPartnerDashboardService, BookKaroo.Infrastructure.Services.Partner.PartnerDashboardService>();
+    builder.Services.AddScoped<IPartnerVenueService, BookKaroo.Infrastructure.Services.Partner.PartnerVenueService>();
+    builder.Services.AddScoped<IPartnerShowService, BookKaroo.Infrastructure.Services.Partner.PartnerShowService>();
+    builder.Services.AddScoped<IPartnerBookingService, BookKaroo.Infrastructure.Services.Partner.PartnerBookingService>();
+    builder.Services.AddScoped<IPartnerReviewService, BookKaroo.Infrastructure.Services.Partner.PartnerReviewService>();
+    builder.Services.AddScoped<IAdminPartnerService, BookKaroo.Infrastructure.Services.Partner.AdminPartnerService>();
 
     // 15. Controllers
     builder.Services.AddControllers()

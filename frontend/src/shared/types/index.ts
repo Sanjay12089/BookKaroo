@@ -1,6 +1,6 @@
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
-export type UserRole = 'User' | 'Admin';
+export type UserRole = 'User' | 'Admin' | 'Partner';
 export type BookingStatus = 'Pending' | 'Confirmed' | 'Cancelled' | 'Refunded';
 export type PaymentStatus = 'Created' | 'Captured' | 'Failed' | 'Refunded';
 export type PaymentProvider = 'Mock' | 'Razorpay' | 'PayPal';
@@ -28,6 +28,9 @@ export interface User {
   dob?: string;
   gender?: string;
   passwordChangedAt?: string;
+  isPartner?: boolean;
+  partnerVenueIds?: string[];
+  partnerVenueNames?: string[];
 }
 
 export interface City {
