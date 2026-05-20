@@ -69,12 +69,13 @@ const AdminCmsPage       = lazy(() => import('@/features/admin/pages/AdminCmsPag
 const AdminSettingsPage  = lazy(() => import('@/features/admin/pages/AdminSettingsPage'));
 const AdminPartnersPage  = lazy(() => import('@/features/admin/pages/AdminPartnersPage'));
 // Partner Portal
-const PartnerDashboardPage = lazy(() => import('@/features/partner/pages/PartnerDashboardPage'));
-const PartnerVenuesPage    = lazy(() => import('@/features/partner/pages/PartnerVenuesPage'));
-const PartnerShowsPage     = lazy(() => import('@/features/partner/pages/PartnerShowsPage'));
-const PartnerBookingsPage  = lazy(() => import('@/features/partner/pages/PartnerBookingsPage'));
-const PartnerReportsPage   = lazy(() => import('@/features/partner/pages/PartnerReportsPage'));
-const PartnerReviewsPage   = lazy(() => import('@/features/partner/pages/PartnerReviewsPage'));
+const PartnerDashboardPage   = lazy(() => import('@/features/partner/pages/PartnerDashboardPage'));
+const PartnerVenuesPage      = lazy(() => import('@/features/partner/pages/PartnerVenuesPage'));
+const PartnerVenueDetailPage = lazy(() => import('@/features/partner/pages/PartnerVenueDetailPage'));
+const PartnerShowsPage       = lazy(() => import('@/features/partner/pages/PartnerShowsPage'));
+const PartnerBookingsPage    = lazy(() => import('@/features/partner/pages/PartnerBookingsPage'));
+const PartnerReportsPage     = lazy(() => import('@/features/partner/pages/PartnerReportsPage'));
+const PartnerReviewsPage     = lazy(() => import('@/features/partner/pages/PartnerReviewsPage'));
 const StaticPage         = lazy(() => import('@/features/static/pages/StaticPage'));
 
 // ── Guards ────────────────────────────────────────────────────────────────────
@@ -154,9 +155,10 @@ export const router = createBrowserRouter([
   {
     element: <PartnerRoute />,
     children: [
-      { path: '/partner',           element: S(PartnerDashboardPage) },
-      { path: '/partner/venues',    element: S(PartnerVenuesPage) },
-      { path: '/partner/shows',     element: S(PartnerShowsPage) },
+      { path: '/partner',                    element: S(PartnerDashboardPage) },
+      { path: '/partner/venues',            element: S(PartnerVenuesPage) },
+      { path: '/partner/venues/:venueId',   element: S(PartnerVenueDetailPage) },
+      { path: '/partner/shows',             element: S(PartnerShowsPage) },
       { path: '/partner/bookings',  element: S(PartnerBookingsPage) },
       { path: '/partner/reports',   element: S(PartnerReportsPage) },
       { path: '/partner/reviews',   element: S(PartnerReviewsPage) },

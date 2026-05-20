@@ -3,6 +3,7 @@ using BookKaroo.Application.Services;
 using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace BookKaroo.Tests;
@@ -24,7 +25,8 @@ public class PricingServiceTests
 
         var repo = new Mock<ISettingRepository>();
         repo.Setup(r => r.GetAllAsync(default)).ReturnsAsync(defaults);
-        return new PricingService(repo.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        return new PricingService(repo.Object, cache);
     }
 
     [Fact]

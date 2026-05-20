@@ -14,4 +14,6 @@ public interface IVenueRepository : IRepository<Venue>
     Task<VenueWithScreensDto?> GetWithScreensAsync(Guid venueId, CancellationToken ct = default);
 
     Task VenueDeleteAsync(Guid id, CancellationToken ct = default);
+
+    Task<Dictionary<Guid, string>> GetNamesByIdsAsync(IEnumerable<Guid> ids, CancellationToken ct = default);
 }

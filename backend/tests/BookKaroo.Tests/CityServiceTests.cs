@@ -2,17 +2,20 @@ using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Services;
 using BookKaroo.Domain.Entities;
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace BookKaroo.Tests;
 
 public class CityServiceTests
 {
+    private static IMemoryCache CreateCache() => new MemoryCache(new MemoryCacheOptions());
+
     private static (CityService Service, Mock<ICityRepository> Repo) Create()
     {
         var repo = new Mock<ICityRepository>();
         var http = new Mock<System.Net.Http.IHttpClientFactory>();
-        var svc = new CityService(repo.Object, http.Object);
+        var svc = new CityService(repo.Object, http.Object, CreateCache());
         return (svc, repo);
     }
 
@@ -49,7 +52,7 @@ public class CityServiceTests
         var httpFactory = new Mock<System.Net.Http.IHttpClientFactory>();
         httpFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
 
-        var svc = new CityService(repo.Object, httpFactory.Object);
+        var svc = new CityService(repo.Object, httpFactory.Object, CreateCache());
         var result = await svc.DetectFromIpAsync("1.2.3.4");
 
         result.Should().NotBeNull();
@@ -68,7 +71,7 @@ public class CityServiceTests
         var httpFactory = new Mock<System.Net.Http.IHttpClientFactory>();
         httpFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
 
-        var svc = new CityService(repo.Object, httpFactory.Object);
+        var svc = new CityService(repo.Object, httpFactory.Object, CreateCache());
         var result = await svc.DetectFromIpAsync("0.0.0.0");
 
         result.Should().BeNull();

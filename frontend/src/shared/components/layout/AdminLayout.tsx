@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Film, CalendarDays, MapPin, Clock,
-  Ticket, Users, BarChart2, Image, Settings, LogOut, Menu, X, Home,
+  Ticket, Users, BarChart2, Image, Settings, LogOut, Menu, X, Home, Building2,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { ROUTES } from '@/shared/constants';
@@ -19,6 +19,7 @@ const NAV = [
   { label: 'Reports', icon: BarChart2, href: ROUTES.ADMIN_REPORTS },
   { label: 'CMS', icon: Image, href: ROUTES.ADMIN_CMS },
   { label: 'Settings', icon: Settings, href: ROUTES.ADMIN_SETTINGS },
+  { label: 'Partners', icon: Building2, href: '/admin/partners' },
 ] as const;
 
 export function AdminLayout({ children }: { children: React.ReactNode }) {
