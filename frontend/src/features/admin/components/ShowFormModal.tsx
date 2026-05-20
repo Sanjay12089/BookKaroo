@@ -132,7 +132,7 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
         <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors"><X size={20} /></button>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
+      <form onSubmit={handleSubmit} className="space-y-4">
         {/* Type toggle */}
         <div className="flex rounded-lg border border-border-default overflow-hidden">
           {(['movie', 'event'] as const).map((t) => (

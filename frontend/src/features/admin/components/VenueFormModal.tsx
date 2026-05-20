@@ -130,7 +130,7 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
         </button>
       </div>
 
-      <form onSubmit={onSubmit} className="space-y-5 max-h-[75vh] overflow-y-auto pr-1">
+      <form onSubmit={onSubmit} className="space-y-5">
         {/* Basic Information */}
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Basic Information</h3>
