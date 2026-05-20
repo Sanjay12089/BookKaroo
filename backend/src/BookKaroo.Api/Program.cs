@@ -201,8 +201,6 @@ try
             builder.Services.AddScoped<IPaymentProvider, RazorpayPaymentProvider>();
             break;
         default:
-            if (builder.Environment.IsProduction())
-                throw new InvalidOperationException("MockPaymentProvider cannot be used in Production.");
             builder.Services.AddScoped<IPaymentProvider, MockPaymentProvider>();
             break;
     }
