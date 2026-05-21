@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, X, CheckCircle, Plus } from 'lucide-react';
+import { Search, X, CheckCircle, Plus, Building2, User, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,6 +10,7 @@ import { Modal } from '@/shared/components/ui/Modal';
 import { api } from '@/shared/lib/api';
 import {
   useAdminPartners, useCreatePartner, useDeactivatePartner, useActivatePartner,
+  useGrantPartnerVenue, useRevokePartnerVenue,
   type CreatePartnerRequest,
 } from '../api/useAdminPartners';
 import type { AdminPartnerResponse, CreatePartnerResponse } from '@/features/partner/types';
@@ -38,6 +39,7 @@ function CreatePartnerModal({ onClose }: CreatePartnerModalProps) {
   const createPartner = useCreatePartner();
   const [created, setCreated] = useState<CreatePartnerResponse | null>(null);
   const [selectedVenueIds, setSelectedVenueIds] = useState<string[]>([]);
+  const [venueSearch, setVenueSearch] = useState('');
   const [copied, setCopied] = useState(false);
 
   const { data: venues } = useQuery<VenueOption[]>({
@@ -182,20 +184,62 @@ function CreatePartnerModal({ onClose }: CreatePartnerModalProps) {
 
         {venues && venues.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">Grant Venue Access (optional)</p>
-            <div className="max-h-40 overflow-y-auto space-y-1 border border-border-default rounded-lg p-2">
-              {venues.map((v) => (
-                <label key={v.id} className="flex items-center gap-2 cursor-pointer hover:bg-bg-surface2 px-2 py-1 rounded-md">
-                  <input
-                    type="checkbox"
-                    checked={selectedVenueIds.includes(v.id)}
-                    onChange={() => toggleVenue(v.id)}
-                    className="accent-accent-indigo"
-                  />
-                  <span className="text-sm text-text-primary">{v.name}</span>
-                  <span className="text-xs text-text-muted ml-auto">{v.cityName}</span>
-                </label>
-              ))}
+            <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-2">
+              Grant Venue Access (optional)
+              {selectedVenueIds.length > 0 && (
+                <span className="ml-2 text-accent-indigo normal-case font-medium">
+                  {selectedVenueIds.length} selected
+                </span>
+              )}
+            </p>
+
+            {/* Venue search box */}
+            <div className="relative mb-2">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+              <input
+                type="text"
+                value={venueSearch}
+                onChange={e => setVenueSearch(e.target.value)}
+                placeholder="Search venues…"
+                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border-default bg-bg-surface2 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-[#4F46E5] transition-colors"
+              />
+              {venueSearch && (
+                <button
+                  type="button"
+                  onClick={() => setVenueSearch('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            <div className="max-h-40 overflow-y-auto space-y-0.5 border border-border-default rounded-lg p-1.5">
+              {venues
+                .filter(v =>
+                  !venueSearch.trim() ||
+                  v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
+                  v.cityName.toLowerCase().includes(venueSearch.toLowerCase())
+                )
+                .map((v) => (
+                  <label key={v.id} className="flex items-center gap-2 cursor-pointer hover:bg-bg-surface2 px-2 py-1.5 rounded-md transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={selectedVenueIds.includes(v.id)}
+                      onChange={() => toggleVenue(v.id)}
+                      className="accent-accent-indigo flex-shrink-0"
+                    />
+                    <span className="text-sm text-text-primary flex-1 truncate">{v.name}</span>
+                    <span className="text-xs text-text-muted flex-shrink-0">{v.cityName}</span>
+                  </label>
+                ))}
+              {venues.filter(v =>
+                !venueSearch.trim() ||
+                v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
+                v.cityName.toLowerCase().includes(venueSearch.toLowerCase())
+              ).length === 0 && (
+                <p className="text-xs text-text-muted text-center py-3">No venues match "{venueSearch}"</p>
+              )}
             </div>
           </div>
         )}
@@ -225,12 +269,289 @@ function CreatePartnerModal({ onClose }: CreatePartnerModalProps) {
   );
 }
 
+// ── Partner Detail Drawer ────────────────────────────────────────────────────
+
+interface DrawerProps {
+  partner: AdminPartnerResponse;
+  onClose: () => void;
+}
+
+function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
+  const [tab, setTab] = useState<'profile' | 'venues'>('profile');
+  const [venueSearch, setVenueSearch] = useState('');
+  const [selectedVenueId, setSelectedVenueId] = useState('');
+  const [revokeConfirm, setRevokeConfirm] = useState<string | null>(null);
+
+  const grant  = useGrantPartnerVenue();
+  const revoke = useRevokePartnerVenue();
+
+  const { data: allVenues } = useQuery<VenueOption[]>({
+    queryKey: ['admin', 'venues-simple'],
+    queryFn: () =>
+      api.get<{ items: VenueOption[] }>('/api/admin/venues', { params: { pageSize: 200 } })
+        .then(r => r.data.items ?? []),
+    staleTime: 5 * 60_000,
+  });
+
+  const grantedIds = new Set(partner.venueAccess.map(v => v.venueId));
+  const availableVenues = (allVenues ?? []).filter(v =>
+    !grantedIds.has(v.id) &&
+    (!venueSearch.trim() ||
+      v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
+      v.cityName.toLowerCase().includes(venueSearch.toLowerCase()))
+  );
+
+  function handleGrant() {
+    if (!selectedVenueId) return;
+    grant.mutate(
+      { partnerId: partner.id, venueId: selectedVenueId },
+      { onSuccess: () => { setSelectedVenueId(''); setVenueSearch(''); } }
+    );
+  }
+
+  function handleRevoke(venueId: string) {
+    revoke.mutate(
+      { partnerId: partner.id, venueId },
+      { onSuccess: () => setRevokeConfirm(null) }
+    );
+  }
+
+  const tabCls = (t: typeof tab) =>
+    `flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+      tab === t ? 'text-[#E51937]' : 'text-text-muted hover:text-text-secondary'
+    }`;
+
+  return (
+    <>
+      {/* Backdrop */}
+      <div className="fixed inset-0 z-40 bg-black/25" onClick={onClose} />
+
+      {/* Drawer */}
+      <div className="fixed right-0 top-0 bottom-0 z-[60] w-[460px] bg-white shadow-[-4px_0_24px_rgba(0,0,0,0.12)] flex flex-col">
+
+        {/* Header */}
+        <div className="flex items-start justify-between px-6 py-5 border-b border-border-default flex-shrink-0">
+          <div>
+            <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">Partner</p>
+            <h2 className="font-display font-bold text-lg text-text-primary leading-tight">{partner.businessName}</h2>
+            <p className="text-sm text-text-secondary mt-0.5">{partner.userName} · {partner.userEmail}</p>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full text-text-muted hover:text-text-primary hover:bg-bg-surface2 transition-colors mt-0.5">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 px-4 py-3 border-b border-border-default flex-shrink-0" style={{ background: '#F1F2F4' }}>
+          <button
+            className={tabCls('profile')}
+            style={tab === 'profile' ? { background: '#FFF0F2', boxShadow: '0 1px 3px rgba(229,25,55,0.15)' } : {}}
+            onClick={() => setTab('profile')}
+          >
+            <User size={13} />Profile
+          </button>
+          <button
+            className={tabCls('venues')}
+            style={tab === 'venues' ? { background: '#FFF0F2', boxShadow: '0 1px 3px rgba(229,25,55,0.15)' } : {}}
+            onClick={() => setTab('venues')}
+          >
+            <Building2 size={13} />
+            Venue Access
+            <span
+              className="text-[10px] rounded-full px-1.5 py-0.5 font-bold"
+              style={{ background: 'rgba(229,25,55,0.12)', color: '#E51937' }}
+            >
+              {partner.venueAccess.length}
+            </span>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+
+          {/* ── Profile tab ── */}
+          {tab === 'profile' && (
+            <div className="space-y-5">
+              <section>
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">User Account</p>
+                <div className="space-y-2">
+                  {[
+                    { label: 'Name',   value: partner.userName },
+                    { label: 'Email',  value: partner.userEmail },
+                    { label: 'Mobile', value: partner.userMobile ?? '—' },
+                    { label: 'Status', value: partner.isActive ? 'Active' : 'Inactive' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center gap-2 text-sm">
+                      <span className="w-20 text-text-muted flex-shrink-0">{label}</span>
+                      <span className="text-text-primary font-medium">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <div className="border-t border-border-default" />
+
+              <section>
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">Business Details</p>
+                <div className="space-y-2">
+                  {[
+                    { label: 'Business',  value: partner.businessName },
+                    { label: 'Contact',   value: partner.contactPerson },
+                    { label: 'Phone',     value: partner.contactPhone },
+                    { label: 'Email',     value: partner.contactEmail },
+                    { label: 'GST',       value: partner.gstNumber ?? '—' },
+                    { label: 'PAN',       value: partner.panNumber  ?? '—' },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center gap-2 text-sm">
+                      <span className="w-20 text-text-muted flex-shrink-0">{label}</span>
+                      <span className="text-text-primary font-medium">{value}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              {partner.notes && (
+                <>
+                  <div className="border-t border-border-default" />
+                  <section>
+                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-2">Admin Notes</p>
+                    <p className="text-sm text-text-secondary">{partner.notes}</p>
+                  </section>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ── Venue Access tab ── */}
+          {tab === 'venues' && (
+            <div className="space-y-5">
+
+              {/* Current venues */}
+              <section>
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">
+                  Current Access ({partner.venueAccess.length})
+                </p>
+
+                {partner.venueAccess.length === 0 ? (
+                  <p className="text-sm text-text-muted text-center py-4 border border-dashed border-border-default rounded-lg">
+                    No venues assigned yet
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {partner.venueAccess.map(v => (
+                      <div key={v.venueId} className="flex items-center gap-3 p-3 rounded-lg border border-border-default bg-bg-surface2">
+                        <Building2 size={15} className="text-accent-indigo flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-text-primary truncate">{v.venueName}</p>
+                          <p className="text-xs text-text-muted">{v.cityName}</p>
+                        </div>
+                        {revokeConfirm === v.venueId ? (
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span className="text-xs text-text-muted">Revoke?</span>
+                            <button
+                              onClick={() => handleRevoke(v.venueId)}
+                              disabled={revoke.isPending}
+                              className="px-2.5 py-1 text-xs rounded-md font-semibold"
+                              style={{ background: '#E51937', color: '#fff' }}
+                            >
+                              Yes
+                            </button>
+                            <button
+                              onClick={() => setRevokeConfirm(null)}
+                              className="px-2.5 py-1 text-xs rounded-md border border-border-default text-text-secondary hover:bg-bg-surface2"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setRevokeConfirm(v.venueId)}
+                            className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium text-semantic-error border border-semantic-error/30 hover:bg-semantic-error/08 transition-colors flex-shrink-0"
+                          >
+                            <Trash2 size={11} /> Revoke
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <div className="border-t border-border-default" />
+
+              {/* Grant venue access */}
+              <section>
+                <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mb-3">
+                  Grant Venue Access
+                </p>
+
+                <div className="relative mb-2">
+                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                  <input
+                    type="text"
+                    value={venueSearch}
+                    onChange={e => { setVenueSearch(e.target.value); setSelectedVenueId(''); }}
+                    placeholder="Search venues…"
+                    className="w-full pl-8 pr-8 py-2 text-sm rounded-lg border border-border-default bg-bg-surface2 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-[#4F46E5] transition-colors"
+                  />
+                  {venueSearch && (
+                    <button
+                      onClick={() => { setVenueSearch(''); setSelectedVenueId(''); }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-44 overflow-y-auto border border-border-default rounded-lg divide-y divide-border-default mb-3">
+                  {availableVenues.length === 0 ? (
+                    <p className="text-xs text-text-muted text-center py-4">
+                      {grantedIds.size === allVenues?.length ? 'All venues already granted' : 'No venues match'}
+                    </p>
+                  ) : (
+                    availableVenues.map(v => (
+                      <button
+                        key={v.id}
+                        type="button"
+                        onClick={() => setSelectedVenueId(v.id === selectedVenueId ? '' : v.id)}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 text-sm text-left transition-colors ${
+                          selectedVenueId === v.id
+                            ? 'bg-accent-indigo/10 text-accent-indigo font-semibold'
+                            : 'hover:bg-bg-surface2 text-text-primary'
+                        }`}
+                      >
+                        <span className="truncate">{v.name}</span>
+                        <span className="text-xs text-text-muted ml-2 flex-shrink-0">{v.cityName}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+
+                <button
+                  onClick={handleGrant}
+                  disabled={!selectedVenueId || grant.isPending}
+                  className="bk-btn-primary w-full"
+                  style={{ background: !selectedVenueId ? undefined : '#E51937' }}
+                >
+                  {grant.isPending ? 'Granting…' : 'Grant Access'}
+                </button>
+              </section>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function AdminPartnersPage() {
   const [search, setSearch]               = useState('');
   const [debouncedSearch, setDebounced]   = useState('');
   const [isActiveFilter, setIsActive]     = useState<string>('');
   const [page, setPage]                   = useState(1);
   const [showCreate, setShowCreate]       = useState(false);
+  const [selectedPartner, setSelectedPartner] = useState<AdminPartnerResponse | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
@@ -249,6 +570,9 @@ export default function AdminPartnersPage() {
   const activate   = useActivatePartner();
 
   const partners = data?.items ?? [];
+  const liveSelectedPartner = selectedPartner
+    ? (partners.find(p => p.id === selectedPartner.id) ?? selectedPartner)
+    : null;
 
   const columns: Column<AdminPartnerResponse>[] = [
     {
@@ -309,12 +633,18 @@ export default function AdminPartnersPage() {
     {
       key: 'actions', header: 'Actions',
       render: (p) => (
-        <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={() => setSelectedPartner(p)}
+            className="px-2.5 py-1 rounded-lg border border-accent-indigo/40 text-accent-indigo text-[11px] font-medium hover:bg-accent-indigo/08 transition-colors"
+          >
+            Manage
+          </button>
           {p.isActive ? (
             <button
               onClick={() => deactivate.mutate(p.id)}
               disabled={deactivate.isPending}
-              className="px-2 py-1 rounded-lg border border-semantic-error/40 text-semantic-error text-[11px] hover:bg-semantic-error/08 transition-colors disabled:opacity-50"
+              className="px-2.5 py-1 rounded-lg border border-semantic-error/40 text-semantic-error text-[11px] hover:bg-semantic-error/08 transition-colors disabled:opacity-50"
             >
               Deactivate
             </button>
@@ -322,7 +652,7 @@ export default function AdminPartnersPage() {
             <button
               onClick={() => activate.mutate(p.id)}
               disabled={activate.isPending}
-              className="px-2 py-1 rounded-lg border border-semantic-success/40 text-semantic-success text-[11px] hover:bg-semantic-success/08 transition-colors disabled:opacity-50"
+              className="px-2.5 py-1 rounded-lg border border-semantic-success/40 text-semantic-success text-[11px] hover:bg-semantic-success/08 transition-colors disabled:opacity-50"
             >
               Activate
             </button>
@@ -398,6 +728,12 @@ export default function AdminPartnersPage() {
       </div>
 
       {showCreate && <CreatePartnerModal onClose={() => setShowCreate(false)} />}
+      {liveSelectedPartner && (
+        <PartnerDetailDrawer
+          partner={liveSelectedPartner}
+          onClose={() => setSelectedPartner(null)}
+        />
+      )}
     </AdminLayout>
   );
 }

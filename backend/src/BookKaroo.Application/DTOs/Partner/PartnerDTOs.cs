@@ -50,7 +50,7 @@ public record PartnerShowResponse(
     Guid Id, Guid VenueId, string VenueName, Guid ScreenId, string ScreenName,
     Guid? MovieId, string? MovieTitle, Guid? EventId, string? EventTitle,
     DateOnly ShowDate, TimeOnly ShowTime, string? Format, string? Language,
-    string Status);
+    string Status, int BookedSeats);
 
 public record CreatePartnerShowRequest(
     Guid VenueId, Guid ScreenId, Guid? MovieId, Guid? EventId,
@@ -73,7 +73,15 @@ public record PartnerBookingDetail(
     DateTime CreatedAt, DateTime? CancelledAt);
 
 public record PartnerBookingPage(
-    List<PartnerBookingListItem> Items, int Total, int Page, int PageSize);
+    List<PartnerBookingListItem> Items, int Total, int Page, int PageSize, int TotalPages,
+    int ConfirmedCount, int CancelledCount, decimal TotalRevenue);
+
+// ── Reports ───────────────────────────────────────────────────────────────
+public record PartnerReportResponse(
+    int TotalBookings, decimal TotalRevenue,
+    List<DailyBookingStat> BookingsPerDay,
+    List<VenueRevenueStat> RevenuePerVenue,
+    List<RecentPartnerBooking> RecentBookings);
 
 // ── Review ────────────────────────────────────────────────────────────────
 public record PartnerReviewResponse(

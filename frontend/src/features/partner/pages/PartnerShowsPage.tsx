@@ -1,31 +1,100 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, X } from 'lucide-react';
+import { Search, X, Plus, AlertTriangle } from 'lucide-react';
 import { PartnerLayout } from '../components/PartnerLayout';
 import { usePartnerShows, useCancelPartnerShow, usePartnerVenues } from '../api/usePartner';
+import { PartnerShowFormModal } from '../components/PartnerShowFormModal';
+import { Modal } from '@/shared/components/ui/Modal';
 import { AdminTable, type Column } from '@/features/admin/components/AdminTable';
 import type { PartnerShowResponse } from '../types';
 
 const STATUS_CLASSES: Record<string, string> = {
-  Scheduled:  'bg-semantic-success/15 text-semantic-success',
+  Scheduled: 'bg-semantic-success/15 text-semantic-success',
   Cancelled:  'bg-accent-crimson/15 text-accent-crimson',
   Completed:  'bg-bg-surface3 text-text-muted',
 };
 
-const today = () => new Date().toISOString().split('T')[0];
-const sevenDaysAhead = () => {
+const defaultFromDate = () => new Date().toISOString().split('T')[0];
+const defaultToDate   = () => {
   const d = new Date();
   d.setDate(d.getDate() + 7);
   return d.toISOString().split('T')[0];
 };
 
+// ── Cancel Modal ─────────────────────────────────────────────────────────────
+
+interface CancelModalProps {
+  show:      PartnerShowResponse;
+  isLoading: boolean;
+  onClose:   () => void;
+  onConfirm: () => void;
+}
+
+function CancelShowModal({ show, isLoading, onClose, onConfirm }: CancelModalProps) {
+  return (
+    <Modal open onClose={onClose} maxWidth="max-w-sm">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-semantic-warning">
+          <AlertTriangle size={20} />
+          <h3 className="font-display font-bold text-lg">Cancel Show?</h3>
+        </div>
+
+        <div>
+          <p className="font-semibold text-text-primary text-[15px]">
+            {show.movieTitle ?? show.eventTitle}
+          </p>
+          <p className="text-text-muted text-sm mt-0.5">
+            {show.showDate} · {show.showTime} · {show.venueName}
+          </p>
+        </div>
+
+        {show.bookedSeats > 0 ? (
+          <div className="rounded-lg border border-semantic-warning/30 bg-semantic-warning/10 p-3 space-y-1">
+            <p className="text-sm font-medium text-semantic-warning">
+              ⚠️ This will cancel {show.bookedSeats} confirmed booking(s)
+            </p>
+            <p className="text-xs text-text-muted">Customers will be notified by email</p>
+            <p className="text-xs text-text-muted">Refunds will be processed automatically</p>
+          </div>
+        ) : (
+          <p className="text-sm text-text-muted">No active bookings for this show.</p>
+        )}
+
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm"
+          >
+            Keep Show
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="w-full px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            style={{ background: '#E51937' }}
+          >
+            {isLoading ? 'Cancelling…' : 'Cancel Show'}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 export default function PartnerShowsPage() {
+  const initFrom = defaultFromDate();
+  const initTo   = defaultToDate();
+
   const [venueId,  setVenueId]  = useState('');
   const [status,   setStatus]   = useState('');
-  const [fromDate, setFromDate] = useState(today());
-  const [toDate,   setToDate]   = useState(sevenDaysAhead());
+  const [fromDate, setFromDate] = useState(initFrom);
+  const [toDate,   setToDate]   = useState(initTo);
   const [page,     setPage]     = useState(1);
   const [search,   setSearch]   = useState('');
   const [debouncedSearch, setDebounced] = useState('');
+  const [showCreate,     setShowCreate]     = useState(false);
+  const [cancellingShow, setCancellingShow] = useState<PartnerShowResponse | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
@@ -36,24 +105,26 @@ export default function PartnerShowsPage() {
 
   const { data: venues } = usePartnerVenues();
   const { data, isLoading } = usePartnerShows({
-    venueId:  venueId  || undefined,
-    status:   status   || undefined,
-    fromDate: fromDate || undefined,
-    toDate:   toDate   || undefined,
+    venueId:  venueId          || undefined,
+    status:   status           || undefined,
+    fromDate: fromDate         || undefined,
+    toDate:   toDate           || undefined,
+    search:   debouncedSearch  || undefined,
     page,
     pageSize: 15,
   });
   const cancelShow = useCancelPartnerShow();
 
   const shows = data?.items ?? [];
-  const filteredShows = debouncedSearch
-    ? shows.filter((s) =>
-        s.movieTitle?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        s.eventTitle?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        s.venueName.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        s.screenName.toLowerCase().includes(debouncedSearch.toLowerCase())
-      )
-    : shows;
+
+  const isFiltered = !!search || !!venueId || !!status || fromDate !== initFrom || toDate !== initTo;
+
+  function clearFilters() {
+    setSearch(''); setDebounced('');
+    setVenueId(''); setStatus('');
+    setFromDate(initFrom); setToDate(initTo);
+    setPage(1);
+  }
 
   const columns: Column<PartnerShowResponse>[] = [
     {
@@ -86,6 +157,12 @@ export default function PartnerShowsPage() {
       ),
     },
     {
+      key: 'bookings', header: 'Bookings',
+      render: (s) => (
+        <span className="text-[13px] text-text-primary">{s.bookedSeats}</span>
+      ),
+    },
+    {
       key: 'status', header: 'Status',
       render: (s) => (
         <span className={`inline-block text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider ${STATUS_CLASSES[s.status] ?? 'bg-bg-surface2 text-text-muted'}`}>
@@ -98,14 +175,8 @@ export default function PartnerShowsPage() {
       render: (s) => (
         s.status === 'Scheduled' ? (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (window.confirm('Cancel this show? This cannot be undone.')) {
-                cancelShow.mutate(s.id);
-              }
-            }}
-            disabled={cancelShow.isPending}
-            className="px-2 py-1 rounded-lg border border-semantic-error/40 text-semantic-error text-[11px] hover:bg-semantic-error/08 transition-colors disabled:opacity-50"
+            onClick={(e) => { e.stopPropagation(); setCancellingShow(s); }}
+            className="px-2 py-1 rounded-lg border border-semantic-error/40 text-semantic-error text-[11px] hover:bg-semantic-error/08 transition-colors"
           >
             Cancel Show
           </button>
@@ -119,9 +190,18 @@ export default function PartnerShowsPage() {
   return (
     <PartnerLayout>
       <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-5">
-        <header>
-          <h1 className="text-2xl font-display font-bold text-text-primary">Shows</h1>
-          <p className="text-sm text-text-secondary mt-1">View and manage shows for your venues.</p>
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-text-primary">Shows</h1>
+            <p className="text-sm text-text-secondary mt-1">View and manage shows for your venues.</p>
+          </div>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+            style={{ background: '#E51937' }}
+          >
+            <Plus size={15} /> Create Show
+          </button>
         </header>
 
         <div className="space-y-3">
@@ -144,7 +224,7 @@ export default function PartnerShowsPage() {
             <select
               value={venueId}
               onChange={(e) => { setVenueId(e.target.value); setPage(1); }}
-              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
             >
               <option value="">All Venues</option>
               {venues?.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
@@ -153,7 +233,7 @@ export default function PartnerShowsPage() {
             <select
               value={status}
               onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
             >
               <option value="">All Statuses</option>
               <option value="Scheduled">Scheduled</option>
@@ -169,7 +249,7 @@ export default function PartnerShowsPage() {
                 type="date"
                 value={fromDate}
                 onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
-                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -178,15 +258,24 @@ export default function PartnerShowsPage() {
                 type="date"
                 value={toDate}
                 onChange={(e) => { setToDate(e.target.value); setPage(1); }}
-                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
               />
             </div>
+
+            {isFiltered && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 text-sm text-accent-indigo hover:underline whitespace-nowrap"
+              >
+                <X size={12} /> Clear filters
+              </button>
+            )}
           </div>
         </div>
 
         <AdminTable
           columns={columns}
-          data={filteredShows}
+          data={shows}
           isLoading={isLoading}
           emptyMessage="No shows found for the selected filters."
         />
@@ -202,6 +291,22 @@ export default function PartnerShowsPage() {
           </div>
         )}
       </div>
+
+      {showCreate && (
+        <PartnerShowFormModal
+          onClose={() => setShowCreate(false)}
+          onSuccess={() => setShowCreate(false)}
+        />
+      )}
+
+      {cancellingShow && (
+        <CancelShowModal
+          show={cancellingShow}
+          isLoading={cancelShow.isPending}
+          onClose={() => setCancellingShow(null)}
+          onConfirm={() => cancelShow.mutate(cancellingShow.id, { onSuccess: () => setCancellingShow(null) })}
+        />
+      )}
     </PartnerLayout>
   );
 }

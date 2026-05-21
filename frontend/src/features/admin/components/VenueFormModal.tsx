@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X } from 'lucide-react';
 import { Modal } from '@/shared/components/ui/Modal';
 import { cn } from '@/shared/lib/utils';
 import { useQuery } from '@tanstack/react-query';
@@ -120,17 +119,9 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
   });
 
   return (
-    <Modal open onClose={onClose} maxWidth="max-w-2xl">
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="font-display font-bold text-xl text-text-primary">
-          {mode === 'create' ? 'Add New Venue' : 'Edit Venue'}
-        </h2>
-        <button onClick={onClose} className="text-text-muted hover:text-text-primary transition-colors">
-          <X size={20} />
-        </button>
-      </div>
-
-      <form onSubmit={onSubmit} className="space-y-5 max-h-[75vh] overflow-y-auto pr-1">
+    <Modal open onClose={onClose} maxWidth="max-w-2xl"
+      title={mode === 'create' ? 'Add New Venue' : 'Edit Venue'}>
+      <form onSubmit={onSubmit} className="space-y-5">
         {/* Basic Information */}
         <section className="space-y-3">
           <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider">Basic Information</h3>
@@ -274,18 +265,17 @@ export function VenueFormModal({ mode, venue, onClose, onSuccess }: Props) {
         </section>
 
         {/* Footer */}
-        <div className="flex gap-3 pt-3 border-t border-border-default sticky bottom-0 bg-bg-surface pb-1">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-5 py-2.5 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 hover:text-text-primary transition-colors text-sm font-semibold font-sans"
-          >
+        <div className="flex gap-3 pt-3 border-t border-border-default sticky bottom-0 bg-white pb-1">
+          <button type="button" onClick={onClose} className="bk-btn-cancel">
             Cancel
           </button>
           <button
             type="submit"
             disabled={isLoading}
-            className="flex-1 px-5 py-2.5 rounded-lg bg-accent-crimson text-white text-sm font-bold font-sans disabled:opacity-60 hover:opacity-90 transition-opacity shadow-sm"
+            className="bk-btn-primary flex-1"
+            style={{ background: '#E51937' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
           >
             {isLoading ? 'Saving…' : mode === 'create' ? 'Create Venue' : 'Save Changes'}
           </button>

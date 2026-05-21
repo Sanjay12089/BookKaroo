@@ -77,6 +77,7 @@ export interface PartnerShowResponse {
   format: string | null;
   language: string | null;
   status: string;
+  bookedSeats: number;
 }
 
 export interface PartnerBookingListItem {
@@ -91,6 +92,34 @@ export interface PartnerBookingListItem {
   amountPaid: number;
   status: string;
   createdAt: string;
+}
+
+export interface PartnerBookingDetail {
+  bookingRef: string;
+  userId: string;
+  userName: string;
+  userEmail: string;
+  movieOrEventTitle: string;
+  venueName: string;
+  screenName: string;
+  showDatetime: string;
+  ticketQty: number;
+  seats: string[];
+  ticketAmount: number;
+  convenienceFee: number;
+  discount: number;
+  amountPaid: number;
+  status: string;
+  createdAt: string;
+  cancelledAt: string | null;
+}
+
+export interface PartnerReportResponse {
+  totalBookings: number;
+  totalRevenue: number;
+  bookingsPerDay: Array<{ date: string; count: number }>;
+  revenuePerVenue: Array<{ venueName: string; revenue: number }>;
+  recentBookings: RecentPartnerBooking[];
 }
 
 export interface PartnerReviewResponse {

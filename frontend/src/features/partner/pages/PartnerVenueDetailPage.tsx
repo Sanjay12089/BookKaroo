@@ -1,68 +1,78 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Monitor, Users, LayoutGrid } from 'lucide-react';
+import { ArrowLeft, Monitor, Users, Plus, Pencil, Trash2, AlertTriangle } from 'lucide-react';
 import { PartnerLayout } from '../components/PartnerLayout';
-import { usePartnerVenueDetail } from '../api/usePartner';
+import { PartnerScreenFormModal } from '../components/PartnerScreenFormModal';
+import { SeatLayoutPreview } from '../components/SeatLayoutPreview';
+import { usePartnerVenueDetail, useDeletePartnerScreen } from '../api/usePartner';
+import { Modal } from '@/shared/components/ui/Modal';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import type { PartnerScreenInfo } from '../types';
 
-function SeatLayoutPreview({ layout, totalSeats }: { layout: string | null; totalSeats: number }) {
-  if (!layout) {
-    return (
-      <div className="rounded-lg bg-bg-surface2 border border-border-default/50 p-4 flex flex-col items-center justify-center gap-2 h-28">
-        <LayoutGrid size={20} className="text-text-muted" />
-        <p className="text-xs text-text-muted">No layout defined</p>
-        <p className="text-xs text-text-muted">{totalSeats} seats total</p>
-      </div>
-    );
-  }
+// ── Delete confirmation ───────────────────────────────────────────────────────
 
-  let parsed: Array<{ row: string; seats: number; category: string }> = [];
-  try {
-    const obj = JSON.parse(layout) as { rows?: Array<{ row: string; seats: number; category: string }> };
-    parsed = obj.rows ?? [];
-  } catch {
-    return (
-      <div className="rounded-lg bg-bg-surface2 border border-border-default/50 p-4 text-xs text-text-muted text-center h-28 flex items-center justify-center">
-        {totalSeats} seats
-      </div>
-    );
-  }
+interface DeleteScreenModalProps {
+  screen: PartnerScreenInfo;
+  venueId: string;
+  onClose: () => void;
+}
 
-  const CATEGORY_COLORS: Record<string, string> = {
-    recliner:  'bg-accent-indigo',
-    executive: 'bg-accent-crimson',
-    normal:    'bg-text-muted',
-  };
-
+function DeleteScreenModal({ screen, venueId, onClose }: DeleteScreenModalProps) {
+  const del = useDeletePartnerScreen(venueId);
   return (
-    <div className="rounded-lg bg-bg-surface2 border border-border-default/50 p-3 space-y-1 max-h-40 overflow-y-auto">
-      {parsed.map((r) => {
-        const color = CATEGORY_COLORS[r.category] ?? 'bg-text-muted';
-        return (
-          <div key={r.row} className="flex items-center gap-2">
-            <span className="text-[10px] font-mono text-text-muted w-4 flex-shrink-0">{r.row}</span>
-            <div className="flex gap-0.5 flex-wrap">
-              {Array.from({ length: Math.min(r.seats, 30) }, (_, i) => (
-                <span key={i} className={`w-2.5 h-2.5 rounded-sm ${color} opacity-70`} />
-              ))}
-              {r.seats > 30 && <span className="text-[9px] text-text-muted ml-1">+{r.seats - 30}</span>}
-            </div>
-          </div>
-        );
-      })}
-    </div>
+    <Modal open onClose={onClose} maxWidth="max-w-sm">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-semantic-error">
+          <AlertTriangle size={20} />
+          <h3 className="font-display font-bold text-lg">Delete Screen?</h3>
+        </div>
+        <p className="text-sm text-text-secondary">
+          Delete <span className="font-semibold text-text-primary">{screen.name}</span>?
+          This cannot be undone. Screens with scheduled shows cannot be deleted.
+        </p>
+        {del.isError && (
+          <p className="text-xs text-semantic-error">
+            Cannot delete — this screen may have scheduled shows.
+          </p>
+        )}
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={onClose}
+            className="w-full px-4 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 transition-colors text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => del.mutate(screen.id, { onSuccess: onClose })}
+            disabled={del.isPending}
+            className="w-full px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+            style={{ background: '#E51937' }}
+          >
+            {del.isPending ? 'Deleting…' : 'Delete Screen'}
+          </button>
+        </div>
+      </div>
+    </Modal>
   );
 }
 
-function ScreenCard({ screen }: { screen: PartnerScreenInfo }) {
+// ── Screen card ───────────────────────────────────────────────────────────────
+
+interface ScreenCardProps {
+  screen: PartnerScreenInfo;
+  onEdit: (screen: PartnerScreenInfo) => void;
+  onDelete: (screen: PartnerScreenInfo) => void;
+}
+
+function ScreenCard({ screen, onEdit, onDelete }: ScreenCardProps) {
   return (
     <div className="rounded-xl border border-border-default bg-bg-base p-4 space-y-3">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <Monitor size={16} className="text-accent-indigo flex-shrink-0" />
-          <h3 className="font-semibold text-text-primary text-sm">{screen.name}</h3>
+          <h3 className="font-semibold text-text-primary text-sm truncate">{screen.name}</h3>
         </div>
-        <div className="flex items-center gap-1 text-xs text-text-secondary">
+        <div className="flex items-center gap-1 text-xs text-text-secondary flex-shrink-0">
           <Users size={12} />
           <span>{screen.totalSeats} seats</span>
         </div>
@@ -70,20 +80,33 @@ function ScreenCard({ screen }: { screen: PartnerScreenInfo }) {
 
       <SeatLayoutPreview layout={screen.layout} totalSeats={screen.totalSeats} />
 
-      <div className="flex flex-wrap gap-1.5 pt-1">
-        {['Recliner', 'Executive', 'Normal'].map((cat) => (
-          <span key={cat} className="text-[10px] px-2 py-0.5 rounded-full bg-bg-surface2 text-text-muted border border-border-default/50">
-            {cat}
-          </span>
-        ))}
+      <div className="flex gap-2 pt-1">
+        <button
+          onClick={() => onEdit(screen)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-default text-text-secondary text-xs hover:text-accent-indigo hover:border-accent-indigo transition-colors"
+        >
+          <Pencil size={12} /> Edit
+        </button>
+        <button
+          onClick={() => onDelete(screen)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-default text-text-secondary text-xs hover:text-semantic-error hover:border-semantic-error/50 transition-colors"
+        >
+          <Trash2 size={12} /> Delete
+        </button>
       </div>
     </div>
   );
 }
 
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 export default function PartnerVenueDetailPage() {
   const { venueId } = useParams<{ venueId: string }>();
   const { data: venue, isLoading, isError, refetch } = usePartnerVenueDetail(venueId);
+
+  const [addingScreen,     setAddingScreen]     = useState(false);
+  const [editingScreen,    setEditingScreen]    = useState<PartnerScreenInfo | null>(null);
+  const [deletingScreen,   setDeletingScreen]   = useState<PartnerScreenInfo | null>(null);
 
   return (
     <PartnerLayout>
@@ -115,6 +138,7 @@ export default function PartnerVenueDetailPage() {
 
         {venue && (
           <>
+            {/* Venue info card */}
             <div className="rounded-xl border border-border-default bg-bg-base p-5">
               <div className="flex items-start gap-4">
                 <div className="flex-1 min-w-0">
@@ -149,18 +173,34 @@ export default function PartnerVenueDetailPage() {
               )}
             </div>
 
+            {/* Screens section */}
             <div>
-              <h2 className="text-lg font-display font-bold text-text-primary mb-4">
-                Screens ({venue.screens.length})
-              </h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-display font-bold text-text-primary">
+                  Screens ({venue.screens.length})
+                </h2>
+                <button
+                  onClick={() => setAddingScreen(true)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: '#E51937' }}
+                >
+                  <Plus size={14} /> Add Screen
+                </button>
+              </div>
+
               {venue.screens.length === 0 ? (
                 <div className="rounded-lg border border-border-default bg-bg-base p-8 text-center text-sm text-text-muted">
-                  No screens configured for this venue yet.
+                  No screens configured for this venue yet. Click "Add Screen" to create one.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {venue.screens.map((screen) => (
-                    <ScreenCard key={screen.id} screen={screen} />
+                    <ScreenCard
+                      key={screen.id}
+                      screen={screen}
+                      onEdit={setEditingScreen}
+                      onDelete={setDeletingScreen}
+                    />
                   ))}
                 </div>
               )}
@@ -168,6 +208,32 @@ export default function PartnerVenueDetailPage() {
           </>
         )}
       </div>
+
+      {/* Add screen modal */}
+      {addingScreen && venueId && (
+        <PartnerScreenFormModal
+          venueId={venueId}
+          onClose={() => setAddingScreen(false)}
+        />
+      )}
+
+      {/* Edit screen modal */}
+      {editingScreen && venueId && (
+        <PartnerScreenFormModal
+          venueId={venueId}
+          screen={editingScreen}
+          onClose={() => setEditingScreen(null)}
+        />
+      )}
+
+      {/* Delete screen modal */}
+      {deletingScreen && venueId && (
+        <DeleteScreenModal
+          screen={deletingScreen}
+          venueId={venueId}
+          onClose={() => setDeletingScreen(null)}
+        />
+      )}
     </PartnerLayout>
   );
 }

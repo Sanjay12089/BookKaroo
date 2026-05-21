@@ -121,7 +121,7 @@ export default function EventDetailPage() {
   if (isLoading) return (
     <PublicLayout>
       <Skeleton className="h-[440px] w-full rounded-none" />
-      <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-4">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-8 space-y-4">
         <Skeleton height={48} width="50%" />
         <Skeleton height={24} width="30%" />
       </div>

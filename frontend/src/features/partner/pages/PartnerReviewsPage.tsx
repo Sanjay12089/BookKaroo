@@ -123,7 +123,7 @@ export default function PartnerReviewsPage() {
           <select
             value={venueId}
             onChange={(e) => { setVenueId(e.target.value); setPage(1); }}
-            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
           >
             <option value="">All Venues</option>
             {venues?.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
@@ -132,7 +132,7 @@ export default function PartnerReviewsPage() {
           <select
             value={status}
             onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
           >
             <option value="">All Statuses</option>
             <option value="Published">Published</option>
@@ -143,7 +143,7 @@ export default function PartnerReviewsPage() {
           <select
             value={sort}
             onChange={(e) => { setSort(e.target.value); setPage(1); }}
-            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+            className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
           >
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>

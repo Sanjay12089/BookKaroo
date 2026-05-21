@@ -214,12 +214,17 @@ export function EventFormModal({ mode, event, onClose, onSuccess }: Props) {
 
         {/* Footer */}
         <div className="flex justify-end gap-3 pt-5 mt-4 border-t border-border-default">
-          <button type="button" onClick={onClose}
-            className="px-5 py-2 rounded-lg border border-border-default text-text-secondary hover:bg-bg-surface2 text-sm font-sans transition-colors">
+          <button type="button" onClick={onClose} className="bk-btn-cancel">
             Cancel
           </button>
-          <button type="submit" disabled={isSubmitting}
-            className="px-5 py-2 rounded-lg bg-accent-crimson text-white text-sm font-semibold font-sans disabled:opacity-60 hover:opacity-90 transition-opacity">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="bk-btn-primary"
+            style={{ background: '#E51937' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
+          >
             {isSubmitting ? 'Saving…' : mode === 'create' ? 'Create Event' : 'Save Changes'}
           </button>
         </div>

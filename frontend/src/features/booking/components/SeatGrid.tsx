@@ -27,6 +27,15 @@ function getSeatState(
 export function SeatGrid({ layout, bookedSeats, lockedSeats, selectedSeats, onSeatClick }: Props) {
   const { categories, cols, blockedSeats, aisleAfterCols } = layout;
 
+  if (!categories || !Array.isArray(categories) || categories.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-3 text-text-muted">
+        <p className="text-sm">Seat layout not configured for this screen.</p>
+        <p className="text-xs">Please contact the venue for seat selection assistance.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       {/* Screen */}

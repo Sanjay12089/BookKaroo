@@ -158,15 +158,17 @@ export function BannerFormModal({ mode, banner, onClose, onSuccess }: Props) {
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border-default bg-bg-surface2">
-          <button type="button" onClick={onClose}
-            className="px-4 py-2 rounded-full border border-border-default text-sm font-semibold font-sans hover:bg-bg-surface2 transition-colors">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border-default bg-white">
+          <button type="button" onClick={onClose} className="bk-btn-cancel">
             Cancel
           </button>
           <button
             onClick={handleSubmit(onSubmit)}
             disabled={isPending}
-            className="px-5 py-2 rounded-full bg-accent-crimson text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all disabled:opacity-50"
+            className="bk-btn-primary"
+            style={{ background: '#E51937' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
           >
             {isPending ? 'Saving…' : mode === 'create' ? 'Create Banner' : 'Save Changes'}
           </button>

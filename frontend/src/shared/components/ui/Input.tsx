@@ -60,7 +60,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
                 error
                   ? 'text-semantic-error'
                   : focused
-                  ? 'text-accent-indigo'
+                  ? 'text-[#4F46E5]'
                   : 'text-text-muted'
               )}
             >
@@ -87,8 +87,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               label ? 'pt-5 pb-1.5 px-3.5' : 'px-3.5',
               rightElement && 'pr-10',
               error
-                ? 'border border-semantic-error focus:ring-2 focus:ring-semantic-error/15'
-                : 'border border-border-default focus:border-accent-indigo focus:ring-2 focus:ring-accent-indigo/15'
+                ? 'border border-semantic-error focus:ring-2 focus:ring-semantic-error/10'
+                : 'border border-border-default focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/12'
             )}
             {...inputRest}
           />

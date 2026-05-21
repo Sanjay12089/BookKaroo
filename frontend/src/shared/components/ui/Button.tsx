@@ -12,23 +12,24 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantClasses: Record<Variant, string> = {
+  // BMS-style: solid fill, no heavy shadows, clean hover
   primary:
-    'bg-accent-crimson hover:bg-accent-crimson-dark text-white shadow-[0_4px_14px_rgba(229,25,55,0.35)] hover:shadow-[0_6px_20px_rgba(229,25,55,0.5)] hover:-translate-y-px active:translate-y-0',
+    'bg-accent-crimson hover:bg-accent-crimson-dark active:bg-accent-crimson-dark text-white transition-colors',
   secondary:
-    'bg-accent-indigo hover:bg-accent-purple text-white shadow-[0_4px_14px_rgba(79,70,229,0.35)] hover:-translate-y-px',
+    'bg-accent-indigo hover:bg-[#4338CA] active:bg-[#4338CA] text-white transition-colors',
   ghost:
-    'bg-bg-surface border border-border-default text-text-primary hover:bg-bg-surface2 hover:border-border-strong',
+    'bg-transparent border border-border-strong text-text-primary hover:bg-bg-surface2 transition-colors',
   gradient:
-    'bg-accent-crimson hover:bg-accent-crimson-dark text-white hover:-translate-y-px',
+    'bg-accent-crimson hover:bg-accent-crimson-dark text-white transition-colors',
   destructive:
-    'bg-semantic-error hover:opacity-90 text-white hover:-translate-y-px',
+    'bg-semantic-error hover:bg-[#C0392B] active:bg-[#C0392B] text-white transition-colors',
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: 'h-8 px-3 text-xs rounded-full',
-  md: 'h-10 px-5 text-sm rounded-full',
-  lg: 'h-12 px-7 text-base rounded-full',
-  xl: 'h-14 px-9 text-base rounded-full',
+  sm: 'h-8 px-4 text-xs rounded-md',
+  md: 'h-10 px-5 text-sm rounded-md',
+  lg: 'h-11 px-7 text-sm rounded-md',
+  xl: 'h-12 px-9 text-base rounded-md',
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(

@@ -129,4 +129,78 @@ public class PartnerDashboardService : IPartnerDashboardService
             totalAll, upcomingShows,
             bookingsPerDay, revenuePerVenue, recentDtos, occupancy);
     }
+
+    public async Task<PartnerReportResponse> GetReportAsync(
+        IPartnerContext ctx, DateOnly? fromDate, DateOnly? toDate, CancellationToken ct)
+    {
+        var venueIds = ctx.VenueIds.ToList();
+        var today    = DateTime.UtcNow.Date;
+
+        var from = fromDate.HasValue
+            ? fromDate.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc)
+            : today.AddDays(-30);
+        var to = toDate.HasValue
+            ? toDate.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc)
+            : today.AddDays(1);
+
+        var venues = await _db.Venues.Where(v => venueIds.Contains(v.Id)).ToListAsync(ct);
+
+        var partnerShowIds = await _db.Shows
+            .Where(s => venueIds.Contains(s.VenueId))
+            .Select(s => s.Id)
+            .ToListAsync(ct);
+
+        var rangeQuery = _db.Bookings
+            .Where(b => b.Status == BookKaroo.Domain.Enums.BookingStatus.Confirmed
+                     && b.ShowId.HasValue
+                     && partnerShowIds.Contains(b.ShowId!.Value)
+                     && b.CreatedAt >= from
+                     && b.CreatedAt <= to);
+
+        var totalBookings = await rangeQuery.CountAsync(ct);
+        var totalRevenue  = await rangeQuery.SumAsync(b => (decimal?)b.AmountPaid, ct) ?? 0m;
+
+        // Daily bookings — one entry per day in range (capped at 90 days)
+        var days = (int)Math.Min(90, (to - from).TotalDays + 1);
+        var bookingsPerDay = new List<DailyBookingStat>();
+        for (int i = 0; i < days; i++)
+        {
+            var d    = from.Date.AddDays(i);
+            var dEnd = d.AddDays(1);
+            var cnt  = await rangeQuery.Where(b => b.CreatedAt >= d && b.CreatedAt < dEnd).CountAsync(ct);
+            bookingsPerDay.Add(new DailyBookingStat(d.ToString("MMM dd"), cnt));
+        }
+
+        var revenuePerVenue = new List<VenueRevenueStat>();
+        foreach (var venue in venues)
+        {
+            var venueShowIds = await _db.Shows.Where(s => s.VenueId == venue.Id).Select(s => s.Id).ToListAsync(ct);
+            var rev = await _db.Bookings
+                .Where(b => b.Status == BookKaroo.Domain.Enums.BookingStatus.Confirmed
+                         && b.ShowId.HasValue
+                         && venueShowIds.Contains(b.ShowId!.Value)
+                         && b.CreatedAt >= from && b.CreatedAt <= to)
+                .SumAsync(b => (decimal?)b.AmountPaid, ct) ?? 0m;
+            revenuePerVenue.Add(new VenueRevenueStat(venue.Name, rev));
+        }
+
+        var recent = await rangeQuery.OrderByDescending(b => b.CreatedAt).Take(20).ToListAsync(ct);
+        var recentDtos = new List<RecentPartnerBooking>();
+        foreach (var b in recent)
+        {
+            var show  = await _db.Shows.FirstOrDefaultAsync(s => s.Id == b.ShowId, ct);
+            var venue = show != null ? venues.FirstOrDefault(v => v.Id == show.VenueId) : null;
+            string title = "Unknown";
+            if (show != null)
+            {
+                if (show.MovieId.HasValue)
+                    title = (await _db.Movies.FirstOrDefaultAsync(m => m.Id == show.MovieId.Value, ct))?.Title ?? "Movie";
+                else if (show.EventId.HasValue)
+                    title = (await _db.Events.FirstOrDefaultAsync(e => e.Id == show.EventId.Value, ct))?.Title ?? "Event";
+            }
+            recentDtos.Add(new RecentPartnerBooking(b.BookingRef, title, venue?.Name ?? "—", b.AmountPaid, b.Status.ToString(), b.CreatedAt));
+        }
+
+        return new PartnerReportResponse(totalBookings, totalRevenue, bookingsPerDay, revenuePerVenue, recentDtos);
+    }
 }

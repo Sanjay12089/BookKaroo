@@ -145,10 +145,19 @@ body {
 ::-webkit-scrollbar-thumb { background: #CCCCCC; border-radius: 9999px; }
 ::-webkit-scrollbar-thumb:hover { background: #AAAAAA; }
 
-/* ── Focus ring ──────────────────────────────────────────────────────────── */
+/* ── Focus ring — neutral blue (BMS style, not red) ─────────────────────── */
 :focus-visible {
-  outline: 2px solid #E51937;
+  outline: 2px solid #4F46E5;
   outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Inputs/selects/textareas: use box-shadow ring, suppress outline */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.18);
+  border-color: #4F46E5 !important;
 }
 
 /* ── Skeleton shimmer (light) ────────────────────────────────────────────── */
@@ -161,6 +170,34 @@ body {
 /* ── Utilities ───────────────────────────────────────────────────────────── */
 .scroll-hide::-webkit-scrollbar { display: none; }
 .scroll-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── BMS-style dialog button helpers ────────────────────────────────────── */
+.bk-btn-primary {
+  background: #E51937;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.bk-btn-primary:hover:not(:disabled) { background: #B5111F; }
+.bk-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.bk-btn-cancel {
+  background: transparent;
+  color: #555555;
+  border: 1px solid #D0D0D0;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.bk-btn-cancel:hover { background: #F4F5F6; }
 
 img { max-width: 100%; display: block; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
