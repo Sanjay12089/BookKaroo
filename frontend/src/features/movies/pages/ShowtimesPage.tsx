@@ -92,10 +92,11 @@ export default function ShowtimesPage() {
               <button
                 key={d.isoDate}
                 onClick={() => { setDateIdx(i); setSelectedShowId(null); }}
+                style={dateIdx === i ? { background: 'rgb(235, 78, 98)' } : undefined}
                 className={cn(
                   'flex-shrink-0 w-[68px] py-2.5 rounded-lg text-center transition-all duration-150 font-sans',
                   dateIdx === i
-                    ? 'bg-accent-crimson text-white'
+                    ? 'text-white'
                     : 'bg-bg-surface border border-border-default text-text-secondary hover:border-accent-crimson/50 hover:text-text-primary'
                 )}
               >
