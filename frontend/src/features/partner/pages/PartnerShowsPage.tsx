@@ -5,6 +5,7 @@ import { usePartnerShows, useCancelPartnerShow, usePartnerVenues } from '../api/
 import { PartnerShowFormModal } from '../components/PartnerShowFormModal';
 import { Modal } from '@/shared/components/ui/Modal';
 import { AdminTable, type Column } from '@/features/admin/components/AdminTable';
+import { Spinner } from '@/shared/components/ui/Spinner';
 import type { PartnerShowResponse } from '../types';
 
 const STATUS_CLASSES: Record<string, string> = {
@@ -191,16 +192,18 @@ export default function PartnerShowsPage() {
     <PartnerLayout>
       <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-5">
         <header className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-display font-bold text-text-primary">Shows</h1>
-            <p className="text-sm text-text-secondary mt-1">View and manage shows for your venues.</p>
+          <div className="flex items-center gap-2">
+            <div>
+              <h1 className="text-2xl font-display font-bold text-text-primary">Shows</h1>
+              <p className="text-sm text-text-secondary mt-1">View and manage shows for your venues.</p>
+            </div>
+            {isLoading && <Spinner size={18} className="text-accent-indigo mt-1" />}
           </div>
           <button
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-            style={{ background: '#E51937' }}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-semibold border border-accent-crimson/40 text-accent-crimson bg-accent-crimson/08 hover:bg-accent-crimson/15 transition-colors"
           >
-            <Plus size={15} /> Create Show
+            <Plus size={14} /> Create Show
           </button>
         </header>
 
