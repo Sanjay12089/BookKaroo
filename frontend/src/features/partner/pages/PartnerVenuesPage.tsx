@@ -1,117 +1,197 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Phone, Mail, ChevronRight, Pencil } from 'lucide-react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { Building2, Phone, Mail, ChevronRight, Pencil, X } from 'lucide-react';
 import { PartnerLayout } from '../components/PartnerLayout';
-import { usePartnerVenues, useUpdatePartnerVenue } from '../api/usePartner';
+import { usePartnerVenues, usePartnerVenueDetail, useUpdatePartnerVenue } from '../api/usePartner';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { Modal } from '@/shared/components/ui/Modal';
-import type { PartnerVenueListItem } from '../types';
 
-const editSchema = z.object({
-  contactPhone: z.string().max(20).optional(),
-  contactEmail: z.string().email('Invalid email').or(z.literal('')).optional(),
-  amenities:    z.string().max(500).optional(),
-});
-type EditForm = z.infer<typeof editSchema>;
+// ── Amenity chips input ───────────────────────────────────────────────────────
 
-interface EditVenueModalProps {
-  venue:   PartnerVenueListItem;
-  onClose: () => void;
+function AmenityChipsInput({ value, onChange }: { value: string[]; onChange: (v: string[]) => void }) {
+  const [input, setInput] = useState('');
+
+  function addChip() {
+    const t = input.trim().replace(/,$/, '');
+    if (t && !value.includes(t)) onChange([...value, t]);
+    setInput('');
+  }
+
+  function handleKey(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addChip(); }
+    if (e.key === 'Backspace' && !input && value.length > 0) onChange(value.slice(0, -1));
+  }
+
+  return (
+    <div
+      className="w-full min-h-[42px] px-2 py-1.5 rounded-lg bg-bg-surface2 border border-border-default focus-within:border-accent-indigo flex flex-wrap gap-1.5 items-center"
+      onClick={(e) => (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus()}
+    >
+      {value.map((chip) => (
+        <span key={chip} className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-accent-indigo/15 text-accent-indigo font-medium">
+          {chip}
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onChange(value.filter((c) => c !== chip)); }}
+            className="hover:text-text-primary leading-none"
+            aria-label={`Remove ${chip}`}
+          >
+            <X size={10} />
+          </button>
+        </span>
+      ))}
+      <input
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyDown={handleKey}
+        onBlur={addChip}
+        placeholder={value.length === 0 ? 'Type amenity + Enter to add…' : ''}
+        className="flex-1 min-w-[120px] bg-transparent text-sm text-text-primary focus:outline-none placeholder:text-text-muted py-0.5"
+      />
+    </div>
+  );
 }
 
-function EditVenueModal({ venue, onClose }: EditVenueModalProps) {
-  const update = useUpdatePartnerVenue(venue.id);
-  const { register, handleSubmit, formState: { errors } } = useForm<EditForm>({
-    resolver: zodResolver(editSchema),
-    defaultValues: {
-      contactPhone: venue.contactPhone ?? '',
-      contactEmail: venue.contactEmail ?? '',
-      amenities: '',
-    },
-  });
+// ── Edit modal ────────────────────────────────────────────────────────────────
 
-  function onSubmit(data: EditForm) {
+function EditVenueModal({ venueId, onClose }: { venueId: string; onClose: () => void }) {
+  const { data: venue, isLoading: loadingVenue } = usePartnerVenueDetail(venueId);
+  const update = useUpdatePartnerVenue(venueId);
+
+  const [phone,     setPhone]     = useState('');
+  const [email,     setEmail]     = useState('');
+  const [amenities, setAmenities] = useState<string[]>([]);
+  const [emailErr,  setEmailErr]  = useState('');
+
+  useEffect(() => {
+    if (!venue) return;
+    setPhone(venue.contactPhone ?? '');
+    setEmail(venue.contactEmail ?? '');
+    let items: string[] = [];
+    try { items = JSON.parse(venue.amenities ?? '[]') as string[]; }
+    catch { items = (venue.amenities ?? '').split(',').map((s) => s.trim()).filter(Boolean); }
+    setAmenities(items);
+  }, [venue]);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setEmailErr('Invalid email'); return;
+    }
+    setEmailErr('');
     update.mutate(
       {
-        contactPhone: data.contactPhone || undefined,
-        contactEmail: data.contactEmail || undefined,
-        amenities:    data.amenities    || undefined,
+        contactPhone: phone || undefined,
+        contactEmail: email || undefined,
+        amenities:    amenities.length > 0 ? JSON.stringify(amenities) : undefined,
       },
       { onSuccess: onClose }
     );
   }
 
+  const lockedField = 'w-full px-3 py-2 rounded-lg bg-bg-surface3 border border-border-default/60 text-text-muted text-sm select-none cursor-not-allowed';
+
   return (
     <Modal open onClose={onClose} maxWidth="max-w-md">
-      <h2 className="font-display font-bold text-xl text-text-primary mb-4">Edit Venue Contact</h2>
-      <p className="text-sm text-text-secondary mb-5">{venue.name}</p>
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label className="block text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-            Contact Phone
-          </label>
-          <input
-            {...register('contactPhone')}
-            className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
-            placeholder="+91 99999 99999"
-          />
-          {errors.contactPhone && <p className="text-xs text-semantic-error mt-1">{errors.contactPhone.message}</p>}
-        </div>
+      <h2 className="font-display font-bold text-xl text-text-primary mb-5">Edit Venue Details</h2>
 
-        <div>
-          <label className="block text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-            Contact Email
-          </label>
-          <input
-            {...register('contactEmail')}
-            className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
-            placeholder="venue@example.com"
-          />
-          {errors.contactEmail && <p className="text-xs text-semantic-error mt-1">{errors.contactEmail.message}</p>}
+      {loadingVenue ? (
+        <div className="space-y-3">
+          {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} height={40} />)}
         </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-        <div>
-          <label className="block text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
-            Amenities (comma-separated or JSON array)
-          </label>
-          <input
-            {...register('amenities')}
-            className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
-            placeholder='["Parking","Food Court","IMAX"]'
-          />
-        </div>
+          {/* ── Locked fields ── */}
+          <div>
+            <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
+              <span className="text-text-muted">🔒</span> Venue Name
+            </label>
+            <div className={lockedField}>{venue?.name ?? '—'}</div>
+          </div>
 
-        {update.isError && (
-          <p className="text-xs text-semantic-error">Failed to update venue. Please try again.</p>
-        )}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
+                <span>🔒</span> Chain
+              </label>
+              <div className={lockedField}>{venue?.chain || '—'}</div>
+            </div>
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">
+                <span>🔒</span> City
+              </label>
+              <div className={lockedField}>{venue?.cityName ?? '—'}</div>
+            </div>
+          </div>
 
-        <div className="flex gap-3 pt-1">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 py-2 rounded-lg border border-border-default text-text-secondary text-sm hover:bg-bg-surface2 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={update.isPending}
-            className="flex-1 py-2 rounded-lg bg-accent-indigo text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-          >
-            {update.isPending ? 'Saving…' : 'Save Changes'}
-          </button>
-        </div>
-      </form>
+          {/* ── Editable fields ── */}
+          <div className="border-t border-border-default pt-4 space-y-4">
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wide mb-1">
+                <span>✏️</span> Contact Phone
+              </label>
+              <input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+                placeholder="+91 99999 99999"
+              />
+            </div>
+
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wide mb-1">
+                <span>✏️</span> Contact Email
+              </label>
+              <input
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setEmailErr(''); }}
+                className="w-full px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo"
+                placeholder="venue@example.com"
+              />
+              {emailErr && <p className="text-xs text-semantic-error mt-1">{emailErr}</p>}
+            </div>
+
+            <div>
+              <label className="flex items-center gap-1.5 text-xs font-semibold text-text-secondary uppercase tracking-wide mb-1">
+                <span>✏️</span> Amenities
+              </label>
+              <AmenityChipsInput value={amenities} onChange={setAmenities} />
+              <p className="text-[11px] text-text-muted mt-1">Type an amenity and press Enter or comma to add it</p>
+            </div>
+          </div>
+
+          {update.isError && (
+            <p className="text-xs text-semantic-error">Failed to update. Please try again.</p>
+          )}
+
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2 rounded-lg border border-border-default text-text-secondary text-sm hover:bg-bg-surface2 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={update.isPending}
+              className="flex-1 py-2 rounded-lg bg-accent-indigo text-white text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+            >
+              {update.isPending ? 'Saving…' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      )}
     </Modal>
   );
 }
 
+// ── Page ─────────────────────────────────────────────────────────────────────
+
 export default function PartnerVenuesPage() {
   const { data: venues, isLoading, isError, refetch } = usePartnerVenues();
-  const [editingVenue, setEditingVenue] = useState<PartnerVenueListItem | null>(null);
+  const [editingVenueId, setEditingVenueId] = useState<string | null>(null);
 
   return (
     <PartnerLayout>
@@ -170,7 +250,7 @@ export default function PartnerVenuesPage() {
 
                 <div className="flex gap-2 mt-auto pt-1">
                   <button
-                    onClick={() => setEditingVenue(venue)}
+                    onClick={() => setEditingVenueId(venue.id)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-default text-text-secondary text-xs hover:text-accent-indigo hover:border-accent-indigo transition-colors"
                   >
                     <Pencil size={12} /> Edit Contact
@@ -188,10 +268,10 @@ export default function PartnerVenuesPage() {
         )}
       </div>
 
-      {editingVenue && (
+      {editingVenueId && (
         <EditVenueModal
-          venue={editingVenue}
-          onClose={() => setEditingVenue(null)}
+          venueId={editingVenueId}
+          onClose={() => setEditingVenueId(null)}
         />
       )}
     </PartnerLayout>
