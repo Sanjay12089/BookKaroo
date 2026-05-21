@@ -16,10 +16,10 @@ function buildDates() {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(base);
     d.setDate(base.getDate() + i);
-    const days   = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const days   = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
     return {
-      label:   i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : days[d.getDay()],
+      label:   days[d.getDay()],
       day:     d.getDate(),
       month:   months[d.getMonth()],
       isoDate: d.toISOString().split('T')[0],
@@ -86,22 +86,22 @@ export default function ShowtimesPage() {
         </header>
 
         {/* Date strip (sticky) */}
-        <div className="sticky top-[105px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-4 bg-bg-surface/95 backdrop-blur-md border-b border-border-default mb-6">
+        <div className="sticky top-[105px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-3 bg-bg-surface/95 backdrop-blur-md border-b border-border-default mb-6">
           <div className="flex gap-2 overflow-x-auto pt-3 pb-1 [scrollbar-width:none]">
             {DATES.map((d, i) => (
               <button
                 key={d.isoDate}
                 onClick={() => { setDateIdx(i); setSelectedShowId(null); }}
                 className={cn(
-                  'flex-shrink-0 w-[76px] py-3 rounded-xl text-center transition-all duration-150 font-sans',
+                  'flex-shrink-0 w-[68px] py-2.5 rounded-lg text-center transition-all duration-150 font-sans',
                   dateIdx === i
-                    ? 'bg-gradient-to-br from-accent-indigo to-accent-purple text-white shadow-[0_8px_24px_rgba(99,102,241,0.4)]'
-                    : 'bg-bg-surface border border-border-default text-text-secondary hover:border-border-strong'
+                    ? 'bg-accent-crimson text-white'
+                    : 'bg-bg-surface border border-border-default text-text-secondary hover:border-accent-crimson/50 hover:text-text-primary'
                 )}
               >
-                <div className="text-[10px] uppercase tracking-wider opacity-80">{d.label}</div>
-                <div className="font-display font-semibold text-xl leading-tight">{d.day}</div>
-                <div className="text-[10px] opacity-80">{d.month}</div>
+                <div className={cn('text-[10px] font-semibold tracking-wider', dateIdx === i ? 'text-white/90' : 'text-text-muted')}>{d.label}</div>
+                <div className="font-display font-bold text-[22px] leading-tight">{d.day}</div>
+                <div className={cn('text-[10px] font-medium tracking-wide', dateIdx === i ? 'text-white/90' : 'text-text-muted')}>{d.month}</div>
               </button>
             ))}
           </div>
