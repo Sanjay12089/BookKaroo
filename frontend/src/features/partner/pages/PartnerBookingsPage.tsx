@@ -3,7 +3,6 @@ import { Search, X } from 'lucide-react';
 import { PartnerLayout } from '../components/PartnerLayout';
 import { usePartnerBookings, usePartnerVenues } from '../api/usePartner';
 import { PartnerBookingDetailDrawer } from '../components/PartnerBookingDetailDrawer';
-import { Spinner } from '@/shared/components/ui/Spinner';
 import { AdminTable, type Column } from '@/features/admin/components/AdminTable';
 import type { PartnerBookingListItem } from '../types';
 
@@ -111,15 +110,12 @@ export default function PartnerBookingsPage() {
   return (
     <PartnerLayout>
       <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-5">
-        <header className="flex items-center gap-3">
-          <div>
-            <h1 className="text-2xl font-display font-bold text-text-primary">
-              Bookings
-              {data && <span className="ml-2 text-base font-normal text-text-muted">({data.total})</span>}
-            </h1>
-            <p className="text-sm text-text-secondary mt-1">Click any row to view booking details.</p>
-          </div>
-          {isLoading && <Spinner size={18} className="text-accent-indigo mt-1" />}
+        <header>
+          <h1 className="text-2xl font-display font-bold text-text-primary">
+            Bookings
+            {data && <span className="ml-2 text-base font-normal text-text-muted">({data.total})</span>}
+          </h1>
+          <p className="text-sm text-text-secondary mt-1">Click any row to view booking details.</p>
         </header>
 
         {/* Summary cards */}

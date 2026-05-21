@@ -5,7 +5,6 @@ import { usePartnerReport } from '../api/usePartner';
 import { SimpleBarChart } from '@/features/admin/components/SimpleBarChart';
 import { HorizontalBarChart } from '@/features/admin/components/HorizontalBarChart';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
-import { Spinner } from '@/shared/components/ui/Spinner';
 import type { PartnerReportResponse } from '../types';
 
 function fmt(n: number) {
@@ -89,12 +88,9 @@ export default function PartnerReportsPage() {
     <PartnerLayout>
       <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-6">
         <header className="flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <div>
-              <h1 className="text-2xl font-display font-bold text-text-primary">Reports</h1>
-              <p className="text-sm text-text-secondary mt-1">Revenue and booking performance for your venues.</p>
-            </div>
-            {isLoading && <Spinner size={18} className="text-accent-indigo mt-1" />}
+          <div>
+            <h1 className="text-2xl font-display font-bold text-text-primary">Reports</h1>
+            <p className="text-sm text-text-secondary mt-1">Revenue and booking performance for your venues.</p>
           </div>
           {data && (
             <button
