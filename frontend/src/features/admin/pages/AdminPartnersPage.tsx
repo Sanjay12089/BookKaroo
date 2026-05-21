@@ -444,6 +444,12 @@ function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-semibold text-text-primary truncate">{v.venueName}</p>
                           <p className="text-xs text-text-muted">{v.cityName}</p>
+                          {(v.contactPhone || v.contactEmail) && (
+                            <div className="mt-0.5 space-y-0.5">
+                              {v.contactPhone && <p className="text-[11px] text-text-secondary">{v.contactPhone}</p>}
+                              {v.contactEmail && <p className="text-[11px] text-text-secondary">{v.contactEmail}</p>}
+                            </div>
+                          )}
                         </div>
                         {revokeConfirm === v.venueId ? (
                           <div className="flex items-center gap-1.5 flex-shrink-0">

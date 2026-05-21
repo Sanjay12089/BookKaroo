@@ -159,7 +159,7 @@ public class AdminPartnerService : IAdminPartnerService
             var v = await _db.Venues.FirstOrDefaultAsync(x => x.Id == a.VenueId, ct);
             if (v == null) continue;
             var c = await _db.Cities.FirstOrDefaultAsync(x => x.Id == v.CityId, ct);
-            venueAccess.Add(new AdminPartnerVenueAccess(v.Id, v.Name, c?.Name ?? "—", a.GrantedAt));
+            venueAccess.Add(new AdminPartnerVenueAccess(v.Id, v.Name, c?.Name ?? "—", a.GrantedAt, v.ContactPhone, v.ContactEmail));
         }
         return new AdminPartnerResponse(
             partner.Id, partner.UserId, user?.Name ?? "—", user?.Email ?? "—", user?.Mobile,
@@ -171,7 +171,7 @@ public class AdminPartnerService : IAdminPartnerService
     private static AdminPartnerResponse MapToResponse(PartnerWithVenues p)
     {
         var venueAccess = p.Venues
-            .Select(v => new AdminPartnerVenueAccess(v.VenueId, v.VenueName, v.CityName, v.GrantedAt))
+            .Select(v => new AdminPartnerVenueAccess(v.VenueId, v.VenueName, v.CityName, v.GrantedAt, v.ContactPhone, v.ContactEmail))
             .ToList();
         return new AdminPartnerResponse(
             p.Profile.Id, p.Profile.UserId, p.UserName, p.UserEmail, p.UserMobile,

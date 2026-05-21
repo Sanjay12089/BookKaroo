@@ -24,4 +24,4 @@ public record PartnerWithVenues(
     List<PartnerVenueInfo> Venues
 );
 
-public record PartnerVenueInfo(Guid VenueId, string VenueName, string CityName, DateTime GrantedAt);
+public record PartnerVenueInfo(Guid VenueId, string VenueName, string CityName, DateTime GrantedAt, string? ContactPhone, string? ContactEmail);

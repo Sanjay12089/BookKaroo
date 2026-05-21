@@ -96,7 +96,7 @@ public record PartnerReviewPage(
 
 // ── Admin Partner Management ──────────────────────────────────────────────
 public record AdminPartnerVenueAccess(
-    Guid VenueId, string VenueName, string CityName, DateTime GrantedAt);
+    Guid VenueId, string VenueName, string CityName, DateTime GrantedAt, string? ContactPhone, string? ContactEmail);
 
 public record AdminPartnerResponse(
     Guid Id, Guid UserId, string UserName, string UserEmail, string? UserMobile,
