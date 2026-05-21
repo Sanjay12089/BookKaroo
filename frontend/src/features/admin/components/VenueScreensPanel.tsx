@@ -138,23 +138,25 @@ function ScreenCard({ screen, onEdit, onDelete }: ScreenCardProps) {
 
       {layout && (
         <>
-          <div className="flex flex-wrap gap-1.5">
-            {layout.categories.map((cat) => (
-              <span key={cat.name} className="flex items-center gap-1 text-[12px] text-text-secondary">
-                <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                {cat.name}
-                <span className="text-text-muted text-[11px]">({cat.rows.join(',')}) ₹{cat.price}</span>
-              </span>
-            ))}
-          </div>
+          {layout.categories && layout.categories.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {layout.categories.map((cat) => (
+                <span key={cat.name} className="flex items-center gap-1 text-[12px] text-text-secondary">
+                  <span className="inline-block w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                  {cat.name}
+                  <span className="text-text-muted text-[11px]">({cat.rows.join(',')}) ₹{cat.price}</span>
+                </span>
+              ))}
+            </div>
+          )}
 
-          {layout.aisleAfterCols.length > 0 && (
+          {(layout.aisleAfterCols?.length ?? 0) > 0 && (
             <p className="text-[11px] text-text-muted mt-1.5">
               Aisle after col: {layout.aisleAfterCols.join(', ')}
             </p>
           )}
 
-          {layout.blockedSeats.length > 0 && (
+          {(layout.blockedSeats?.length ?? 0) > 0 && (
             <p className="text-[11px] text-text-muted mt-0.5">
               {layout.blockedSeats.length} blocked seat(s)
             </p>
