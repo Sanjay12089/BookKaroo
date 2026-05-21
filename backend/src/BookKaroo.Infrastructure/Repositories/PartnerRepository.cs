@@ -98,7 +98,7 @@ public class PartnerRepository : IPartnerRepository
                 if (venue != null)
                 {
                     var city = await _db.Cities.FirstOrDefaultAsync(c => c.Id == venue.CityId, ct);
-                    venues.Add(new PartnerVenueInfo(venue.Id, venue.Name, city?.Name ?? "—", access.GrantedAt));
+                    venues.Add(new PartnerVenueInfo(venue.Id, venue.Name, city?.Name ?? "—", access.GrantedAt, venue.ContactPhone, venue.ContactEmail));
                 }
             }
 

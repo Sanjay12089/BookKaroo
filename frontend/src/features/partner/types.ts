@@ -157,6 +157,8 @@ export interface AdminPartnerResponse {
     venueName: string;
     cityName: string;
     grantedAt: string;
+    contactPhone: string | null;
+    contactEmail: string | null;
   }>;
   createdAt: string;
 }
