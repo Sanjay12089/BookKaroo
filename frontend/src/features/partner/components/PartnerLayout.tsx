@@ -109,9 +109,18 @@ export function PartnerLayout({ children }: { children: React.ReactNode }) {
 
       <main className="flex-1 overflow-auto bg-bg-surface">
         {venueNames.length > 0 && (
-          <div className="bg-accent-indigo/12 border-b border-accent-indigo/25 px-6 py-2 text-xs text-accent-indigo">
-            <span className="font-medium">Partner Portal</span>
-            <span className="text-text-secondary ml-2">Managing: {venueNames.join(', ')}</span>
+          <div className="border-b border-border-default bg-gradient-to-r from-accent-indigo/8 to-accent-crimson/5 px-6 py-2.5 flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-semibold text-accent-indigo tracking-wide uppercase">Partner Portal</span>
+            <span className="text-text-muted text-xs">·</span>
+            <span className="text-[11px] text-text-muted">Managing:</span>
+            {venueNames.map((name) => (
+              <span
+                key={name}
+                className="inline-flex items-center text-[11px] px-2.5 py-0.5 rounded-full bg-accent-crimson/10 text-accent-crimson font-semibold border border-accent-crimson/25"
+              >
+                {name}
+              </span>
+            ))}
           </div>
         )}
         {children}

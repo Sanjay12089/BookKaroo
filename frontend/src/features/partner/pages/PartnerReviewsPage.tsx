@@ -3,6 +3,7 @@ import { Star, EyeOff, Eye, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { PartnerLayout } from '../components/PartnerLayout';
 import { usePartnerReviews, useHidePartnerReview, useRestorePartnerReview, usePartnerVenues } from '../api/usePartner';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
+import { Spinner } from '@/shared/components/ui/Spinner';
 import type { PartnerReviewResponse } from '../types';
 
 const STATUS_BADGE: Record<string, string> = {
@@ -110,12 +111,15 @@ export default function PartnerReviewsPage() {
   return (
     <PartnerLayout>
       <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-5">
-        <header>
-          <h1 className="text-2xl font-display font-bold text-text-primary">
-            Reviews
-            {data && <span className="ml-2 text-base font-normal text-text-muted">({data.total})</span>}
-          </h1>
-          <p className="text-sm text-text-secondary mt-1">Manage customer reviews for your venues.</p>
+        <header className="flex items-center gap-3">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-text-primary">
+              Reviews
+              {data && <span className="ml-2 text-base font-normal text-text-muted">({data.total})</span>}
+            </h1>
+            <p className="text-sm text-text-secondary mt-1">Manage customer reviews for your venues.</p>
+          </div>
+          {isLoading && <Spinner size={18} className="text-accent-indigo mt-1" />}
         </header>
 
         {/* Filters */}
