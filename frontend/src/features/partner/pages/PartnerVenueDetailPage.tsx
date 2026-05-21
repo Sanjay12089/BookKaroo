@@ -181,8 +181,7 @@ export default function PartnerVenueDetailPage() {
                 </h2>
                 <button
                   onClick={() => setAddingScreen(true)}
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-                  style={{ background: '#E51937' }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-accent-crimson text-white text-sm font-semibold hover:opacity-90 transition-opacity"
                 >
                   <Plus size={14} /> Add Screen
                 </button>
