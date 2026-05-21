@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import { PartnerLayout } from '../components/PartnerLayout';
 import { usePartnerBookings, usePartnerVenues } from '../api/usePartner';
+import { PartnerBookingDetailDrawer } from '../components/PartnerBookingDetailDrawer';
 import { AdminTable, type Column } from '@/features/admin/components/AdminTable';
 import type { PartnerBookingListItem } from '../types';
 
@@ -31,6 +32,7 @@ export default function PartnerBookingsPage() {
   const [page,     setPage]     = useState(1);
   const [search,   setSearch]   = useState('');
   const [debouncedSearch, setDebounced] = useState('');
+  const [selectedRef, setSelectedRef] = useState<string | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
@@ -51,8 +53,6 @@ export default function PartnerBookingsPage() {
   });
 
   const bookings = data?.items ?? [];
-  const confirmed = bookings.filter((b) => b.status === 'Confirmed');
-  const revenue   = confirmed.reduce((s, b) => s + b.amountPaid, 0);
 
   const columns: Column<PartnerBookingListItem>[] = [
     {
@@ -64,9 +64,7 @@ export default function PartnerBookingsPage() {
     {
       key: 'customer', header: 'Customer',
       render: (b) => (
-        <div>
-          <p className="text-[13px] font-semibold text-text-primary">{b.userName}</p>
-        </div>
+        <p className="text-[13px] font-semibold text-text-primary">{b.userName}</p>
       ),
     },
     {
@@ -75,7 +73,9 @@ export default function PartnerBookingsPage() {
         <div>
           <p className="text-[13px] text-text-primary line-clamp-1">{b.movieOrEventTitle}</p>
           <p className="text-[11px] text-text-muted">{b.venueName} · {b.screenName}</p>
-          <p className="text-[11px] text-text-muted">{new Date(b.showDatetime).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+          <p className="text-[11px] text-text-muted">
+            {new Date(b.showDatetime).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}
+          </p>
         </div>
       ),
     },
@@ -115,16 +115,16 @@ export default function PartnerBookingsPage() {
             Bookings
             {data && <span className="ml-2 text-base font-normal text-text-muted">({data.total})</span>}
           </h1>
-          <p className="text-sm text-text-secondary mt-1">Bookings for your managed venues.</p>
+          <p className="text-sm text-text-secondary mt-1">Click any row to view booking details.</p>
         </header>
 
-        {/* Summary */}
+        {/* Summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
             { label: 'Total Results', value: String(data?.total ?? 0) },
-            { label: 'Confirmed',     value: String(confirmed.length) },
-            { label: 'Revenue',       value: fmt(revenue)             },
-            { label: 'Cancelled',     value: String(bookings.filter((b) => b.status === 'Cancelled').length) },
+            { label: 'Confirmed',     value: String(data?.confirmedCount ?? 0) },
+            { label: 'Revenue',       value: fmt(data?.totalRevenue ?? 0) },
+            { label: 'Cancelled',     value: String(data?.cancelledCount ?? 0) },
           ].map(({ label, value }) => (
             <div key={label} className="rounded-xl border border-border-default bg-bg-surface p-3">
               <p className="text-[11px] text-text-muted uppercase tracking-wider mb-1">{label}</p>
@@ -155,7 +155,7 @@ export default function PartnerBookingsPage() {
             <select
               value={venueId}
               onChange={(e) => { setVenueId(e.target.value); setPage(1); }}
-              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
             >
               <option value="">All Venues</option>
               {venues?.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
@@ -164,7 +164,7 @@ export default function PartnerBookingsPage() {
             <select
               value={status}
               onChange={(e) => { setStatus(e.target.value); setPage(1); }}
-              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+              className="px-3 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
             >
               <option value="">All Statuses</option>
               <option value="Pending">Pending</option>
@@ -181,7 +181,7 @@ export default function PartnerBookingsPage() {
                 type="date"
                 value={fromDate}
                 onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
-                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -190,7 +190,7 @@ export default function PartnerBookingsPage() {
                 type="date"
                 value={toDate}
                 onChange={(e) => { setToDate(e.target.value); setPage(1); }}
-                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:dark]"
+                className="px-2 py-2 rounded-lg bg-bg-surface2 border border-border-default text-text-primary text-sm focus:outline-none focus:border-accent-indigo [color-scheme:light]"
               />
             </div>
           </div>
@@ -201,19 +201,27 @@ export default function PartnerBookingsPage() {
           data={bookings}
           isLoading={isLoading}
           emptyMessage="No bookings found for the selected filters."
+          onRowClick={(b) => setSelectedRef(b.bookingRef)}
         />
 
-        {data && data.total > 15 && (
+        {data && data.totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
             <p className="text-sm text-text-muted">{data.total} bookings</p>
             <div className="flex gap-2">
               <button disabled={page <= 1} onClick={() => setPage((p) => p - 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">← Prev</button>
-              <span className="px-3 py-1 text-sm text-text-primary">Page {page}</span>
-              <button disabled={bookings.length < 15} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">Next →</button>
+              <span className="px-3 py-1 text-sm text-text-primary">Page {page} / {data.totalPages}</span>
+              <button disabled={page >= data.totalPages} onClick={() => setPage((p) => p + 1)} className="px-3 py-1 rounded-lg border border-border-default text-sm text-text-secondary disabled:opacity-40">Next →</button>
             </div>
           </div>
         )}
       </div>
+
+      {selectedRef && (
+        <PartnerBookingDetailDrawer
+          bookingRef={selectedRef}
+          onClose={() => setSelectedRef(null)}
+        />
+      )}
     </PartnerLayout>
   );
 }

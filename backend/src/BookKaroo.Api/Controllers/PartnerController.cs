@@ -34,6 +34,12 @@ public class PartnerController : ControllerBase
     public async Task<IActionResult> GetDashboard(CancellationToken ct) =>
         Ok(await _dashboard.GetDashboardAsync(_ctx, ct));
 
+    [HttpGet("reports")]
+    public async Task<IActionResult> GetReport(
+        [FromQuery] DateOnly? fromDate, [FromQuery] DateOnly? toDate,
+        CancellationToken ct) =>
+        Ok(await _dashboard.GetReportAsync(_ctx, fromDate, toDate, ct));
+
     // ── Venues ──────────────────────────────────────────────────────────
     [HttpGet("venues")]
     public async Task<IActionResult> GetVenues(CancellationToken ct) =>
@@ -67,11 +73,11 @@ public class PartnerController : ControllerBase
     public async Task<IActionResult> GetShows(
         [FromQuery] Guid? venueId, [FromQuery] Guid? screenId,
         [FromQuery] DateOnly? fromDate, [FromQuery] DateOnly? toDate,
-        [FromQuery] string? status,
+        [FromQuery] string? status, [FromQuery] string? search,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
         CancellationToken ct = default)
     {
-        var (items, total) = await _shows.GetShowsAsync(_ctx, venueId, screenId, fromDate, toDate, status, page, pageSize, ct);
+        var (items, total) = await _shows.GetShowsAsync(_ctx, venueId, screenId, fromDate, toDate, status, search, page, pageSize, ct);
         return Ok(new { items, total, page, pageSize, totalPages = (int)Math.Ceiling((double)total / pageSize) });
     }
 
@@ -127,6 +133,7 @@ public class PartnerController : ControllerBase
     }
 
     [HttpPost("reviews/{reviewId:guid}/show")]
+    [HttpPost("reviews/{reviewId:guid}/restore")]
     public async Task<IActionResult> ShowReview(Guid reviewId, CancellationToken ct)
     {
         await _reviews.ShowReviewAsync(_ctx, reviewId, ct);

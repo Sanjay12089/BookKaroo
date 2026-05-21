@@ -36,21 +36,49 @@ public class PartnerBookingService : IPartnerBookingService
             query = query.Where(b => b.Status == st);
         if (fromDate.HasValue)
         {
-            var from = fromDate.Value.ToDateTime(TimeOnly.MinValue);
+            var from = fromDate.Value.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
             query = query.Where(b => b.CreatedAt >= from);
         }
         if (toDate.HasValue)
         {
-            var to = toDate.Value.ToDateTime(TimeOnly.MaxValue);
+            var to = toDate.Value.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
             query = query.Where(b => b.CreatedAt <= to);
         }
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var q = search.ToLower();
-            query = query.Where(b => b.BookingRef.ToLower().Contains(q));
+            var pattern = $"%{search.Trim().ToLower()}%";
+
+            var matchingUserIds = await _db.Users
+                .Where(u => EF.Functions.Like(u.Name.ToLower(), pattern))
+                .Select(u => u.Id).ToListAsync(ct);
+
+            var matchingMovieIds = await _db.Movies
+                .Where(m => EF.Functions.Like(m.Title.ToLower(), pattern))
+                .Select(m => m.Id).ToListAsync(ct);
+
+            var matchingEventIds = await _db.Events
+                .Where(e => EF.Functions.Like(e.Title.ToLower(), pattern))
+                .Select(e => e.Id).ToListAsync(ct);
+
+            var matchingShowIds = await _db.Shows
+                .Where(s => venueIds.Contains(s.VenueId) && (
+                    (s.MovieId.HasValue && matchingMovieIds.Contains(s.MovieId.Value)) ||
+                    (s.EventId.HasValue && matchingEventIds.Contains(s.EventId.Value))))
+                .Select(s => s.Id).ToListAsync(ct);
+
+            query = query.Where(b =>
+                EF.Functions.Like(b.BookingRef.ToLower(), pattern) ||
+                matchingUserIds.Contains(b.UserId) ||
+                (b.ShowId.HasValue && matchingShowIds.Contains(b.ShowId.Value)));
         }
 
-        var total = await query.CountAsync(ct);
+        var total          = await query.CountAsync(ct);
+        var confirmedCount = await query.CountAsync(b => b.Status == BookingStatus.Confirmed, ct);
+        var cancelledCount = await query.CountAsync(b => b.Status == BookingStatus.Cancelled, ct);
+        var totalRevenue   = total > 0
+            ? await query.Where(b => b.Status == BookingStatus.Confirmed).SumAsync(b => b.AmountPaid, ct)
+            : 0m;
+
         var bookings = await query
             .OrderByDescending(b => b.CreatedAt)
             .Skip((page - 1) * pageSize)
@@ -78,7 +106,9 @@ public class PartnerBookingService : IPartnerBookingService
                 show?.ShowDatetime ?? b.CreatedAt, b.TicketQty, b.AmountPaid,
                 b.Status.ToString(), b.CreatedAt));
         }
-        return new PartnerBookingPage(items, total, page, pageSize);
+        var totalPages = (int)Math.Ceiling((double)total / pageSize);
+        return new PartnerBookingPage(items, total, page, pageSize, totalPages,
+            confirmedCount, cancelledCount, totalRevenue);
     }
 
     public async Task<PartnerBookingDetail> GetBookingDetailAsync(IPartnerContext ctx, string bookingRef, CancellationToken ct)

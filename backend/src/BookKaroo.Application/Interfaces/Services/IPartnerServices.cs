@@ -6,6 +6,7 @@ namespace BookKaroo.Application.Interfaces.Services;
 public interface IPartnerDashboardService
 {
     Task<PartnerDashboardResponse> GetDashboardAsync(IPartnerContext ctx, CancellationToken ct);
+    Task<PartnerReportResponse> GetReportAsync(IPartnerContext ctx, DateOnly? fromDate, DateOnly? toDate, CancellationToken ct);
 }
 
 public interface IPartnerVenueService
@@ -22,7 +23,7 @@ public interface IPartnerShowService
 {
     Task<(List<PartnerShowResponse> Items, int Total)> GetShowsAsync(
         IPartnerContext ctx, Guid? venueId, Guid? screenId,
-        DateOnly? fromDate, DateOnly? toDate, string? status,
+        DateOnly? fromDate, DateOnly? toDate, string? status, string? search,
         int page, int pageSize, CancellationToken ct);
     Task<PartnerShowResponse> CreateShowAsync(IPartnerContext ctx, CreatePartnerShowRequest req, CancellationToken ct);
     Task CancelShowAsync(IPartnerContext ctx, Guid showId, CancellationToken ct);
