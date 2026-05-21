@@ -317,10 +317,8 @@ function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
   }
 
   const tabCls = (t: typeof tab) =>
-    `px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-      tab === t
-        ? 'text-accent-indigo border-accent-indigo'
-        : 'text-text-muted border-transparent hover:text-text-secondary'
+    `flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+      tab === t ? 'text-[#E51937]' : 'text-text-muted hover:text-text-secondary'
     }`;
 
   return (
@@ -329,7 +327,7 @@ function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
       <div className="fixed inset-0 z-40 bg-black/25" onClick={onClose} />
 
       {/* Drawer */}
-      <div className="fixed right-0 top-0 bottom-0 z-50 w-[460px] bg-white shadow-[−4px_0_24px_rgba(0,0,0,0.12)] flex flex-col">
+      <div className="fixed right-0 top-0 bottom-0 z-[60] w-[460px] bg-white shadow-[-4px_0_24px_rgba(0,0,0,0.12)] flex flex-col">
 
         {/* Header */}
         <div className="flex items-start justify-between px-6 py-5 border-b border-border-default flex-shrink-0">
@@ -344,14 +342,25 @@ function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border-default px-6 flex-shrink-0">
-          <button className={tabCls('profile')} onClick={() => setTab('profile')}>
-            <User size={13} className="inline mr-1.5 -mt-0.5" />Profile
+        <div className="flex items-center gap-1 px-4 py-3 border-b border-border-default flex-shrink-0" style={{ background: '#F1F2F4' }}>
+          <button
+            className={tabCls('profile')}
+            style={tab === 'profile' ? { background: '#FFF0F2', boxShadow: '0 1px 3px rgba(229,25,55,0.15)' } : {}}
+            onClick={() => setTab('profile')}
+          >
+            <User size={13} />Profile
           </button>
-          <button className={tabCls('venues')} onClick={() => setTab('venues')}>
-            <Building2 size={13} className="inline mr-1.5 -mt-0.5" />
+          <button
+            className={tabCls('venues')}
+            style={tab === 'venues' ? { background: '#FFF0F2', boxShadow: '0 1px 3px rgba(229,25,55,0.15)' } : {}}
+            onClick={() => setTab('venues')}
+          >
+            <Building2 size={13} />
             Venue Access
-            <span className="ml-1.5 text-[10px] bg-accent-indigo/12 text-accent-indigo rounded-full px-1.5 py-0.5">
+            <span
+              className="text-[10px] rounded-full px-1.5 py-0.5 font-bold"
+              style={{ background: 'rgba(229,25,55,0.12)', color: '#E51937' }}
+            >
               {partner.venueAccess.length}
             </span>
           </button>
@@ -561,6 +570,9 @@ export default function AdminPartnersPage() {
   const activate   = useActivatePartner();
 
   const partners = data?.items ?? [];
+  const liveSelectedPartner = selectedPartner
+    ? (partners.find(p => p.id === selectedPartner.id) ?? selectedPartner)
+    : null;
 
   const columns: Column<AdminPartnerResponse>[] = [
     {
@@ -716,9 +728,9 @@ export default function AdminPartnersPage() {
       </div>
 
       {showCreate && <CreatePartnerModal onClose={() => setShowCreate(false)} />}
-      {selectedPartner && (
+      {liveSelectedPartner && (
         <PartnerDetailDrawer
-          partner={selectedPartner}
+          partner={liveSelectedPartner}
           onClose={() => setSelectedPartner(null)}
         />
       )}

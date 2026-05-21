@@ -33,7 +33,7 @@ export function PartnerLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-bg-surface font-sans">
       <aside
         className={cn(
-          'flex flex-col flex-shrink-0 border-r border-border-default bg-bg-base transition-[width] duration-[220ms]',
+          'flex flex-col flex-shrink-0 border-r border-border-default bg-bg-base transition-[width] duration-[220ms] relative z-[45]',
           collapsed ? 'w-[60px]' : 'w-[240px]'
         )}
       >
