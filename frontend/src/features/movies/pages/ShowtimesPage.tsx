@@ -100,9 +100,9 @@ export default function ShowtimesPage() {
                     : 'bg-bg-surface border border-border-default text-text-secondary hover:border-accent-crimson/50 hover:text-text-primary'
                 )}
               >
-                <div className={cn('text-[10px] font-semibold tracking-wider', dateIdx === i ? 'text-white/90' : 'text-text-muted')}>{d.label}</div>
-                <div className="font-display font-bold text-[22px] leading-tight">{d.day}</div>
-                <div className={cn('text-[10px] font-medium tracking-wide', dateIdx === i ? 'text-white/90' : 'text-text-muted')}>{d.month}</div>
+                <div className={cn('text-[10px] font-semibold tracking-wider', dateIdx === i ? 'text-white' : 'text-text-muted')}>{d.label}</div>
+                <div className={cn('font-display font-bold text-[22px] leading-tight', dateIdx === i ? 'text-white' : 'text-text-primary')}>{d.day}</div>
+                <div className={cn('text-[10px] font-medium tracking-wide', dateIdx === i ? 'text-white' : 'text-text-muted')}>{d.month}</div>
               </button>
             ))}
           </div>
