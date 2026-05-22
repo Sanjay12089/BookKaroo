@@ -8,7 +8,7 @@ export function ChatbotWidget() {
 
   return createPortal(
     <div
-      className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3"
+      className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 flex flex-col items-end gap-3"
       style={{ fontFamily: 'inherit' }}
     >
       {isOpen && <ChatWindow />}

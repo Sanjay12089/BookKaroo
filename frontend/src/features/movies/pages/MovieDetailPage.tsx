@@ -77,26 +77,26 @@ export default function MovieDetailPage() {
 
           {/* Metadata */}
           <section className="pt-0 md:pt-10">
-            <p className="text-[11px] font-semibold text-white/60 tracking-widest uppercase font-sans mb-2">
+            <p className="text-[11px] font-semibold text-text-muted md:text-white/60 tracking-widest uppercase font-sans mb-2">
               {isComingSoon ? 'Coming Soon' : 'Now Showing'}
               {movie.certificate && ` · ${movie.certificate}`}
               {` · ${formatDuration(movie.durationMin)}`}
             </p>
 
-            <h1 className="font-display font-bold text-3xl md:text-5xl tracking-tight leading-[1.08] mb-4 text-white drop-shadow-sm">
+            <h1 className="font-display font-bold text-3xl md:text-5xl tracking-tight leading-[1.08] mb-4 text-text-primary md:text-white drop-shadow-sm">
               {movie.title}
             </h1>
 
             {/* Ratings row */}
             <div className="flex flex-wrap items-center gap-3 mb-4 text-sm font-sans">
               {movie.averageRating > 0 && (
-                <span className="flex items-center gap-1 font-semibold text-[#FCD34D]">
+                <span className="flex items-center gap-1 font-semibold text-[#D97706] md:text-[#FCD34D]">
                   <Star size={14} fill="currentColor" /> {movie.averageRating.toFixed(1)}
-                  <span className="text-white/55 font-normal text-xs">/10 · {movie.totalReviews} reviews</span>
+                  <span className="text-text-muted md:text-white/55 font-normal text-xs">/10 · {movie.totalReviews} reviews</span>
                 </span>
               )}
               {movie.imdbRating && (
-                <span className="text-white/55 text-xs">IMDb {movie.imdbRating}</span>
+                <span className="text-text-muted md:text-white/55 text-xs">IMDb {movie.imdbRating}</span>
               )}
             </div>
 

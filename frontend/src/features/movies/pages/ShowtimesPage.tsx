@@ -85,8 +85,8 @@ export default function ShowtimesPage() {
           </div>
         </header>
 
-        {/* Date strip (sticky) */}
-        <div className="sticky top-[105px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-3 bg-bg-surface/95 backdrop-blur-md border-b border-border-default mb-6">
+        {/* Date strip (sticky) — top-16 on mobile (no category strip), top-[105px] on desktop */}
+        <div className="sticky top-16 md:top-[105px] z-20 -mx-4 sm:-mx-6 px-4 sm:px-6 pb-3 bg-bg-surface/95 backdrop-blur-md border-b border-border-default mb-6">
           <div className="flex gap-2 overflow-x-auto pt-3 pb-1 [scrollbar-width:none]">
             {DATES.map((d, i) => (
               <button
@@ -168,6 +168,18 @@ export default function ShowtimesPage() {
                     selectedDate={DATES[dateIdx].isoDate}
                   />
                 ))}
+
+                {/* Mobile: inline Choose Seats panel (shown after selecting a show) */}
+                {selectedShowId && (
+                  <div className="lg:hidden mt-4 p-4 rounded-xl border-2 border-accent-crimson/25 bg-accent-crimson/5">
+                    <p className="text-sm font-semibold text-text-primary font-sans mb-3">🎟 Show selected — ready to pick seats?</p>
+                    <Link to={ROUTES.SEAT_SELECTION(selectedShowId)}>
+                      <button className="w-full py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-base font-sans shadow-[0_10px_40px_-10px_rgba(229,9,20,0.45)]">
+                        Choose Seats →
+                      </button>
+                    </Link>
+                  </div>
+                )}
               </>
             )}
           </div>
