@@ -14,37 +14,72 @@ public class ChatbotQueryService : IChatbotQueryService
     public async Task<List<ChatbotShowCard>> SearchShowsAsync(
         GroqIntentResponse intent, Guid? cityId, CancellationToken ct)
     {
-        var targetDate = intent.Date switch
-        {
-            "today"    => DateOnly.FromDateTime(DateTime.Today),
-            "tomorrow" => DateOnly.FromDateTime(DateTime.Today.AddDays(1)),
-            not null when DateOnly.TryParse(intent.Date, out var d) => d,
-            _          => DateOnly.FromDateTime(DateTime.Today)
-        };
+        var today = DateOnly.FromDateTime(DateTime.Today);
 
-        (int fromHour, int toHour) = intent.TimeOfDay switch
+        // Resolve date intent into filter bounds.
+        // "weekend" → next immediate Saturday + Sunday (2-day range).
+        // Exact date → single day. No date → next 7 days.
+        bool dateExplicit = !string.IsNullOrEmpty(intent.Date);
+        DateOnly? exactDate   = null;
+        DateOnly? weekendFrom = null;
+        DateOnly? weekendTo   = null;
+
+        if (intent.Date == "weekend")
         {
-            "morning"   => (6,  12),
-            "afternoon" => (12, 17),
-            "evening"   => (17, 21),
-            "night"     => (21, 24),
-            _           => (0,  24)
+            int daysUntilSat = ((int)DayOfWeek.Saturday - (int)today.DayOfWeek + 7) % 7;
+            weekendFrom = today.AddDays(daysUntilSat);
+            weekendTo   = weekendFrom.Value.AddDays(1); // Sunday
+        }
+        else
+        {
+            exactDate = intent.Date switch
+            {
+                "today"    => today,
+                "tomorrow" => today.AddDays(1),
+                not null when DateOnly.TryParse(intent.Date, out var d) => d,
+                _          => null
+            };
+        }
+
+        // Build TimeOnly range — uses TimeOnly comparisons (safer EF/Npgsql translation than .Hour)
+        TimeOnly? fromTime = intent.TimeOfDay switch
+        {
+            "morning"   => new TimeOnly(6,  0),
+            "afternoon" => new TimeOnly(12, 0),
+            "evening"   => new TimeOnly(17, 0),
+            "night"     => new TimeOnly(21, 0),
+            _           => null
+        };
+        TimeOnly? toTime = intent.TimeOfDay switch
+        {
+            "morning"   => new TimeOnly(11, 59),
+            "afternoon" => new TimeOnly(16, 59),
+            "evening"   => new TimeOnly(20, 59),
+            "night"     => null,
+            _           => null
         };
 
         var query = from s in _db.Shows
-                    join m in _db.Movies  on s.MovieId  equals m.Id
+                    join m in _db.Movies   on s.MovieId  equals m.Id
                     join sc in _db.Screens on s.ScreenId equals sc.Id
                     join v in _db.Venues   on s.VenueId  equals v.Id
                     join c in _db.Cities   on v.CityId   equals c.Id
-                    where s.DeletedAt  == null
-                       && s.Status     == ShowStatus.Scheduled
-                       && m.DeletedAt  == null
-                       && m.Status     == MovieStatus.Published
-                       && v.DeletedAt  == null
-                       && s.ShowDate   == targetDate
-                       && s.ShowTime.Hour >= fromHour
-                       && s.ShowTime.Hour < toHour
+                    where s.Status == ShowStatus.Scheduled
+                       && m.Status == MovieStatus.Published
                     select new { s, m, sc, v, c };
+
+        // Date filter: weekend range, exact day, or next 7 days when unspecified
+        if (weekendFrom.HasValue)
+            query = query.Where(x => x.s.ShowDate >= weekendFrom.Value && x.s.ShowDate <= weekendTo!.Value);
+        else if (exactDate.HasValue)
+            query = query.Where(x => x.s.ShowDate == exactDate.Value);
+        else
+            query = query.Where(x => x.s.ShowDate >= today && x.s.ShowDate <= today.AddDays(7));
+
+        if (fromTime.HasValue)
+            query = query.Where(x => x.s.ShowTime >= fromTime.Value);
+        if (toTime.HasValue)
+            query = query.Where(x => x.s.ShowTime <= toTime.Value);
 
         if (cityId.HasValue)
             query = query.Where(x => x.v.CityId == cityId.Value);
@@ -68,7 +103,8 @@ public class ChatbotQueryService : IChatbotQueryService
         }
 
         var rows = await query
-            .OrderBy(x => x.s.ShowTime)
+            .OrderBy(x => x.s.ShowDate)
+            .ThenBy(x => x.s.ShowTime)
             .Take(6)
             .ToListAsync(ct);
 
@@ -164,8 +200,8 @@ public class ChatbotQueryService : IChatbotQueryService
             where b.UserId    == userId
                && b.Status    == BookingStatus.Confirmed
                && b.DeletedAt == null
-               && s.ShowDatetime > now
-            orderby s.ShowDatetime
+               && s.ShowDatetime > now          // future shows only
+            orderby s.ShowDatetime              // nearest upcoming first
             select new { b, s, v }
         ).Take(5).ToListAsync(ct);
 

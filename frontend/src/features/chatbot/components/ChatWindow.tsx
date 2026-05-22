@@ -86,18 +86,18 @@ export function ChatWindow() {
     <div
       role="dialog"
       aria-label="BookKaroo AI Assistant"
-      className="flex flex-col bg-[#131826] border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+      className="flex flex-col bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden"
       style={{ width: 360, height: 560 }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 flex-shrink-0 bg-white">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full bg-accent-crimson flex items-center justify-center text-sm font-bold text-white select-none">
             BK
           </div>
           <div>
-            <p className="text-text-primary text-sm font-semibold leading-none">BookKaroo AI</p>
-            <p className="text-green-400 text-[10px] mt-0.5">Online</p>
+            <p className="text-[#2B3148] text-sm font-semibold leading-none">BookKaroo AI</p>
+            <p className="text-green-500 text-[10px] mt-0.5">Online</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -105,7 +105,7 @@ export function ChatWindow() {
             <button
               onClick={clear}
               aria-label="Clear chat"
-              className="text-text-muted hover:text-text-primary transition-colors p-1"
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1"
             >
               <Trash2 size={15} />
             </button>
@@ -113,7 +113,7 @@ export function ChatWindow() {
           <button
             onClick={close}
             aria-label="Close chat"
-            className="text-text-muted hover:text-text-primary transition-colors p-1"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-1"
           >
             <X size={18} />
           </button>
@@ -121,14 +121,14 @@ export function ChatWindow() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4 min-h-0">
+      <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-4 min-h-0 bg-[#F4F5F6]">
         {messages.length === 0 && (
           <div className="flex flex-col items-center gap-3 pt-6 text-center">
-            <div className="w-12 h-12 rounded-full bg-accent-crimson/20 flex items-center justify-center text-2xl">
+            <div className="w-12 h-12 rounded-full bg-accent-crimson/10 flex items-center justify-center text-2xl">
               🎬
             </div>
-            <p className="text-text-primary font-semibold text-sm">Hey! I'm BookKaroo AI</p>
-            <p className="text-text-muted text-xs max-w-[240px]">
+            <p className="text-[#2B3148] font-semibold text-sm">Hey! I'm BookKaroo AI</p>
+            <p className="text-[#6C7480] text-xs max-w-[240px]">
               Ask me to find movies, events, check showtimes, or view your bookings.
             </p>
             <div className="flex flex-wrap gap-2 justify-center mt-2">
@@ -136,7 +136,7 @@ export function ChatWindow() {
                 <button
                   key={s}
                   onClick={() => void handleSend(s)}
-                  className="text-xs bg-white/5 hover:bg-white/10 text-text-secondary border border-white/10 rounded-full px-3 py-1.5 transition-colors"
+                  className="text-xs bg-white hover:bg-gray-50 text-[#2B3148] border border-gray-200 rounded-full px-3 py-1.5 transition-colors shadow-sm"
                 >
                   {s}
                 </button>
@@ -154,7 +154,7 @@ export function ChatWindow() {
       </div>
 
       {/* Input */}
-      <div className="flex items-end gap-2 px-4 py-3 border-t border-white/10 flex-shrink-0">
+      <div className="flex items-end gap-2 px-4 py-3 border-t border-gray-100 flex-shrink-0 bg-white">
         <textarea
           ref={inputRef}
           value={input}
@@ -162,7 +162,7 @@ export function ChatWindow() {
           onKeyDown={onKeyDown}
           placeholder="Ask anything about movies or events..."
           rows={1}
-          className="flex-1 resize-none bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent-indigo/50 max-h-24 overflow-y-auto"
+          className="flex-1 resize-none bg-[#F4F5F6] border border-gray-200 rounded-xl px-3 py-2 text-sm text-[#2B3148] placeholder:text-[#9097A6] focus:outline-none focus:ring-1 focus:ring-accent-indigo/40 focus:border-accent-indigo/40 max-h-24 overflow-y-auto"
           style={{ fieldSizing: 'content' } as React.CSSProperties}
           aria-label="Chat message input"
         />

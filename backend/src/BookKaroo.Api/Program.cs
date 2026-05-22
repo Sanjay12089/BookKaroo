@@ -208,12 +208,10 @@ try
     // 12. HttpClient
     builder.Services.AddHttpClient();
 
-    // Groq named client
-    var groqApiKey = builder.Configuration["GROQ_API_KEY"] ?? string.Empty;
+    // Groq named client — auth header is set per-request inside GroqService
     builder.Services.AddHttpClient("groq", client =>
     {
         client.BaseAddress = new Uri("https://api.groq.com/");
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {groqApiKey}");
     });
 
     // 13. Repositories (Scoped)
