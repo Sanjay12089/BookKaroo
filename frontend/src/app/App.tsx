@@ -6,6 +6,7 @@ import { ToastContainer } from '@/shared/components/ui/Toast';
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { useCityStore } from '@/shared/store/cityStore';
 import { configureApiInterceptors, api } from '@/shared/lib/api';
+import { ChatbotWidget } from '@/features/chatbot/components/ChatbotWidget';
 import type { City } from '@/shared/types';
 
 function AppInit({ children }: { children: React.ReactNode }) {
@@ -61,6 +62,7 @@ export default function App() {
         </a>
         <RouterProvider router={router} />
         <ToastContainer />
+        <ChatbotWidget />
       </AppInit>
     </Providers>
   );

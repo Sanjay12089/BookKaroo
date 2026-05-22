@@ -208,6 +208,14 @@ try
     // 12. HttpClient
     builder.Services.AddHttpClient();
 
+    // Groq named client
+    var groqApiKey = builder.Configuration["GROQ_API_KEY"] ?? string.Empty;
+    builder.Services.AddHttpClient("groq", client =>
+    {
+        client.BaseAddress = new Uri("https://api.groq.com/");
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {groqApiKey}");
+    });
+
     // 13. Repositories (Scoped)
     builder.Services.AddScoped<IUserRepository, UserRepository>();
     builder.Services.AddScoped<ICityRepository, CityRepository>();
@@ -253,6 +261,11 @@ try
     builder.Services.AddScoped<IInvoicePdfGenerator, QuestPdfInvoiceGenerator>();
     builder.Services.AddScoped<BookKaroo.Application.Services.InvoiceBuilder>();
     builder.Services.AddScoped<SupabaseStorageService>();
+
+    // Chatbot
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.ExternalServices.IGroqService, GroqService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.IChatbotQueryService, BookKaroo.Infrastructure.Services.ChatbotQueryService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.IChatbotService, ChatbotService>();
 
     // Partner Portal
     builder.Services.AddHttpContextAccessor();
