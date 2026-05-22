@@ -50,6 +50,21 @@ function CreatePartnerModal({ onClose }: CreatePartnerModalProps) {
     staleTime: 5 * 60_000,
   });
 
+  // Fetch all partners to know which venues are already assigned to someone
+  const { data: existingPartners } = useQuery<AdminPartnerResponse[]>({
+    queryKey: ['admin', 'partners-all-for-venue-filter'],
+    queryFn: () =>
+      api.get<{ items: AdminPartnerResponse[] }>('/api/admin/partners', { params: { pageSize: 500 } })
+        .then(r => r.data.items ?? []),
+    staleTime: 60_000,
+  });
+
+  // Venue IDs already assigned to any partner — exclude these from the list
+  const assignedVenueIds = new Set(
+    (existingPartners ?? []).flatMap(p => p.venueAccess.map(v => v.venueId))
+  );
+  const availableVenues = (venues ?? []).filter(v => !assignedVenueIds.has(v.id));
+
   const { register, handleSubmit, formState: { errors } } = useForm<CreateForm>({
     resolver: zodResolver(createSchema),
   });
@@ -193,54 +208,62 @@ function CreatePartnerModal({ onClose }: CreatePartnerModalProps) {
               )}
             </p>
 
-            {/* Venue search box */}
-            <div className="relative mb-2">
-              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-              <input
-                type="text"
-                value={venueSearch}
-                onChange={e => setVenueSearch(e.target.value)}
-                placeholder="Search venues…"
-                className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border-default bg-bg-surface2 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-[#4F46E5] transition-colors"
-              />
-              {venueSearch && (
-                <button
-                  type="button"
-                  onClick={() => setVenueSearch('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
-                >
-                  <X size={13} />
-                </button>
-              )}
-            </div>
+            {availableVenues.length === 0 ? (
+              <p className="text-xs text-text-muted text-center py-3 border border-dashed border-border-default rounded-lg">
+                All venues are already assigned to other partners.
+              </p>
+            ) : (
+              <>
+                {/* Venue search box */}
+                <div className="relative mb-2">
+                  <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
+                  <input
+                    type="text"
+                    value={venueSearch}
+                    onChange={e => setVenueSearch(e.target.value)}
+                    placeholder="Search venues…"
+                    className="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border-default bg-bg-surface2 text-text-primary placeholder:text-text-muted focus:outline-none focus:border-[#4F46E5] transition-colors"
+                  />
+                  {venueSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setVenueSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary"
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
 
-            <div className="max-h-40 overflow-y-auto space-y-0.5 border border-border-default rounded-lg p-1.5">
-              {venues
-                .filter(v =>
-                  !venueSearch.trim() ||
-                  v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
-                  v.cityName.toLowerCase().includes(venueSearch.toLowerCase())
-                )
-                .map((v) => (
-                  <label key={v.id} className="flex items-center gap-2 cursor-pointer hover:bg-bg-surface2 px-2 py-1.5 rounded-md transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={selectedVenueIds.includes(v.id)}
-                      onChange={() => toggleVenue(v.id)}
-                      className="accent-accent-indigo flex-shrink-0"
-                    />
-                    <span className="text-sm text-text-primary flex-1 truncate">{v.name}</span>
-                    <span className="text-xs text-text-muted flex-shrink-0">{v.cityName}</span>
-                  </label>
-                ))}
-              {venues.filter(v =>
-                !venueSearch.trim() ||
-                v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
-                v.cityName.toLowerCase().includes(venueSearch.toLowerCase())
-              ).length === 0 && (
-                <p className="text-xs text-text-muted text-center py-3">No venues match "{venueSearch}"</p>
-              )}
-            </div>
+                <div className="max-h-40 overflow-y-auto space-y-0.5 border border-border-default rounded-lg p-1.5">
+                  {availableVenues
+                    .filter(v =>
+                      !venueSearch.trim() ||
+                      v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
+                      v.cityName.toLowerCase().includes(venueSearch.toLowerCase())
+                    )
+                    .map((v) => (
+                      <label key={v.id} className="flex items-center gap-2 cursor-pointer hover:bg-bg-surface2 px-2 py-1.5 rounded-md transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={selectedVenueIds.includes(v.id)}
+                          onChange={() => toggleVenue(v.id)}
+                          className="accent-accent-indigo flex-shrink-0"
+                        />
+                        <span className="text-sm text-text-primary flex-1 truncate">{v.name}</span>
+                        <span className="text-xs text-text-muted flex-shrink-0">{v.cityName}</span>
+                      </label>
+                    ))}
+                  {availableVenues.filter(v =>
+                    !venueSearch.trim() ||
+                    v.name.toLowerCase().includes(venueSearch.toLowerCase()) ||
+                    v.cityName.toLowerCase().includes(venueSearch.toLowerCase())
+                  ).length === 0 && (
+                    <p className="text-xs text-text-muted text-center py-3">No venues match "{venueSearch}"</p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         )}
 
