@@ -56,7 +56,7 @@ export default function MovieDetailPage() {
             alt={movie.title}
             className="absolute inset-0 w-full h-full object-cover"
             style={{ filter: 'brightness(0.55) saturate(1.15)' }}
-            decoding="async"
+            fetchPriority="high"
           />
         )}
         {/* Left-side dark vignette for readability of poster + title */}

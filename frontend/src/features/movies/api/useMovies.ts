@@ -52,7 +52,8 @@ export function useMovieDetail(slug: string) {
     queryKey: ['movie', slug],
     queryFn: () => api.get<MovieDetail>(`/api/movies/${slug}`).then((r) => r.data),
     staleTime: STALE.MOVIES,
-    enabled: !!slug,
+    gcTime:    30 * 60 * 1000, // keep in memory 30 min — back-nav skips API waterfall
+    enabled:   !!slug,
   });
 }
 
