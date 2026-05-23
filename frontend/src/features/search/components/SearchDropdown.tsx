@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { Clock, MapPin, Building2 } from 'lucide-react';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
-import { ROUTES, TMDB_POSTER } from '@/shared/constants';
+import { ROUTES } from '@/shared/constants';
+import { getPosterUrl } from '@/shared/lib/imageUtils';
 import { useCityStore } from '@/shared/store/cityStore';
 import type { City } from '@/shared/types';
 import type { SearchResponse, SearchCityResult } from '../types';
@@ -156,7 +157,7 @@ export function SearchDropdown({
               <div className="w-10 h-[60px] rounded overflow-hidden bg-bg-surface2 flex-shrink-0">
                 {m.posterUrl ? (
                   <img
-                    src={TMDB_POSTER(m.posterUrl, 'w92')}
+                    src={getPosterUrl(m.posterUrl, 'w92')}
                     alt={m.title}
                     className="w-full h-full object-cover"
                     loading="lazy"
@@ -207,7 +208,7 @@ export function SearchDropdown({
               <div className="w-10 h-10 rounded overflow-hidden bg-bg-surface2 flex-shrink-0">
                 {e.posterUrl ? (
                   <img
-                    src={TMDB_POSTER(e.posterUrl, 'w92')}
+                    src={getPosterUrl(e.posterUrl, 'w92')}
                     alt={e.title}
                     className="w-full h-full object-cover"
                     loading="lazy"

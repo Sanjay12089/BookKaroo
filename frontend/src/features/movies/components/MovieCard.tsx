@@ -1,8 +1,9 @@
 import { memo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { cn } from '@/shared/lib/utils';
+import { getPosterUrl } from '@/shared/lib/imageUtils';
 import type { Movie } from '@/shared/types';
-import { ROUTES, TMDB_POSTER } from '@/shared/constants';
+import { ROUTES } from '@/shared/constants';
 
 interface MovieCardProps {
   movie: Movie;
@@ -11,7 +12,7 @@ interface MovieCardProps {
 
 function MovieCardComponent({ movie, coming = false }: MovieCardProps) {
   const [hovered, setHovered] = useState(false);
-  const posterUrl = movie.posterUrl ? TMDB_POSTER(movie.posterUrl) : null;
+  const posterUrl = getPosterUrl(movie.posterUrl, 'w185');
 
   return (
     <Link
@@ -34,6 +35,7 @@ function MovieCardComponent({ movie, coming = false }: MovieCardProps) {
             src={posterUrl} alt={movie.title}
             className="w-full h-full object-cover"
             loading="lazy"
+            decoding="async"
             onError={(e) => {
               // Hide broken image, reveal the fallback beneath it
               (e.target as HTMLImageElement).style.display = 'none';

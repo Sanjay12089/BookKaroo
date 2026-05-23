@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
-import { TMDB_POSTER } from '@/shared/constants';
+import { getPosterUrl } from '@/shared/lib/imageUtils';
 import { formatIndianCurrency } from './KpiCard';
 import type { RecentBookingDto } from '../types';
 
@@ -80,7 +80,7 @@ export function RecentBookingsTable({ bookings, isLoading }: Props) {
                 <div className="flex items-center gap-2">
                   {b.posterUrl ? (
                     <img
-                      src={b.posterUrl.startsWith('/') ? TMDB_POSTER(b.posterUrl, 'w92') : b.posterUrl}
+                      src={getPosterUrl(b.posterUrl, 'w92')}
                       alt=""
                       className="w-8 h-12 object-cover rounded-sm flex-shrink-0"
                     />
