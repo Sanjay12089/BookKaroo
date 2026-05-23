@@ -126,9 +126,6 @@ try
     builder.Services.AddFluentValidationAutoValidation();
     builder.Services.AddValidatorsFromAssemblyContaining<SignupRequestValidator>();
 
-    // 5. AutoMapper
-    builder.Services.AddAutoMapper(typeof(BookKaroo.Application.Services.AuthService).Assembly);
-
     // 6. Rate limiting (AspNetCoreRateLimit)
     builder.Services.AddMemoryCache();
     builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
