@@ -9,7 +9,8 @@ import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { useMovieDetail, useMovieReviews, useCreateReview, useRemindMe, useRemindMeStatus } from '../api/useMovies';
 import { usePassedViewport } from '@/shared/hooks/useScrollPosition';
 import { useAuthStore } from '@/features/auth/store/authStore';
-import { ROUTES, TMDB_BACKDROP, TMDB_POSTER, TMDB_IMAGE_BASE } from '@/shared/constants';
+import { ROUTES } from '@/shared/constants';
+import { getPosterUrl, getBackdropUrl } from '@/shared/lib/imageUtils';
 import { formatDuration, cn } from '@/shared/lib/utils';
 import type { MovieDetail, Review } from '../types';
 
@@ -39,8 +40,8 @@ export default function MovieDetailPage() {
     </PublicLayout>
   );
 
-  const backdropUrl   = movie.backdropUrl ? TMDB_BACKDROP(movie.backdropUrl) : null;
-  const posterUrl     = movie.posterUrl   ? TMDB_POSTER(movie.posterUrl)     : null;
+  const backdropUrl   = getBackdropUrl(movie.backdropUrl, 'w780');
+  const posterUrl     = getPosterUrl(movie.posterUrl,   'w342');
   const isComingSoon  = movie.category === 'ComingSoon';
   const showtimesHref = ROUTES.SHOWTIMES(movie.slug);
 
@@ -55,6 +56,7 @@ export default function MovieDetailPage() {
             alt={movie.title}
             className="absolute inset-0 w-full h-full object-cover"
             style={{ filter: 'brightness(0.55) saturate(1.15)' }}
+            decoding="async"
           />
         )}
         {/* Left-side dark vignette for readability of poster + title */}
@@ -70,7 +72,7 @@ export default function MovieDetailPage() {
           <div className="flex justify-center md:block">
             <div className="w-32 md:w-full aspect-[2/3] rounded-xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.65)] border border-white/10 bg-bg-surface2">
               {posterUrl
-                ? <img src={posterUrl} alt={movie.title} className="w-full h-full object-cover" />
+                ? <img src={posterUrl} alt={movie.title} className="w-full h-full object-cover" decoding="async" />
                 : <div className="w-full h-full flex items-center justify-center text-text-muted text-4xl">🎬</div>}
             </div>
           </div>
@@ -198,8 +200,8 @@ export default function MovieDetailPage() {
                 <Link key={r.id} to={ROUTES.MOVIE_DETAIL(r.slug)} className="group block">
                   <div className="aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 mb-2">
                     {r.posterUrl
-                      ? <img src={TMDB_POSTER(r.posterUrl)} alt={r.title}
-                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" />
+                      ? <img src={getPosterUrl(r.posterUrl, 'w185')} alt={r.title}
+                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" decoding="async" />
                       : <div className="flex items-center justify-center h-full text-2xl">🎬</div>}
                   </div>
                   <p className="text-sm font-semibold text-text-primary line-clamp-1 font-display">{r.title}</p>
@@ -259,8 +261,8 @@ function AboutTab({ movie, onTrailer }: { movie: MovieDetail; onTrailer: () => v
           <button onClick={onTrailer}
             className="relative w-full aspect-video rounded-xl overflow-hidden bg-bg-surface2 border border-border-default group">
             {movie.backdropUrl && (
-              <img src={`${TMDB_IMAGE_BASE}/w780${movie.backdropUrl}`} alt="Trailer thumbnail"
-                   className="w-full h-full object-cover brightness-50 group-hover:brightness-40 transition-all" />
+              <img src={getBackdropUrl(movie.backdropUrl, 'w780')} alt="Trailer thumbnail"
+                   className="w-full h-full object-cover brightness-50 group-hover:brightness-40 transition-all" loading="lazy" decoding="async" />
             )}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -313,7 +315,7 @@ function CastTab({ movie }: { movie: MovieDetail }) {
                 <div className="w-16 h-16 mx-auto rounded-full overflow-hidden bg-gradient-to-br from-accent-indigo to-accent-purple mb-2 flex items-center justify-center">
                   {m.photo
                     ? <img
-                        src={m.photo.startsWith('http') ? m.photo : `${TMDB_IMAGE_BASE}/w185${m.photo}`}
+                        src={getPosterUrl(m.photo, 'w185')}
                         alt={m.name}
                         className="w-full h-full object-cover"
                       />
