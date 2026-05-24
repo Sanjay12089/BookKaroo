@@ -80,7 +80,7 @@ export function LysProfilePage() {
   if (isLoading) {
     return (
       <LysLayout>
-        <div className="px-6 py-8 max-w-2xl mx-auto">
+        <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-2xl mx-auto">
           <h1 className="font-display font-bold text-2xl text-text-primary mb-6">My Profile</h1>
           <ProfileSkeleton />
         </div>
@@ -112,7 +112,7 @@ export function LysProfilePage() {
 
   return (
     <LysLayout>
-    <div className="px-6 py-8 max-w-2xl mx-auto">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-2xl mx-auto">
       <h1 className="font-display font-bold text-2xl text-text-primary mb-6">My Profile</h1>
 
       <div className="space-y-5">
