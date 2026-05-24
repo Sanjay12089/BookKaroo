@@ -57,6 +57,14 @@ public class EventRepository : Repository<Event>, IEventRepository
             .Where(e => e.DeletedAt == null && e.Slug == slug)
             .FirstOrDefaultAsync(ct);
 
+    public async Task<Event?> FindSoftDeletedByIdOrSlugAsync(Guid? id, string slug, CancellationToken ct = default)
+    {
+        var query = _db.Events.IgnoreQueryFilters().Where(e => e.DeletedAt != null);
+        if (id.HasValue)
+            return await query.FirstOrDefaultAsync(e => e.Id == id.Value, ct);
+        return await query.FirstOrDefaultAsync(e => e.Slug == slug, ct);
+    }
+
     public async Task<IEnumerable<Event>> GetUpcomingByTypeAsync(
         EventType         type,
         Guid?             cityId,
