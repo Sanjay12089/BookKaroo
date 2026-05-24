@@ -3,6 +3,8 @@ using BookKaroo.Application.DTOs.Lys;
 using BookKaroo.Application.Exceptions;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
+using BookKaroo.Domain.Entities;
+using BookKaroo.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -12,6 +14,7 @@ public class LysPartnerService : ILysPartnerService
 {
     private readonly ILysEventRepository     _events;
     private readonly ILysOrganizerRepository _organizers;
+    private readonly IEventRepository        _mainEvents;
     private readonly IEmailService           _email;
     private readonly IConfiguration         _config;
     private readonly ILogger<LysPartnerService> _logger;
@@ -19,12 +22,14 @@ public class LysPartnerService : ILysPartnerService
     public LysPartnerService(
         ILysEventRepository      events,
         ILysOrganizerRepository  organizers,
+        IEventRepository         mainEvents,
         IEmailService            email,
         IConfiguration          config,
         ILogger<LysPartnerService> logger)
     {
         _events     = events;
         _organizers = organizers;
+        _mainEvents = mainEvents;
         _email      = email;
         _config     = config;
         _logger     = logger;
@@ -67,26 +72,54 @@ public class LysPartnerService : ILysPartnerService
         if (ev.PartnerAction != null)
             throw new AppException("You have already reviewed this submission.");
 
-        ev.PartnerAction     = "approved";
-        ev.PartnerReviewedAt = DateTime.UtcNow;
-        ev.PartnerReviewedBy = partnerId;
+        var organizer = await _organizers.GetByIdAsync(ev.OrganizerId, ct);
+
+        // Create the published event record — partner approval is final for venue events
+        var mainEvent = new Event
+        {
+            Title          = ev.Title,
+            Slug           = ev.Slug,
+            Type           = ParseEventType(ev.Type),
+            Description    = ev.Description,
+            VenueId        = ev.VenueType == "existing" ? ev.VenueId : null,
+            VenueName      = ev.VenueType == "custom" ? ev.CustomVenueName  : null,
+            CityName       = ev.VenueType == "custom" ? ev.CustomVenueCity  : null,
+            VenueLatitude  = ev.VenueType == "custom" ? ev.CustomVenueLatitude  : null,
+            VenueLongitude = ev.VenueType == "custom" ? ev.CustomVenueLongitude : null,
+            EventDate      = ev.EventDate,
+            DurationMin    = ev.DurationMin ?? 0,
+            Language       = ev.Language,
+            AgeRestriction = ev.AgeRestriction,
+            Organizer      = System.Text.Json.JsonSerializer.Serialize(new { name = organizer?.Name ?? "", contact = organizer?.Email ?? "" }),
+            Artists        = ev.ArtistsJson,
+            PosterUrl      = ev.PosterUrl,
+            BackdropUrl    = ev.BackdropUrl,
+            PriceTiers     = ev.PriceTiersJson,
+            Status         = MovieStatus.Published,
+        };
+
+        await _mainEvents.AddAsync(mainEvent, ct);
+
+        ev.PartnerAction      = "approved";
+        ev.PartnerReviewedAt  = DateTime.UtcNow;
+        ev.PartnerReviewedBy  = partnerId;
+        ev.Status             = LysEventStatus.Published;
+        ev.ReviewedAt         = DateTime.UtcNow;
+        ev.ReviewedBy         = partnerId;
+        ev.PublishedEventId   = mainEvent.Id;
         await _events.UpdateAsync(ev, ct);
 
-        var organizer   = await _organizers.GetByIdAsync(ev.OrganizerId, ct);
+        var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
         _ = Task.Run(async () =>
         {
             try
             {
                 if (organizer != null)
-                    await _email.SendLysPartnerApprovedAsync(organizer.Email, organizer.Name, ev.Title);
-
-                var adminEmail  = _config["ADMIN_EMAIL"] ?? "admin@bookkaroo.com";
-                await _email.SendLysSubmissionToAdminAsync(
-                    adminEmail, organizer?.Name ?? "Organizer", ev.Title, ev.Type, ev.EventDate);
+                    await _email.SendLysApprovedAsync(organizer.Email, organizer.Name, ev.Title, ev.Slug, frontendUrl);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "LYS partner approval emails failed for event {Id}", ev.Id);
+                _logger.LogError(ex, "LYS partner approval email failed for event {Id}", ev.Id);
             }
         }, ct);
 
@@ -133,6 +166,17 @@ public class LysPartnerService : ILysPartnerService
         await _events.GetPendingCountForPartnerAsync(partnerId, venueIds, ct);
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    private static EventType ParseEventType(string type) => type.ToLowerInvariant() switch
+    {
+        "live_event" or "liveevent" => EventType.LiveEvent,
+        "play"                      => EventType.Play,
+        "sport"                     => EventType.Sport,
+        "activity"                  => EventType.Activity,
+        "comedy"                    => EventType.Comedy,
+        "ipl"                       => EventType.Ipl,
+        _                           => EventType.LiveEvent,
+    };
 
     private static void EnsurePartnerAccess(Domain.Entities.LysEvent ev, Guid partnerId, List<Guid> venueIds)
     {
