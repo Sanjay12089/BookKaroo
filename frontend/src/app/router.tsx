@@ -70,13 +70,14 @@ const AdminCmsPage       = lazy(() => import('@/features/admin/pages/AdminCmsPag
 const AdminSettingsPage  = lazy(() => import('@/features/admin/pages/AdminSettingsPage'));
 const AdminPartnersPage  = lazy(() => import('@/features/admin/pages/AdminPartnersPage'));
 // Partner Portal
-const PartnerDashboardPage   = lazy(() => import('@/features/partner/pages/PartnerDashboardPage'));
-const PartnerVenuesPage      = lazy(() => import('@/features/partner/pages/PartnerVenuesPage'));
-const PartnerVenueDetailPage = lazy(() => import('@/features/partner/pages/PartnerVenueDetailPage'));
-const PartnerShowsPage       = lazy(() => import('@/features/partner/pages/PartnerShowsPage'));
-const PartnerBookingsPage    = lazy(() => import('@/features/partner/pages/PartnerBookingsPage'));
-const PartnerReportsPage     = lazy(() => import('@/features/partner/pages/PartnerReportsPage'));
-const PartnerReviewsPage     = lazy(() => import('@/features/partner/pages/PartnerReviewsPage'));
+const PartnerDashboardPage        = lazy(() => import('@/features/partner/pages/PartnerDashboardPage'));
+const PartnerVenuesPage           = lazy(() => import('@/features/partner/pages/PartnerVenuesPage'));
+const PartnerVenueDetailPage      = lazy(() => import('@/features/partner/pages/PartnerVenueDetailPage'));
+const PartnerShowsPage            = lazy(() => import('@/features/partner/pages/PartnerShowsPage'));
+const PartnerBookingsPage         = lazy(() => import('@/features/partner/pages/PartnerBookingsPage'));
+const PartnerReportsPage          = lazy(() => import('@/features/partner/pages/PartnerReportsPage'));
+const PartnerReviewsPage          = lazy(() => import('@/features/partner/pages/PartnerReviewsPage'));
+const PartnerLysSubmissionsPage   = lazy(() => import('@/features/partner/pages/PartnerLysSubmissionsPage'));
 const StaticPage         = lazy(() => import('@/features/static/pages/StaticPage'));
 // LYS — ListYourShow
 const LysLandingPage        = lazy(() => import('@/features/lys/pages/LysLandingPage').then((m) => ({ default: m.LysLandingPage })));
@@ -174,6 +175,7 @@ export const router = createBrowserRouter([
       { path: '/partner/bookings',  element: S(PartnerBookingsPage) },
       { path: '/partner/reports',   element: S(PartnerReportsPage) },
       { path: '/partner/reviews',   element: S(PartnerReviewsPage) },
+      { path: '/partner/lys',       element: S(PartnerLysSubmissionsPage) },
     ],
   },
 

@@ -269,6 +269,7 @@ try
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysEventService, BookKaroo.Application.Services.LysEventService>();
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysAdminService, BookKaroo.Application.Services.LysAdminService>();
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysImageUploadService, BookKaroo.Infrastructure.Storage.LysImageUploadService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysPartnerService, BookKaroo.Application.Services.LysPartnerService>();
 
     // Partner Portal
     builder.Services.AddHttpContextAccessor();
@@ -450,6 +451,16 @@ static async Task ApplyLysMigrationAsync(WebApplication app)
         ALTER TABLE "LysEvents"
             ADD COLUMN IF NOT EXISTS "CustomVenueLatitude"  double precision,
             ADD COLUMN IF NOT EXISTS "CustomVenueLongitude" double precision;
+
+        ALTER TABLE "LysEvents"
+            ADD COLUMN IF NOT EXISTS "RequiresPartnerApproval" boolean      NOT NULL DEFAULT false,
+            ADD COLUMN IF NOT EXISTS "AssignedPartnerId"        uuid,
+            ADD COLUMN IF NOT EXISTS "PartnerReviewedAt"        timestamptz,
+            ADD COLUMN IF NOT EXISTS "PartnerReviewedBy"        uuid,
+            ADD COLUMN IF NOT EXISTS "PartnerAction"            text,
+            ADD COLUMN IF NOT EXISTS "PartnerReviewNotes"       text;
+        CREATE INDEX IF NOT EXISTS "IX_LysEvents_AssignedPartnerId"
+            ON "LysEvents" ("AssignedPartnerId") WHERE "AssignedPartnerId" IS NOT NULL;
         """;
 
     try

@@ -29,4 +29,12 @@ public class LysEvent : BaseEntity
     public string? ReviewNotes         { get; set; }
     public decimal CommissionRate      { get; set; } = 5.00m;
     public Guid?   PublishedEventId    { get; set; }
+
+    // Partner approval flow
+    public bool    RequiresPartnerApproval { get; set; } = false;
+    public Guid?   AssignedPartnerId       { get; set; }
+    public DateTime? PartnerReviewedAt    { get; set; }
+    public Guid?   PartnerReviewedBy      { get; set; }
+    public string? PartnerAction          { get; set; }
+    public string? PartnerReviewNotes     { get; set; }
 }

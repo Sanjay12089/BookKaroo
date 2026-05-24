@@ -31,4 +31,7 @@ public interface IEmailService
     Task SendLysApprovedAsync(string toEmail, string organizerName, string eventTitle, string eventSlug, string frontendUrl, CancellationToken ct = default);
     Task SendLysRejectedAsync(string toEmail, string organizerName, string eventTitle, string reason, CancellationToken ct = default);
     Task SendLysChangesRequestedAsync(string toEmail, string organizerName, string eventTitle, Guid eventId, string notes, string frontendUrl, CancellationToken ct = default);
+    Task SendLysPartnerApprovalRequestAsync(string toEmail, string partnerName, string eventTitle, Guid eventId, string organizerName, string frontendUrl, CancellationToken ct = default);
+    Task SendLysPartnerApprovedAsync(string toEmail, string organizerName, string eventTitle, CancellationToken ct = default);
+    Task SendLysPartnerRejectedAsync(string toEmail, string organizerName, string eventTitle, string reason, CancellationToken ct = default);
 }

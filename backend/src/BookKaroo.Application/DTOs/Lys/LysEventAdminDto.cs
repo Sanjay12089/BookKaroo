@@ -32,4 +32,11 @@ public class LysEventAdminDto
     public DateTime? SubmittedAt        { get; set; }
     public DateTime? ReviewedAt         { get; set; }
     public string? ReviewNotes          { get; set; }
+
+    // Partner approval fields
+    public bool      RequiresPartnerApproval { get; set; }
+    public string?   AssignedPartnerName     { get; set; }
+    public string?   PartnerAction           { get; set; }
+    public string?   PartnerReviewNotes      { get; set; }
+    public DateTime? PartnerReviewedAt       { get; set; }
 }

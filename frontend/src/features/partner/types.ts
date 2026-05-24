@@ -167,3 +167,52 @@ export interface CreatePartnerResponse {
   partner: AdminPartnerResponse;
   tempPassword: string;
 }
+
+// ── LYS Partner types ─────────────────────────────────────────────────────────
+
+export interface LysPriceTier {
+  name: string;
+  price: number;
+  capacity: number;
+  color?: string;
+}
+
+export interface LysArtist {
+  name: string;
+  type: string;
+}
+
+export interface LysPartnerEvent {
+  id: string;
+  title: string;
+  slug: string;
+  type: string;
+  status: string;
+  organizerName: string;
+  organizerEmail: string;
+  venueDisplay: string;
+  eventDateLabel: string;
+  eventTimeLabel: string;
+  description: string | null;
+  language: string;
+  ageRestriction: number;
+  durationMin: number | null;
+  lowestPrice: number;
+  tierCount: number;
+  priceTiers: LysPriceTier[];
+  artists: LysArtist[];
+  posterUrl: string | null;
+  backdropUrl: string | null;
+  submittedAt: string | null;
+  partnerAction: 'approved' | 'rejected' | null;
+  partnerReviewNotes: string | null;
+  partnerReviewedAt: string | null;
+}
+
+export interface LysPartnerEventPage {
+  items: LysPartnerEvent[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}

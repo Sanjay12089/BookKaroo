@@ -128,6 +128,11 @@ public class LysEventRepository : ILysEventRepository
                 x.ev.SubmittedAt,
                 x.ev.ReviewedAt,
                 x.ev.ReviewNotes,
+                x.ev.RequiresPartnerApproval,
+                x.ev.AssignedPartnerId,
+                x.ev.PartnerAction,
+                x.ev.PartnerReviewNotes,
+                x.ev.PartnerReviewedAt,
             })
             .ToListAsync(ct);
 
@@ -142,6 +147,19 @@ public class LysEventRepository : ILysEventRepository
                 .Where(v => venueIds.Contains(v.Id))
                 .Select(v => new { v.Id, v.Name })
                 .ToDictionaryAsync(v => v.Id, v => v.Name, ct)
+            : new Dictionary<Guid, string>();
+
+        // Batch-load partner business names
+        var partnerIds = rawItems
+            .Where(x => x.AssignedPartnerId.HasValue)
+            .Select(x => x.AssignedPartnerId!.Value)
+            .Distinct()
+            .ToList();
+        var partnerNames = partnerIds.Count > 0
+            ? await _db.PartnerProfiles
+                .Where(p => partnerIds.Contains(p.Id))
+                .Select(p => new { p.Id, p.BusinessName })
+                .ToDictionaryAsync(p => p.Id, p => p.BusinessName, ct)
             : new Dictionary<Guid, string>();
 
         var opts  = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -195,9 +213,14 @@ public class LysEventRepository : ILysEventRepository
                 Artists             = artists,
                 PosterUrl           = x.PosterUrl,
                 BackdropUrl         = x.BackdropUrl,
-                SubmittedAt         = x.SubmittedAt,
-                ReviewedAt          = x.ReviewedAt,
-                ReviewNotes         = x.ReviewNotes,
+                SubmittedAt             = x.SubmittedAt,
+                ReviewedAt              = x.ReviewedAt,
+                ReviewNotes             = x.ReviewNotes,
+                RequiresPartnerApproval = x.RequiresPartnerApproval,
+                AssignedPartnerName     = x.AssignedPartnerId.HasValue && partnerNames.TryGetValue(x.AssignedPartnerId.Value, out var pn) ? pn : null,
+                PartnerAction           = x.PartnerAction,
+                PartnerReviewNotes      = x.PartnerReviewNotes,
+                PartnerReviewedAt       = x.PartnerReviewedAt,
             };
         }).ToList();
 
@@ -206,6 +229,57 @@ public class LysEventRepository : ILysEventRepository
 
     private static DateTime ToIst(DateTime utcDt) =>
         DateTime.SpecifyKind(utcDt, DateTimeKind.Utc).AddMinutes(330);
+
+    public async Task<(bool HasActivePartner, Guid? PartnerId, string? PartnerEmail, string? PartnerName)>
+        DetectVenuePartnerAsync(Guid venueId, CancellationToken ct)
+    {
+        var access = await _db.PartnerVenueAccesses
+            .FirstOrDefaultAsync(a => a.VenueId == venueId, ct);
+
+        if (access == null) return (false, null, null, null);
+
+        var partner = await _db.PartnerProfiles
+            .FirstOrDefaultAsync(p => p.Id == access.PartnerId && p.IsActive, ct);
+
+        if (partner == null) return (false, null, null, null);
+
+        var user = await _db.Users
+            .FirstOrDefaultAsync(u => u.Id == partner.UserId, ct);
+
+        return (true, partner.Id, user?.Email ?? partner.ContactEmail, partner.BusinessName);
+    }
+
+    public async Task<(List<LysEvent> Items, int Total)> GetByPartnerAsync(
+        Guid partnerId, List<Guid> venueIds, string? status,
+        int page, int pageSize, CancellationToken ct)
+    {
+        var query = _db.LysEvents
+            .Where(e => e.AssignedPartnerId == partnerId && venueIds.Contains(e.VenueId!.Value));
+
+        if (!string.IsNullOrWhiteSpace(status) && status != "all")
+            query = query.Where(e => e.Status == status);
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderBy(e => e.PartnerAction == null ? 0 : 1)
+            .ThenByDescending(e => e.SubmittedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
+
+        return (items, total);
+    }
+
+    public async Task<int> GetPendingCountForPartnerAsync(
+        Guid partnerId, List<Guid> venueIds, CancellationToken ct)
+    {
+        return await _db.LysEvents
+            .CountAsync(e =>
+                e.AssignedPartnerId == partnerId &&
+                venueIds.Contains(e.VenueId!.Value) &&
+                e.PartnerAction == null &&
+                e.Status == "submitted", ct);
+    }
 
     public async Task<List<LysEvent>> CheckDuplicatesAsync(
         Guid organizerId, string title, DateTime eventDate, CancellationToken ct)
