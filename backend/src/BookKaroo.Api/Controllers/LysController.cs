@@ -17,15 +17,18 @@ public class LysController : ControllerBase
     private readonly ILysOrganizerService _organizers;
     private readonly ILysEventService     _events;
     private readonly IVenueRepository     _venues;
+    private readonly ICityRepository      _cities;
 
     public LysController(
         ILysOrganizerService organizers,
         ILysEventService     events,
-        IVenueRepository     venues)
+        IVenueRepository     venues,
+        ICityRepository      cities)
     {
         _organizers = organizers;
         _events     = events;
         _venues     = venues;
+        _cities     = cities;
     }
 
     private Guid GetUserId() =>
@@ -153,8 +156,12 @@ public class LysController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetVenues(CancellationToken ct)
     {
-        var venues = await _venues.GetAllAsync(ct);
-        return Ok(venues.Select(v => new { v.Id, v.Name, v.CityId }));
+        var venues = (await _venues.GetAllAsync(ct)).ToList();
+        var citiesMap = (await _cities.GetAllAsync(ct)).ToDictionary(c => c.Id, c => c.Name);
+        var result = venues
+            .OrderBy(v => v.Name)
+            .Select(v => new { v.Id, v.Name, CityName = citiesMap.GetValueOrDefault(v.CityId, "") });
+        return Ok(result);
     }
 
     [HttpGet("commission-rate")]

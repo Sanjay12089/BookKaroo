@@ -23,6 +23,22 @@ interface PaginatedAdminLys<T> {
   totalPages: number;
 }
 
+// ── Venue list ────────────────────────────────────────────────────────────────
+
+export interface LysVenueOption {
+  id:       string;
+  name:     string;
+  cityName: string;
+}
+
+export function useLysVenues() {
+  return useQuery<LysVenueOption[]>({
+    queryKey: ['lys-venues'],
+    queryFn:  () => api.get('/api/lys/venues').then((r) => r.data),
+    staleTime: 5 * 60_000,
+  });
+}
+
 // ── Organizer profile ─────────────────────────────────────────────────────────
 
 export function useMyOrganizerProfile() {
