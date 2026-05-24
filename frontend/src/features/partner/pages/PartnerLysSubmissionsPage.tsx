@@ -10,10 +10,10 @@ import type { LysPartnerEvent } from '../types';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 
 const STATUS_TABS = [
-  { label: 'Pending',  value: 'submitted' },
-  { label: 'Approved', value: 'published' },
-  { label: 'Rejected', value: 'rejected' },
-  { label: 'All',      value: 'all' },
+  { label: 'Pending My Review', value: 'pending' },
+  { label: 'Approved by Me',    value: 'approved' },
+  { label: 'Rejected by Me',    value: 'rejected' },
+  { label: 'All',               value: 'all' },
 ] as const;
 
 function formatINR(n: number) {
