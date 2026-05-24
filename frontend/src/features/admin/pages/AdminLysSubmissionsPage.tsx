@@ -16,9 +16,7 @@ import {
 const STATUS_TABS: { label: string; value: string }[] = [
   { label: 'All',            value: 'all' },
   { label: 'Submitted',      value: 'submitted' },
-  { label: 'Under Review',   value: 'under_review' },
   { label: 'Changes Needed', value: 'changes_requested' },
-  { label: 'Approved',       value: 'approved' },
   { label: 'Live',           value: 'published' },
   { label: 'Rejected',       value: 'rejected' },
 ];
@@ -99,7 +97,7 @@ function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
   if (!ev) return null;
 
   const cfg = LYS_STATUS_CONFIG[ev.status as LysEventStatus];
-  const canAct = ev.status === 'submitted' || ev.status === 'under_review';
+  const canAct = ev.status === 'submitted';
 
   return (
     <>
@@ -118,13 +116,10 @@ function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
             </button>
           </div>
 
-          <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
+          <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
             {/* Status */}
-            <div className="flex items-center gap-3">
-              <span
-                className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full"
-                style={{ background: cfg.bgColor, color: cfg.color }}
-              >
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="inline-block text-xs font-semibold px-2.5 py-1 rounded-full bg-accent-crimson text-white">
                 {cfg.label}
               </span>
               {!ev.isOrganizerVerified && (
@@ -133,53 +128,143 @@ function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
                   Organizer not verified
                 </span>
               )}
+              {ev.submittedAt && (
+                <span className="text-xs text-text-muted">
+                  Submitted {new Date(ev.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              )}
             </div>
 
-            {/* Poster */}
-            {ev.posterUrl && (
-              <img
-                src={getPosterUrl(ev.posterUrl, 'w342')}
-                alt={ev.title}
-                className="w-32 rounded-lg"
-              />
+            {/* Media */}
+            {(ev.posterUrl || ev.backdropUrl) && (
+              <div className="flex gap-4 items-start">
+                {ev.posterUrl && (
+                  <div>
+                    <p className="text-text-muted text-xs mb-1">Poster</p>
+                    <img src={getPosterUrl(ev.posterUrl, 'w185')} alt={ev.title} className="w-24 rounded-lg" />
+                  </div>
+                )}
+                {ev.backdropUrl && (
+                  <div className="flex-1">
+                    <p className="text-text-muted text-xs mb-1">Banner</p>
+                    <img src={ev.backdropUrl} alt="Backdrop" className="w-full h-20 object-cover rounded-lg" />
+                  </div>
+                )}
+              </div>
             )}
 
-            {/* Info grid */}
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-text-muted text-xs mb-0.5">Organizer</p>
-                <p className="text-text-primary">{ev.organizerName}</p>
-                <p className="text-text-muted text-xs">{ev.organizerEmail}</p>
-              </div>
-              <div>
-                <p className="text-text-muted text-xs mb-0.5">PAN</p>
-                <p className="text-text-primary font-mono">{ev.organizerPan}</p>
-              </div>
-              <div>
-                <p className="text-text-muted text-xs mb-0.5">Venue</p>
-                <p className="text-text-primary">{ev.venueDisplay}</p>
-              </div>
-              <div>
-                <p className="text-text-muted text-xs mb-0.5">Tickets</p>
-                <p className="text-text-primary">
-                  {ev.tierCount} tier{ev.tierCount !== 1 ? 's' : ''} · from ₹{ev.lowestPrice.toLocaleString('en-IN')}
-                </p>
-              </div>
-              {ev.submittedAt && (
+            {/* Event Details */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Event Details</p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-text-muted text-xs mb-0.5">Submitted</p>
-                  <p className="text-text-primary">
-                    {new Date(ev.submittedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  <p className="text-text-muted text-xs mb-0.5">Type</p>
+                  <p className="text-text-primary">{TYPE_LABELS[ev.type] ?? ev.type}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs mb-0.5">Date & Time</p>
+                  <p className="text-text-primary">{ev.eventDateLabel}, {ev.eventTimeLabel}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs mb-0.5">Language</p>
+                  <p className="text-text-primary">{ev.language || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs mb-0.5">Age Restriction</p>
+                  <p className="text-text-primary">{ev.ageRestriction === 0 ? 'All Ages' : `${ev.ageRestriction}+`}</p>
+                </div>
+                {ev.durationMin && (
+                  <div>
+                    <p className="text-text-muted text-xs mb-0.5">Duration</p>
+                    <p className="text-text-primary">{ev.durationMin} min</p>
+                  </div>
+                )}
+              </div>
+              {ev.description && (
+                <div>
+                  <p className="text-text-muted text-xs mb-1">Description</p>
+                  <p className="text-text-secondary text-xs leading-relaxed bg-bg-surface2 rounded-lg p-3 max-h-28 overflow-y-auto">
+                    {ev.description}
                   </p>
                 </div>
               )}
-              {ev.reviewNotes && (
-                <div className="col-span-2">
-                  <p className="text-text-muted text-xs mb-0.5">Review Notes</p>
-                  <p className="text-text-secondary text-sm">{ev.reviewNotes}</p>
+            </div>
+
+            {/* Organizer */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Organizer</p>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-text-muted text-xs mb-0.5">Name</p>
+                  <p className="text-text-primary">{ev.organizerName}</p>
+                  <p className="text-text-muted text-xs">{ev.organizerEmail}</p>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs mb-0.5">PAN</p>
+                  <p className="text-text-primary font-mono">{ev.organizerPan}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Venue */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Venue</p>
+              <div className="text-sm">
+                <p className="text-text-primary">{ev.venueDisplay || '—'}</p>
+                {ev.venueType === 'custom' && ev.customVenueAddress && (
+                  <p className="text-text-muted text-xs mt-0.5">{ev.customVenueAddress}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Artists */}
+            {ev.artists.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Artists / Performers</p>
+                <div className="space-y-2">
+                  {ev.artists.map((a, i) => (
+                    <div key={i} className="bg-bg-surface2 rounded-lg px-3 py-2 text-sm">
+                      <span className="text-text-primary font-semibold">{a.name}</span>
+                      <span className="text-text-muted text-xs ml-2">{a.type}</span>
+                      {a.bio && <p className="text-text-muted text-xs mt-0.5">{a.bio}</p>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Ticket Tiers */}
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Ticket Tiers</p>
+              {ev.priceTiers.length === 0 ? (
+                <p className="text-text-muted text-xs">No tiers defined</p>
+              ) : (
+                <div className="space-y-1.5">
+                  {ev.priceTiers.map((t, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-bg-surface2 rounded-lg px-3 py-2 text-sm">
+                      <span
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: t.color }}
+                      />
+                      <span className="text-text-primary flex-1">{t.name}</span>
+                      <span className="text-text-secondary">₹{t.price.toLocaleString('en-IN')}</span>
+                      <span className="text-text-muted text-xs">{t.capacity} seats</span>
+                    </div>
+                  ))}
+                  <p className="text-text-muted text-xs pt-1">
+                    Commission: {ev.commissionRate}% per ticket
+                  </p>
                 </div>
               )}
             </div>
+
+            {/* Review notes */}
+            {ev.reviewNotes && (
+              <div>
+                <p className="text-xs font-semibold text-text-muted uppercase tracking-wide mb-1">Review Notes</p>
+                <p className="text-text-secondary text-sm bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">{ev.reviewNotes}</p>
+              </div>
+            )}
 
             {/* Actions */}
             {canAct && (
@@ -276,8 +361,7 @@ function SubmissionRow({ event, onSelect }: { event: AdminLysEvent; onSelect: ()
       <td className="px-4 py-3">
         <div className="flex items-center gap-1.5">
           <span
-            className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: cfg.bgColor, color: cfg.color }}
+            className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-crimson text-white"
           >
             {cfg.label}
           </span>
@@ -294,7 +378,7 @@ function SubmissionRow({ event, onSelect }: { event: AdminLysEvent; onSelect: ()
       <td className="px-4 py-3">
         <button
           onClick={onSelect}
-          className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-bg-surface2 border border-border-default rounded-lg text-text-secondary hover:text-text-primary"
+          className="inline-flex items-center gap-1 text-xs px-2.5 py-1.5 bg-accent-crimson text-white rounded-lg hover:opacity-90"
         >
           <Eye size={11} /> View
         </button>

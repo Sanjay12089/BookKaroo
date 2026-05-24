@@ -1,7 +1,9 @@
+using System.Text.Json;
 using BookKaroo.Application.DTOs.Lys;
 using BookKaroo.Application.Exceptions;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
+using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
 using Microsoft.Extensions.Configuration;
@@ -14,6 +16,7 @@ public class LysAdminService : ILysAdminService
     private readonly ILysEventRepository     _events;
     private readonly ILysOrganizerRepository _organizers;
     private readonly IEventRepository        _mainEvents;
+    private readonly IVenueRepository        _venues;
     private readonly IAuditLogService        _audit;
     private readonly IEmailService           _email;
     private readonly IConfiguration         _config;
@@ -23,6 +26,7 @@ public class LysAdminService : ILysAdminService
         ILysEventRepository     events,
         ILysOrganizerRepository organizers,
         IEventRepository        mainEvents,
+        IVenueRepository        venues,
         IAuditLogService        audit,
         IEmailService           email,
         IConfiguration          config,
@@ -31,6 +35,7 @@ public class LysAdminService : ILysAdminService
         _events     = events;
         _organizers = organizers;
         _mainEvents = mainEvents;
+        _venues     = venues;
         _audit      = audit;
         _email      = email;
         _config     = config;
@@ -45,9 +50,66 @@ public class LysAdminService : ILysAdminService
 
     public async Task<LysEventAdminDto> GetSubmissionDetailAsync(Guid eventId, CancellationToken ct = default)
     {
-        var (items, _) = await _events.GetAllAdminAsync(null, null, null, null, null, 1, 1000, ct);
-        return items.FirstOrDefault(e => e.Id == eventId)
+        var ev = await _events.GetByIdAsync(eventId, ct)
             ?? throw new NotFoundException("Submission not found.");
+        var organizer = await _organizers.GetByIdAsync(ev.OrganizerId, ct)
+            ?? throw new NotFoundException("Organizer not found.");
+        Venue? venue = ev.VenueType == "existing" && ev.VenueId.HasValue
+            ? await _venues.GetByIdAsync(ev.VenueId.Value, ct)
+            : null;
+        return BuildAdminDto(ev, organizer, venue?.Name);
+    }
+
+    private static LysEventAdminDto BuildAdminDto(LysEvent ev, LysOrganizer org, string? venueName = null)
+    {
+        var ist         = DateTime.SpecifyKind(ev.EventDate, DateTimeKind.Utc).AddMinutes(330);
+        var opts        = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var priceTiers  = ParseJson<List<LysPriceTierDto>>(ev.PriceTiersJson, opts) ?? [];
+        var artists     = ParseJson<List<LysArtistDto>>(ev.ArtistsJson, opts) ?? [];
+        var venueDisplay = ev.VenueType == "existing"
+            ? (venueName ?? "Registered Venue")
+            : ev.CustomVenueName + (ev.CustomVenueCity != null ? ", " + ev.CustomVenueCity : "");
+
+        return new LysEventAdminDto
+        {
+            Id                  = ev.Id,
+            Title               = ev.Title,
+            Slug                = ev.Slug,
+            Type                = ev.Type,
+            Status              = ev.Status,
+            OrganizerName       = org.Name,
+            OrganizerEmail      = org.Email,
+            OrganizerPan        = org.PanNumber,
+            IsOrganizerVerified = org.IsVerified,
+            VenueType            = ev.VenueType,
+            VenueDisplay         = venueDisplay ?? "",
+            CustomVenueAddress   = ev.CustomVenueAddress,
+            CustomVenueLatitude  = ev.CustomVenueLatitude,
+            CustomVenueLongitude = ev.CustomVenueLongitude,
+            EventDateLabel      = ist.ToString("dd MMM yyyy"),
+            EventTimeLabel      = ist.ToString("h:mm tt"),
+            Description         = ev.Description,
+            Language            = ev.Language ?? "",
+            AgeRestriction      = ev.AgeRestriction,
+            DurationMin         = ev.DurationMin,
+            CommissionRate      = ev.CommissionRate,
+            TierCount           = priceTiers.Count,
+            LowestPrice         = priceTiers.Count > 0 ? priceTiers.Min(t => t.Price) : 0,
+            PriceTiers          = priceTiers,
+            Artists             = artists,
+            PosterUrl           = ev.PosterUrl,
+            BackdropUrl         = ev.BackdropUrl,
+            SubmittedAt         = ev.SubmittedAt,
+            ReviewedAt          = ev.ReviewedAt,
+            ReviewNotes         = ev.ReviewNotes,
+        };
+    }
+
+    private static T? ParseJson<T>(string? json, JsonSerializerOptions opts)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return default;
+        try { return JsonSerializer.Deserialize<T>(json, opts); }
+        catch { return default; }
     }
 
     public async Task<LysEventAdminDto> ApproveEventAsync(Guid eventId, Guid adminId, CancellationToken ct = default)
@@ -55,8 +117,8 @@ public class LysAdminService : ILysAdminService
         var ev = await _events.GetByIdAsync(eventId, ct)
             ?? throw new NotFoundException("Event not found.");
 
-        if (ev.Status != LysEventStatus.Submitted && ev.Status != LysEventStatus.UnderReview)
-            throw new AppException("Only submitted or under-review events can be approved.");
+        if (ev.Status != LysEventStatus.Submitted)
+            throw new AppException("Only submitted events can be approved.");
 
         var organizer = await _organizers.GetByIdAsync(ev.OrganizerId, ct)
             ?? throw new NotFoundException("Organizer not found.");
@@ -75,7 +137,11 @@ public class LysAdminService : ILysAdminService
             Slug           = ev.Slug,
             Type           = eventType,
             Description    = ev.Description,
-            VenueId        = ev.VenueId,
+            VenueId        = ev.VenueType == "existing" ? ev.VenueId : null,
+            VenueName      = ev.VenueType == "custom" ? ev.CustomVenueName  : null,
+            CityName       = ev.VenueType == "custom" ? ev.CustomVenueCity  : null,
+            VenueLatitude  = ev.VenueType == "custom" ? ev.CustomVenueLatitude  : null,
+            VenueLongitude = ev.VenueType == "custom" ? ev.CustomVenueLongitude : null,
             EventDate      = ev.EventDate,
             DurationMin    = ev.DurationMin ?? 0,
             Language       = ev.Language,
@@ -120,8 +186,8 @@ public class LysAdminService : ILysAdminService
         var ev = await _events.GetByIdAsync(eventId, ct)
             ?? throw new NotFoundException("Event not found.");
 
-        if (ev.Status != LysEventStatus.Submitted && ev.Status != LysEventStatus.UnderReview)
-            throw new AppException("Only submitted or under-review events can be rejected.");
+        if (ev.Status != LysEventStatus.Submitted)
+            throw new AppException("Only submitted events can be rejected.");
 
         ev.Status      = LysEventStatus.Rejected;
         ev.ReviewedAt  = DateTime.UtcNow;
@@ -154,8 +220,8 @@ public class LysAdminService : ILysAdminService
         var ev = await _events.GetByIdAsync(eventId, ct)
             ?? throw new NotFoundException("Event not found.");
 
-        if (ev.Status != LysEventStatus.Submitted && ev.Status != LysEventStatus.UnderReview)
-            throw new AppException("Only submitted or under-review events can have changes requested.");
+        if (ev.Status != LysEventStatus.Submitted)
+            throw new AppException("Only submitted events can have changes requested.");
 
         ev.Status      = LysEventStatus.ChangesRequested;
         ev.ReviewedAt  = DateTime.UtcNow;

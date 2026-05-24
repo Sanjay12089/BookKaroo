@@ -27,8 +27,6 @@ export interface LysArtist {
 export type LysEventStatus =
   | 'draft'
   | 'submitted'
-  | 'under_review'
-  | 'approved'
   | 'rejected'
   | 'changes_requested'
   | 'published'
@@ -45,9 +43,11 @@ export interface LysEvent {
   venueId:            string | null;
   venueName:          string | null;
   cityName:           string | null;
-  customVenueName:    string | null;
-  customVenueAddress: string | null;
-  customVenueCity:    string | null;
+  customVenueName:      string | null;
+  customVenueAddress:   string | null;
+  customVenueCity:      string | null;
+  customVenueLatitude:  number | null;
+  customVenueLongitude: number | null;
   eventDate:          string;
   eventDateLabel:     string;
   eventTimeLabel:     string;
@@ -74,6 +74,7 @@ export interface LysEvent {
 export interface LysEventListItem {
   id:             string;
   title:          string;
+  slug:           string;
   type:           string;
   eventDate:      string;
   eventDateLabel: string;
@@ -93,10 +94,7 @@ export const LYS_STATUS_CONFIG: Record<LysEventStatus, {
                        description: 'Not submitted yet. Complete your event details and submit for review.' },
   submitted:         { label: 'Submitted',      color: '#818CF8', bgColor: '#1E1B4B',
                        description: 'Your event is waiting for BookKaroo team review.' },
-  under_review:      { label: 'Under Review',   color: '#FBBF24', bgColor: '#2D2006',
-                       description: 'Our team is currently reviewing your event.' },
-  approved:          { label: 'Approved',       color: '#34D399', bgColor: '#022C1E',
-                       description: 'Approved! Your event will be published shortly.' },
+
   rejected:          { label: 'Rejected',       color: '#F87171', bgColor: '#2D0707',
                        description: 'Your event was not approved. See the reason below.' },
   changes_requested: { label: 'Changes Needed', color: '#FCD34D', bgColor: '#2D1B00',
@@ -133,12 +131,24 @@ export interface AdminLysEvent {
   organizerEmail:      string;
   organizerPan:        string;
   isOrganizerVerified: boolean;
+  venueType:           string;
   venueDisplay:        string;
+  customVenueAddress:   string | null;
+  customVenueLatitude:  number | null;
+  customVenueLongitude: number | null;
   eventDateLabel:      string;
   eventTimeLabel:      string;
+  description:         string | null;
+  language:            string;
+  ageRestriction:      number;
+  durationMin:         number | null;
+  commissionRate:      number;
   lowestPrice:         number;
   tierCount:           number;
+  priceTiers:          LysPriceTier[];
+  artists:             LysArtist[];
   posterUrl:           string | null;
+  backdropUrl:         string | null;
   submittedAt:         string | null;
   reviewedAt:          string | null;
   reviewNotes:         string | null;
@@ -173,9 +183,11 @@ export interface CreateLysEventForm {
   venueType:          'existing' | 'custom';
   venueId?:           string;
   customVenueName?:   string;
-  customVenueAddress?: string;
-  customVenueCity?:   string;
-  eventDate:          string;
+  customVenueAddress?:  string;
+  customVenueCity?:     string;
+  customVenueLatitude?: number;
+  customVenueLongitude?: number;
+  eventDate:            string;
   durationMin?:       number;
   language:           string;
   ageRestriction:     number;
