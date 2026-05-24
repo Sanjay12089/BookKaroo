@@ -14,7 +14,7 @@ export default function PartnerDashboardPage() {
 
   return (
     <PartnerLayout>
-      <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <header>
           <h1 className="text-2xl font-display font-bold text-text-primary">
             {data?.partnerName ? `${data.partnerName} Dashboard` : 'Partner Dashboard'}

@@ -110,7 +110,7 @@ export default function PartnerVenueDetailPage() {
 
   return (
     <PartnerLayout>
-      <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <div>
           <Link
             to="/partner/venues"
@@ -175,7 +175,7 @@ export default function PartnerVenueDetailPage() {
 
             {/* Screens section */}
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <h2 className="text-lg font-display font-bold text-text-primary">
                   Screens ({venue.screens.length})
                 </h2>
