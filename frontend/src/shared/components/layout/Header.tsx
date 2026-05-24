@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { MapPin, User, LogOut, ChevronDown, LayoutDashboard, Building2, Menu, X } from 'lucide-react';
+import { MapPin, User, LogOut, ChevronDown, LayoutDashboard, Building2, Menu, X, Clapperboard } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { ROUTES } from '@/shared/constants';
 import { useAuthStore } from '@/features/auth/store/authStore';
@@ -133,6 +133,9 @@ export function Header() {
                             <Building2 size={15} /> Partner Portal
                           </Link>
                         )}
+                        <Link to="/list-your-show/my-events" onClick={() => setUserMenuOpen(false)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-accent-indigo hover:bg-accent-indigo/10 transition-colors">
+                          <Clapperboard size={15} /> List Your Show
+                        </Link>
                         <button onClick={handleLogout} className="flex items-center gap-2 px-4 py-2.5 text-sm text-semantic-error hover:bg-semantic-error/10 transition-colors w-full">
                           <LogOut size={15} /> Sign Out
                         </button>
@@ -254,6 +257,9 @@ export function Header() {
                       <Building2 size={16} /> Partner Portal
                     </Link>
                   )}
+                  <Link to="/list-your-show/my-events" onClick={closeMobileMenu} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-accent-indigo hover:bg-accent-indigo/10 transition-colors">
+                    <Clapperboard size={16} /> List Your Show
+                  </Link>
                   <button onClick={handleLogout} className="flex items-center gap-3 px-3 py-3 rounded-xl text-sm text-semantic-error hover:bg-semantic-error/10 transition-colors w-full">
                     <LogOut size={16} /> Sign Out
                   </button>

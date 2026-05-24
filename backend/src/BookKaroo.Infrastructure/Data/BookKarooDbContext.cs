@@ -32,6 +32,9 @@ public class BookKarooDbContext : DbContext
     public DbSet<EventTicketLock> EventTicketLocks => Set<EventTicketLock>();
     public DbSet<PartnerProfile> PartnerProfiles => Set<PartnerProfile>();
     public DbSet<PartnerVenueAccess> PartnerVenueAccesses => Set<PartnerVenueAccess>();
+    public DbSet<LysOrganizer> LysOrganizers => Set<LysOrganizer>();
+    public DbSet<LysEvent>     LysEvents     => Set<LysEvent>();
+    public DbSet<LysUpload>    LysUploads    => Set<LysUpload>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -291,6 +294,49 @@ public class BookKarooDbContext : DbContext
             e.HasIndex(p => new { p.PartnerId, p.VenueId }).IsUnique();
             e.HasIndex(p => p.PartnerId);
             e.HasIndex(p => p.VenueId);
+        });
+
+        // ── LysOrganizer ──────────────────────────────────────────────────────
+        modelBuilder.Entity<LysOrganizer>(e =>
+        {
+            e.HasKey(o => o.Id);
+            e.HasIndex(o => o.UserId)
+             .HasFilter("\"DeletedAt\" IS NULL")
+             .IsUnique();
+            e.HasIndex(o => o.PanNumber)
+             .HasFilter("\"DeletedAt\" IS NULL")
+             .IsUnique();
+            e.HasQueryFilter(o => o.DeletedAt == null);
+        });
+
+        // ── LysEvent ──────────────────────────────────────────────────────────
+        modelBuilder.Entity<LysEvent>(e =>
+        {
+            e.HasKey(ev => ev.Id);
+            e.HasIndex(ev => ev.Slug)
+             .HasFilter("\"DeletedAt\" IS NULL")
+             .IsUnique();
+            e.HasIndex(ev => ev.OrganizerId);
+            e.HasIndex(ev => ev.Status);
+            e.HasQueryFilter(ev => ev.DeletedAt == null);
+            e.Property(ev => ev.CommissionRate).HasColumnType("numeric(5,2)");
+            e.Property(ev => ev.ArtistsJson).HasColumnType("text");
+            e.Property(ev => ev.PriceTiersJson).HasColumnType("text");
+        });
+
+        // ── LysUpload — no soft-delete ────────────────────────────────────────
+        modelBuilder.Entity<LysUpload>(e =>
+        {
+            e.HasKey(u => u.Id);
+            e.HasIndex(u => u.OrganizerId);
+        });
+
+        // ── Booking — add LYS commission columns ──────────────────────────────
+        modelBuilder.Entity<Booking>(e =>
+        {
+            e.Property(b => b.CommissionAmount).HasColumnType("numeric(10,2)");
+            e.Property(b => b.CommissionRate).HasColumnType("numeric(5,2)");
+            e.HasIndex(b => b.LysEventId).HasFilter("\"LysEventId\" IS NOT NULL");
         });
     }
 
