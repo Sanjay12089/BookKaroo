@@ -145,10 +145,10 @@ public class LysAdminService : ILysAdminService
 
         // If there is a previously soft-deleted main event (from a prior unpublish), restore it.
         // This avoids a unique-slug constraint violation when re-publishing the same LYS event.
+        // We search by PublishedEventId when available (new flow), or fall back to slug (old flow
+        // where UnpublishEventAsync had already nulled PublishedEventId).
         Event mainEvent;
-        var existingMain = ev.PublishedEventId.HasValue
-            ? await _mainEvents.GetByIdAsync(ev.PublishedEventId.Value, ct)
-            : null;
+        var existingMain = await _mainEvents.FindSoftDeletedByIdOrSlugAsync(ev.PublishedEventId, ev.Slug, ct);
 
         if (existingMain != null)
         {

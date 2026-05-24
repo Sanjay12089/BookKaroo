@@ -14,6 +14,8 @@ public interface IEventRepository : IRepository<Event>
 
     Task<Event?> FindBySlugAsync(string slug, CancellationToken ct = default);
 
+    Task<Event?> FindSoftDeletedByIdOrSlugAsync(Guid? id, string slug, CancellationToken ct = default);
+
     Task<IEnumerable<Event>> GetUpcomingByTypeAsync(
         EventType         type,
         Guid?             cityId,
