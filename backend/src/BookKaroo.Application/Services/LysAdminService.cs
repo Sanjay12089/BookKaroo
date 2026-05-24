@@ -143,31 +143,63 @@ public class LysAdminService : ILysAdminService
         // Parse event type
         var eventType = ParseEventType(ev.Type);
 
-        // Create entry in main events table
-        var mainEvent = new Event
-        {
-            Title          = ev.Title,
-            Slug           = ev.Slug,
-            Type           = eventType,
-            Description    = ev.Description,
-            VenueId        = ev.VenueType == "existing" ? ev.VenueId : null,
-            VenueName      = ev.VenueType == "custom" ? ev.CustomVenueName  : null,
-            CityName       = ev.VenueType == "custom" ? ev.CustomVenueCity  : null,
-            VenueLatitude  = ev.VenueType == "custom" ? ev.CustomVenueLatitude  : null,
-            VenueLongitude = ev.VenueType == "custom" ? ev.CustomVenueLongitude : null,
-            EventDate      = ev.EventDate,
-            DurationMin    = ev.DurationMin ?? 0,
-            Language       = ev.Language,
-            AgeRestriction = ev.AgeRestriction,
-            Organizer      = System.Text.Json.JsonSerializer.Serialize(new { name = organizer.Name, contact = organizer.Email }),
-            Artists        = ev.ArtistsJson,
-            PosterUrl      = ev.PosterUrl,
-            BackdropUrl    = ev.BackdropUrl,
-            PriceTiers     = ev.PriceTiersJson,
-            Status         = MovieStatus.Published,
-        };
+        // If there is a previously soft-deleted main event (from a prior unpublish), restore it.
+        // This avoids a unique-slug constraint violation when re-publishing the same LYS event.
+        Event mainEvent;
+        var existingMain = ev.PublishedEventId.HasValue
+            ? await _mainEvents.GetByIdAsync(ev.PublishedEventId.Value, ct)
+            : null;
 
-        await _mainEvents.AddAsync(mainEvent, ct);
+        if (existingMain != null)
+        {
+            existingMain.Title          = ev.Title;
+            existingMain.Type           = eventType;
+            existingMain.Description    = ev.Description;
+            existingMain.VenueId        = ev.VenueType == "existing" ? ev.VenueId : null;
+            existingMain.VenueName      = ev.VenueType == "custom" ? ev.CustomVenueName  : null;
+            existingMain.CityName       = ev.VenueType == "custom" ? ev.CustomVenueCity  : null;
+            existingMain.VenueLatitude  = ev.VenueType == "custom" ? ev.CustomVenueLatitude  : null;
+            existingMain.VenueLongitude = ev.VenueType == "custom" ? ev.CustomVenueLongitude : null;
+            existingMain.EventDate      = ev.EventDate;
+            existingMain.DurationMin    = ev.DurationMin ?? 0;
+            existingMain.Language       = ev.Language;
+            existingMain.AgeRestriction = ev.AgeRestriction;
+            existingMain.Organizer      = System.Text.Json.JsonSerializer.Serialize(new { name = organizer.Name, contact = organizer.Email });
+            existingMain.Artists        = ev.ArtistsJson;
+            existingMain.PosterUrl      = ev.PosterUrl;
+            existingMain.BackdropUrl    = ev.BackdropUrl;
+            existingMain.PriceTiers     = ev.PriceTiersJson;
+            existingMain.Status         = MovieStatus.Published;
+            existingMain.DeletedAt      = null;
+            await _mainEvents.UpdateAsync(existingMain, ct);
+            mainEvent = existingMain;
+        }
+        else
+        {
+            mainEvent = new Event
+            {
+                Title          = ev.Title,
+                Slug           = ev.Slug,
+                Type           = eventType,
+                Description    = ev.Description,
+                VenueId        = ev.VenueType == "existing" ? ev.VenueId : null,
+                VenueName      = ev.VenueType == "custom" ? ev.CustomVenueName  : null,
+                CityName       = ev.VenueType == "custom" ? ev.CustomVenueCity  : null,
+                VenueLatitude  = ev.VenueType == "custom" ? ev.CustomVenueLatitude  : null,
+                VenueLongitude = ev.VenueType == "custom" ? ev.CustomVenueLongitude : null,
+                EventDate      = ev.EventDate,
+                DurationMin    = ev.DurationMin ?? 0,
+                Language       = ev.Language,
+                AgeRestriction = ev.AgeRestriction,
+                Organizer      = System.Text.Json.JsonSerializer.Serialize(new { name = organizer.Name, contact = organizer.Email }),
+                Artists        = ev.ArtistsJson,
+                PosterUrl      = ev.PosterUrl,
+                BackdropUrl    = ev.BackdropUrl,
+                PriceTiers     = ev.PriceTiersJson,
+                Status         = MovieStatus.Published,
+            };
+            await _mainEvents.AddAsync(mainEvent, ct);
+        }
 
         ev.Status          = LysEventStatus.Published;
         ev.ReviewedAt      = DateTime.UtcNow;
@@ -283,12 +315,13 @@ public class LysAdminService : ILysAdminService
             }
         }
 
-        // Reset LYS event so admin can decide next action (re-approve, reject, or request changes)
-        ev.Status           = LysEventStatus.Submitted;
-        ev.ReviewNotes      = reason;
-        ev.ReviewedAt       = DateTime.UtcNow;
-        ev.ReviewedBy       = adminId;
-        ev.PublishedEventId = null;
+        // Reset LYS event so admin can decide next action (re-approve, reject, or request changes).
+        // PublishedEventId is intentionally kept so ApproveEventAsync can restore the soft-deleted
+        // main event and avoid a slug uniqueness conflict on re-publish.
+        ev.Status      = LysEventStatus.Submitted;
+        ev.ReviewNotes = reason;
+        ev.ReviewedAt  = DateTime.UtcNow;
+        ev.ReviewedBy  = adminId;
         await _events.UpdateAsync(ev, ct);
 
         await _audit.LogAsync(adminId, "lys_unpublish", "lys_event", ev.Id, null, new { reason }, null, ct);
