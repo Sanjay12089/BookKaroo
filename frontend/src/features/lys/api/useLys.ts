@@ -240,6 +240,19 @@ export function useRequestChanges() {
   });
 }
 
+export function useUnpublishSubmission() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason: string }) =>
+      api.post(`/api/admin/lys/events/${id}/unpublish`, { reason }).then((r) => r.data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin-lys-submissions'] });
+      toast('Event unpublished. Status reset to Submitted.', 'success');
+    },
+    onError: (err: { message?: string }) => toast(err?.message ?? 'Unpublish failed.', 'error'),
+  });
+}
+
 export function useAdminLysOrganizers(filters: Record<string, unknown>, page: number) {
   return useQuery<PaginatedAdminLys<AdminLysOrganizer>>({
     queryKey: ['admin-lys-organizers', filters, page],

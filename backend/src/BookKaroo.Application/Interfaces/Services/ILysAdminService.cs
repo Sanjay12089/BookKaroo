@@ -13,6 +13,7 @@ public interface ILysAdminService
     Task<LysEventAdminDto> ApproveEventAsync(Guid eventId, Guid adminId, CancellationToken ct = default);
     Task<LysEventAdminDto> RejectEventAsync(Guid eventId, Guid adminId, string reason, CancellationToken ct = default);
     Task<LysEventAdminDto> RequestChangesAsync(Guid eventId, Guid adminId, string notes, CancellationToken ct = default);
+    Task<LysEventAdminDto> UnpublishEventAsync(Guid eventId, Guid adminId, string reason, CancellationToken ct = default);
 
     Task<(List<LysOrganizerAdminDto> Items, int Total)> GetOrganizersAsync(
         string? search, bool? isVerified, int page, int pageSize, CancellationToken ct = default);

@@ -89,4 +89,13 @@ public class AdminLysController : ControllerBase
         await _admin.DeactivateOrganizerAsync(id, ct);
         return Ok(new { message = "Organizer deactivated." });
     }
+
+    [HttpPost("events/{id:guid}/unpublish")]
+    public async Task<IActionResult> Unpublish(
+        Guid id, [FromBody] UnpublishLysRequest req, CancellationToken ct)
+    {
+        return Ok(await _admin.UnpublishEventAsync(id, GetAdminId(), req.Reason, ct));
+    }
 }
+
+public record UnpublishLysRequest(string Reason);
