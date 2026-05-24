@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, CheckCircle, XCircle, AlertTriangle, Search, X, ShieldCheck } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, AlertTriangle, Search, X, ShieldCheck, EyeOff } from 'lucide-react';
 import { AdminLayout } from '@/shared/components/layout/AdminLayout';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { getPosterUrl } from '@/shared/lib/imageUtils';
@@ -11,6 +11,7 @@ import {
   useApproveSubmission,
   useRejectSubmission,
   useRequestChanges,
+  useUnpublishSubmission,
 } from '@/features/lys/api/useLys';
 
 const STATUS_TABS: { label: string; value: string }[] = [
@@ -77,11 +78,12 @@ function TextareaModal({
 
 function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
   const { data: ev, isLoading } = useAdminLysSubmissionDetail(eventId);
-  const approve  = useApproveSubmission();
-  const reject   = useRejectSubmission();
-  const changes  = useRequestChanges();
+  const approve   = useApproveSubmission();
+  const reject    = useRejectSubmission();
+  const changes   = useRequestChanges();
+  const unpublish = useUnpublishSubmission();
 
-  const [actionModal, setActionModal] = useState<'reject' | 'changes' | null>(null);
+  const [actionModal, setActionModal] = useState<'reject' | 'changes' | 'unpublish' | null>(null);
 
   if (isLoading) {
     return (
@@ -290,7 +292,7 @@ function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
 
             {/* Actions */}
             {canAct && (
-              <div className="flex gap-3 pt-2">
+              <div className="flex flex-wrap gap-3 pt-2">
                 <button
                   onClick={async () => {
                     await approve.mutateAsync(ev.id);
@@ -316,6 +318,17 @@ function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
                 >
                   <XCircle size={14} />
                   Reject
+                </button>
+              </div>
+            )}
+            {ev.status === 'published' && (
+              <div className="flex pt-2 border-t border-border-default">
+                <button
+                  onClick={() => setActionModal('unpublish')}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-bg-surface2 border border-border-default rounded-lg text-text-secondary text-sm font-semibold hover:text-semantic-error hover:border-semantic-error/40 transition-colors"
+                >
+                  <EyeOff size={14} />
+                  Unpublish Event
                 </button>
               </div>
             )}
@@ -346,6 +359,20 @@ function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
           onClose={() => setActionModal(null)}
           onConfirm={async (notes) => {
             await changes.mutateAsync({ id: ev.id, notes });
+            setActionModal(null);
+            onClose();
+          }}
+        />
+      )}
+      {actionModal === 'unpublish' && (
+        <TextareaModal
+          title="Unpublish Event"
+          placeholder="Reason for unpublishing (internal note, not shown to organizer)…"
+          actionLabel="Unpublish"
+          isPending={unpublish.isPending}
+          onClose={() => setActionModal(null)}
+          onConfirm={async (reason) => {
+            await unpublish.mutateAsync({ id: ev.id, reason });
             setActionModal(null);
             onClose();
           }}

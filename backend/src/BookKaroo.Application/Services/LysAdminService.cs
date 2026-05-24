@@ -263,6 +263,39 @@ public class LysAdminService : ILysAdminService
         return await GetSubmissionDetailAsync(eventId, ct);
     }
 
+    public async Task<LysEventAdminDto> UnpublishEventAsync(
+        Guid eventId, Guid adminId, string reason, CancellationToken ct = default)
+    {
+        var ev = await _events.GetByIdAsync(eventId, ct)
+            ?? throw new NotFoundException("Event not found.");
+
+        if (ev.Status != LysEventStatus.Published)
+            throw new AppException("Only published events can be unpublished.");
+
+        // Soft-delete the public-facing event record so it disappears for end users
+        if (ev.PublishedEventId.HasValue)
+        {
+            var mainEvent = await _mainEvents.GetByIdAsync(ev.PublishedEventId.Value, ct);
+            if (mainEvent != null)
+            {
+                mainEvent.DeletedAt = DateTime.UtcNow;
+                await _mainEvents.UpdateAsync(mainEvent, ct);
+            }
+        }
+
+        // Reset LYS event so admin can decide next action (re-approve, reject, or request changes)
+        ev.Status           = LysEventStatus.Submitted;
+        ev.ReviewNotes      = reason;
+        ev.ReviewedAt       = DateTime.UtcNow;
+        ev.ReviewedBy       = adminId;
+        ev.PublishedEventId = null;
+        await _events.UpdateAsync(ev, ct);
+
+        await _audit.LogAsync(adminId, "lys_unpublish", "lys_event", ev.Id, null, new { reason }, null, ct);
+
+        return await GetSubmissionDetailAsync(eventId, ct);
+    }
+
     public async Task<(List<LysOrganizerAdminDto> Items, int Total)> GetOrganizersAsync(
         string? search, bool? isVerified, int page, int pageSize, CancellationToken ct = default) =>
         await _organizers.GetAllAdminAsync(search, isVerified, page, pageSize, ct);
