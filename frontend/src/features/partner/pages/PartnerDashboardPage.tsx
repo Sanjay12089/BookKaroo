@@ -1,5 +1,7 @@
+import { Link } from 'react-router-dom';
 import { PartnerLayout } from '../components/PartnerLayout';
 import { usePartnerDashboard } from '../api/usePartner';
+import { usePartnerLysPendingCount } from '../api/usePartnerLys';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 
 function formatINR(n: number) {
@@ -8,6 +10,7 @@ function formatINR(n: number) {
 
 export default function PartnerDashboardPage() {
   const { data, isLoading, isError, refetch } = usePartnerDashboard();
+  const { data: pendingLys } = usePartnerLysPendingCount();
 
   return (
     <PartnerLayout>
@@ -34,6 +37,21 @@ export default function PartnerDashboardPage() {
             <span>Failed to load dashboard.</span>
             <button onClick={() => refetch()} className="underline hover:opacity-80">Retry</button>
           </div>
+        )}
+
+        {(pendingLys ?? 0) > 0 && (
+          <Link
+            to="/partner/lys"
+            className="flex items-center gap-3 rounded-lg border border-accent-crimson/40 bg-accent-crimson/08 px-4 py-3 text-sm text-accent-crimson hover:bg-accent-crimson/12 transition-colors"
+          >
+            <span className="min-w-[28px] h-7 flex items-center justify-center rounded-full bg-accent-crimson text-white text-xs font-bold">
+              {pendingLys}
+            </span>
+            <span>
+              <strong>{pendingLys} event submission{pendingLys === 1 ? '' : 's'}</strong> at your venue{pendingLys === 1 ? '' : 's'} awaiting your approval
+            </span>
+            <span className="ml-auto underline">Review now →</span>
+          </Link>
         )}
 
         {data && (
