@@ -124,21 +124,52 @@ public class LysEventService : ILysEventService
 
         ev.Status      = LysEventStatus.Submitted;
         ev.SubmittedAt = DateTime.UtcNow;
+
+        // Detect active partner for an existing-venue event
+        if (ev.VenueType == "existing" && ev.VenueId.HasValue)
+        {
+            var (hasPartner, partnerId, partnerEmail, partnerName) =
+                await _events.DetectVenuePartnerAsync(ev.VenueId.Value, ct);
+
+            if (hasPartner)
+            {
+                ev.RequiresPartnerApproval = true;
+                ev.AssignedPartnerId       = partnerId;
+            }
+        }
+
         await _events.UpdateAsync(ev, ct);
 
-        var organizer = await _organizers.GetByIdAsync(organizerId, ct);
+        var organizer  = await _organizers.GetByIdAsync(organizerId, ct);
         var adminEmail = _config["ADMIN_EMAIL"] ?? "admin@bookkaroo.com";
+        var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+
         _ = Task.Run(async () =>
         {
             try
             {
+                // Notify admin
                 await _email.SendLysSubmissionToAdminAsync(
                     adminEmail, organizer?.Name ?? "Organizer",
                     ev.Title, ev.Type, ev.EventDate);
+
+                // If partner is assigned, also notify them
+                if (ev.RequiresPartnerApproval)
+                {
+                    var (_, _, partnerEmail, partnerName) =
+                        await _events.DetectVenuePartnerAsync(ev.VenueId!.Value, default);
+                    if (!string.IsNullOrEmpty(partnerEmail))
+                    {
+                        await _email.SendLysPartnerApprovalRequestAsync(
+                            partnerEmail, partnerName ?? "Partner",
+                            ev.Title, ev.Id, organizer?.Name ?? "Organizer",
+                            frontendUrl);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "LYS submission admin email failed for event {Id}", ev.Id);
+                _logger.LogError(ex, "LYS submission notification failed for event {Id}", ev.Id);
             }
         }, ct);
 

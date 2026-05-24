@@ -4,7 +4,6 @@ using BookKaroo.Application.Exceptions;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Application.Interfaces.Services;
 using BookKaroo.Domain.Entities;
-using BookKaroo.Domain.Entities;
 using BookKaroo.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -17,6 +16,7 @@ public class LysAdminService : ILysAdminService
     private readonly ILysOrganizerRepository _organizers;
     private readonly IEventRepository        _mainEvents;
     private readonly IVenueRepository        _venues;
+    private readonly IPartnerRepository      _partners;
     private readonly IAuditLogService        _audit;
     private readonly IEmailService           _email;
     private readonly IConfiguration         _config;
@@ -27,6 +27,7 @@ public class LysAdminService : ILysAdminService
         ILysOrganizerRepository organizers,
         IEventRepository        mainEvents,
         IVenueRepository        venues,
+        IPartnerRepository      partners,
         IAuditLogService        audit,
         IEmailService           email,
         IConfiguration          config,
@@ -36,6 +37,7 @@ public class LysAdminService : ILysAdminService
         _organizers = organizers;
         _mainEvents = mainEvents;
         _venues     = venues;
+        _partners   = partners;
         _audit      = audit;
         _email      = email;
         _config     = config;
@@ -57,10 +59,16 @@ public class LysAdminService : ILysAdminService
         Venue? venue = ev.VenueType == "existing" && ev.VenueId.HasValue
             ? await _venues.GetByIdAsync(ev.VenueId.Value, ct)
             : null;
-        return BuildAdminDto(ev, organizer, venue?.Name);
+        string? partnerName = null;
+        if (ev.AssignedPartnerId.HasValue)
+        {
+            var partner = await _partners.GetByIdAsync(ev.AssignedPartnerId.Value, ct);
+            partnerName = partner?.BusinessName;
+        }
+        return BuildAdminDto(ev, organizer, venue?.Name, partnerName);
     }
 
-    private static LysEventAdminDto BuildAdminDto(LysEvent ev, LysOrganizer org, string? venueName = null)
+    private static LysEventAdminDto BuildAdminDto(LysEvent ev, LysOrganizer org, string? venueName = null, string? partnerName = null)
     {
         var ist         = DateTime.SpecifyKind(ev.EventDate, DateTimeKind.Utc).AddMinutes(330);
         var opts        = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -99,9 +107,14 @@ public class LysAdminService : ILysAdminService
             Artists             = artists,
             PosterUrl           = ev.PosterUrl,
             BackdropUrl         = ev.BackdropUrl,
-            SubmittedAt         = ev.SubmittedAt,
-            ReviewedAt          = ev.ReviewedAt,
-            ReviewNotes         = ev.ReviewNotes,
+            SubmittedAt              = ev.SubmittedAt,
+            ReviewedAt               = ev.ReviewedAt,
+            ReviewNotes              = ev.ReviewNotes,
+            RequiresPartnerApproval  = ev.RequiresPartnerApproval,
+            AssignedPartnerName      = partnerName,
+            PartnerAction            = ev.PartnerAction,
+            PartnerReviewNotes       = ev.PartnerReviewNotes,
+            PartnerReviewedAt        = ev.PartnerReviewedAt,
         };
     }
 
@@ -117,8 +130,8 @@ public class LysAdminService : ILysAdminService
         var ev = await _events.GetByIdAsync(eventId, ct)
             ?? throw new NotFoundException("Event not found.");
 
-        if (ev.Status != LysEventStatus.Submitted)
-            throw new AppException("Only submitted events can be approved.");
+        if (ev.Status is LysEventStatus.Published or LysEventStatus.Completed)
+            throw new AppException($"Cannot modify an event with status '{ev.Status}'. The event is already published or completed.");
 
         var organizer = await _organizers.GetByIdAsync(ev.OrganizerId, ct)
             ?? throw new NotFoundException("Organizer not found.");
@@ -186,8 +199,8 @@ public class LysAdminService : ILysAdminService
         var ev = await _events.GetByIdAsync(eventId, ct)
             ?? throw new NotFoundException("Event not found.");
 
-        if (ev.Status != LysEventStatus.Submitted)
-            throw new AppException("Only submitted events can be rejected.");
+        if (ev.Status is LysEventStatus.Published or LysEventStatus.Completed)
+            throw new AppException($"Cannot modify an event with status '{ev.Status}'. The event is already published or completed.");
 
         ev.Status      = LysEventStatus.Rejected;
         ev.ReviewedAt  = DateTime.UtcNow;
@@ -220,8 +233,8 @@ public class LysAdminService : ILysAdminService
         var ev = await _events.GetByIdAsync(eventId, ct)
             ?? throw new NotFoundException("Event not found.");
 
-        if (ev.Status != LysEventStatus.Submitted)
-            throw new AppException("Only submitted events can have changes requested.");
+        if (ev.Status is LysEventStatus.Published or LysEventStatus.Completed)
+            throw new AppException($"Cannot modify an event with status '{ev.Status}'. The event is already published or completed.");
 
         ev.Status      = LysEventStatus.ChangesRequested;
         ev.ReviewedAt  = DateTime.UtcNow;

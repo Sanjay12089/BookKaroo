@@ -23,4 +23,14 @@ public interface ILysEventRepository
         Guid organizerId, string title, DateTime eventDate, CancellationToken ct = default);
 
     Task<bool> SlugExistsAsync(string slug, CancellationToken ct = default);
+
+    Task<(bool HasActivePartner, Guid? PartnerId, string? PartnerEmail, string? PartnerName)>
+        DetectVenuePartnerAsync(Guid venueId, CancellationToken ct = default);
+
+    Task<(List<LysEvent> Items, int Total)> GetByPartnerAsync(
+        Guid partnerId, List<Guid> venueIds, string? status,
+        int page, int pageSize, CancellationToken ct = default);
+
+    Task<int> GetPendingCountForPartnerAsync(
+        Guid partnerId, List<Guid> venueIds, CancellationToken ct = default);
 }
