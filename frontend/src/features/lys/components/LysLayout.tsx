@@ -66,33 +66,36 @@ export function LysLayout({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
-        </nav>
 
-        <div className={cn('border-t border-border-default mx-2 mt-auto pt-2 pb-3 space-y-0.5', collapsed && 'flex flex-col items-center mx-0 px-2')}>
+          <div className="border-t border-border-default my-1.5 mx-1" />
+
           <Link
             to="/"
             title="View Site"
             className={cn(
-              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors w-full',
-              collapsed && 'justify-center w-auto px-2',
+              'flex items-center gap-3 px-3 py-2 rounded-md text-sm text-text-secondary hover:text-text-primary hover:bg-bg-surface2 transition-colors',
+              collapsed && 'justify-center px-2',
             )}
           >
             <Home size={16} className="flex-shrink-0" />
-            {!collapsed && <span className="font-sans">View Site</span>}
+            {!collapsed && 'View Site'}
           </Link>
           <button
             onClick={handleLogout}
             title="Sign out"
             className={cn(
-              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm text-text-muted hover:text-semantic-error hover:bg-semantic-error/08 transition-colors w-full',
-              collapsed && 'justify-center w-auto px-2',
+              'flex items-center gap-3 px-3 py-2 rounded-md text-sm text-text-muted hover:text-semantic-error hover:bg-semantic-error/08 transition-colors w-full',
+              collapsed && 'justify-center px-2',
             )}
           >
             <LogOut size={16} className="flex-shrink-0" />
-            {!collapsed && <span className="font-sans">Sign out</span>}
+            {!collapsed && 'Sign out'}
           </button>
+        </nav>
+
+        <div className={cn('mt-auto pb-3 px-4', collapsed && 'px-2 flex justify-center')}>
           {!collapsed && (
-            <p className="text-[11px] text-text-muted truncate px-3 pt-1">{user?.email}</p>
+            <p className="text-[11px] text-text-muted truncate">{user?.email}</p>
           )}
         </div>
       </aside>
