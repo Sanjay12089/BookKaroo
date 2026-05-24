@@ -12,7 +12,6 @@ const TABS: { label: string; value: string }[] = [
   { label: 'All',              value: 'all' },
   { label: 'Drafts',           value: 'draft' },
   { label: 'Submitted',        value: 'submitted' },
-  { label: 'Under Review',     value: 'under_review' },
   { label: 'Changes Needed',   value: 'changes_requested' },
   { label: 'Live',             value: 'published' },
   { label: 'Rejected',         value: 'rejected' },
@@ -49,8 +48,7 @@ function EventRow({ event }: { event: LysEventListItem }) {
         <p className="text-text-muted text-xs mt-0.5">{event.eventDateLabel}</p>
 
         <span
-          className="inline-block mt-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full"
-          style={{ background: config.bgColor, color: config.color }}
+          className="inline-block mt-1.5 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-crimson text-white"
         >
           {config.label}
         </span>
@@ -104,19 +102,19 @@ function EventRow({ event }: { event: LysEventListItem }) {
             Edit & Resubmit
           </Link>
         )}
-        {(event.status === 'submitted' || event.status === 'under_review' || event.status === 'rejected') && (
+        {(event.status === 'submitted' || event.status === 'rejected') && (
           <Link
             to={`/list-your-show/events/${event.id}/edit`}
-            className="text-xs px-3 py-1.5 bg-bg-surface2 border border-border-default rounded-lg text-text-secondary hover:text-text-primary"
+            className="text-xs px-3 py-1.5 bg-accent-crimson text-white rounded-lg"
           >
             View
           </Link>
         )}
         {event.status === 'published' && (
           <Link
-            to={`/events/${event.id}`}
+            to={`/events/${event.slug}`}
             target="_blank"
-            className="text-xs px-3 py-1.5 bg-green-500/15 border border-green-500/30 rounded-lg text-green-400 flex items-center gap-1 hover:opacity-90"
+            className="text-xs px-3 py-1.5 bg-accent-crimson text-white rounded-lg flex items-center gap-1 hover:opacity-90"
           >
             Live <ExternalLink size={10} />
           </Link>

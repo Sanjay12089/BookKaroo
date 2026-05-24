@@ -1,3 +1,4 @@
+using System.Text.Json;
 using BookKaroo.Application.DTOs.Lys;
 using BookKaroo.Application.Interfaces.Repositories;
 using BookKaroo.Domain.Entities;
@@ -91,37 +92,120 @@ public class LysEventRepository : ILysEventRepository
 
         var total = await query.CountAsync(ct);
 
-        var items = await query
-            .OrderBy(x =>
-                x.ev.Status == "submitted" || x.ev.Status == "under_review" ? 0 : 1)
+        var rawItems = await query
+            .OrderBy(x => x.ev.Status == "submitted" ? 0 : 1)
             .ThenByDescending(x => x.ev.SubmittedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(x => new LysEventAdminDto
+            .Select(x => new
             {
-                Id                  = x.ev.Id,
-                Title               = x.ev.Title,
-                Slug                = x.ev.Slug,
-                Type                = x.ev.Type,
-                Status              = x.ev.Status,
+                x.ev.Id,
+                x.ev.Title,
+                x.ev.Slug,
+                x.ev.Type,
+                x.ev.Status,
                 OrganizerName       = x.org.Name,
                 OrganizerEmail      = x.org.Email,
                 OrganizerPan        = x.org.PanNumber,
                 IsOrganizerVerified = x.org.IsVerified,
-                VenueDisplay        = x.ev.VenueType == "existing"
-                    ? (x.ev.CustomVenueName ?? "Registered Venue")
-                    : (x.ev.CustomVenueName + (x.ev.CustomVenueCity != null ? ", " + x.ev.CustomVenueCity : "")),
-                EventDateLabel      = x.ev.EventDate.ToString("dd MMM yyyy"),
-                EventTimeLabel      = x.ev.EventDate.ToString("h:mm tt"),
-                PosterUrl           = x.ev.PosterUrl,
-                SubmittedAt         = x.ev.SubmittedAt,
-                ReviewedAt          = x.ev.ReviewedAt,
-                ReviewNotes         = x.ev.ReviewNotes,
+                x.ev.VenueType,
+                x.ev.VenueId,
+                x.ev.CustomVenueName,
+                x.ev.CustomVenueCity,
+                x.ev.CustomVenueAddress,
+                x.ev.CustomVenueLatitude,
+                x.ev.CustomVenueLongitude,
+                x.ev.EventDate,
+                x.ev.Description,
+                x.ev.Language,
+                x.ev.AgeRestriction,
+                x.ev.DurationMin,
+                x.ev.CommissionRate,
+                x.ev.PriceTiersJson,
+                x.ev.ArtistsJson,
+                x.ev.PosterUrl,
+                x.ev.BackdropUrl,
+                x.ev.SubmittedAt,
+                x.ev.ReviewedAt,
+                x.ev.ReviewNotes,
             })
             .ToListAsync(ct);
 
+        // Batch-load venue names for any "existing" venue events
+        var venueIds = rawItems
+            .Where(x => x.VenueType == "existing" && x.VenueId.HasValue)
+            .Select(x => x.VenueId!.Value)
+            .Distinct()
+            .ToList();
+        var venueNames = venueIds.Count > 0
+            ? await _db.Venues
+                .Where(v => venueIds.Contains(v.Id))
+                .Select(v => new { v.Id, v.Name })
+                .ToDictionaryAsync(v => v.Id, v => v.Name, ct)
+            : new Dictionary<Guid, string>();
+
+        var opts  = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var items = rawItems.Select(x =>
+        {
+            var ist = ToIst(x.EventDate);
+            var venueDisplay = x.VenueType == "existing"
+                ? (x.VenueId.HasValue && venueNames.TryGetValue(x.VenueId.Value, out var vn) ? vn : "Registered Venue")
+                : x.CustomVenueName + (x.CustomVenueCity != null ? ", " + x.CustomVenueCity : "");
+
+            var priceTiers  = new List<LysPriceTierDto>();
+            if (!string.IsNullOrWhiteSpace(x.PriceTiersJson))
+            {
+                try { priceTiers = JsonSerializer.Deserialize<List<LysPriceTierDto>>(x.PriceTiersJson, opts) ?? []; }
+                catch { /* invalid JSON */ }
+            }
+
+            var artists = new List<LysArtistDto>();
+            if (!string.IsNullOrWhiteSpace(x.ArtistsJson))
+            {
+                try { artists = JsonSerializer.Deserialize<List<LysArtistDto>>(x.ArtistsJson, opts) ?? []; }
+                catch { /* invalid JSON */ }
+            }
+
+            return new LysEventAdminDto
+            {
+                Id                  = x.Id,
+                Title               = x.Title,
+                Slug                = x.Slug,
+                Type                = x.Type,
+                Status              = x.Status,
+                OrganizerName       = x.OrganizerName,
+                OrganizerEmail      = x.OrganizerEmail,
+                OrganizerPan        = x.OrganizerPan,
+                IsOrganizerVerified = x.IsOrganizerVerified,
+                VenueType            = x.VenueType,
+                VenueDisplay         = venueDisplay ?? "",
+                CustomVenueAddress   = x.CustomVenueAddress,
+                CustomVenueLatitude  = x.CustomVenueLatitude,
+                CustomVenueLongitude = x.CustomVenueLongitude,
+                EventDateLabel      = ist.ToString("dd MMM yyyy"),
+                EventTimeLabel      = ist.ToString("h:mm tt"),
+                Description         = x.Description,
+                Language            = x.Language ?? "",
+                AgeRestriction      = x.AgeRestriction,
+                DurationMin         = x.DurationMin,
+                CommissionRate      = x.CommissionRate,
+                TierCount           = priceTiers.Count,
+                LowestPrice         = priceTiers.Count > 0 ? priceTiers.Min(t => t.Price) : 0,
+                PriceTiers          = priceTiers,
+                Artists             = artists,
+                PosterUrl           = x.PosterUrl,
+                BackdropUrl         = x.BackdropUrl,
+                SubmittedAt         = x.SubmittedAt,
+                ReviewedAt          = x.ReviewedAt,
+                ReviewNotes         = x.ReviewNotes,
+            };
+        }).ToList();
+
         return (items, total);
     }
+
+    private static DateTime ToIst(DateTime utcDt) =>
+        DateTime.SpecifyKind(utcDt, DateTimeKind.Utc).AddMinutes(330);
 
     public async Task<List<LysEvent>> CheckDuplicatesAsync(
         Guid organizerId, string title, DateTime eventDate, CancellationToken ct)

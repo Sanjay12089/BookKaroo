@@ -18,5 +18,9 @@ public class Event : BaseEntity
     public string? PosterUrl { get; set; }
     public string? BackdropUrl { get; set; }
     public string? PriceTiers { get; set; }
+    public string? VenueName      { get; set; }
+    public string? CityName       { get; set; }
+    public double? VenueLatitude  { get; set; }
+    public double? VenueLongitude { get; set; }
     public MovieStatus Status { get; set; } = MovieStatus.Draft;
 }

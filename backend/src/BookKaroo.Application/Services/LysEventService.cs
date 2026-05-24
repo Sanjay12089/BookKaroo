@@ -57,10 +57,12 @@ public class LysEventService : ILysEventService
             Type               = req.Type,
             Description        = req.Description.Trim(),
             VenueType          = req.VenueType,
-            VenueId            = req.VenueId,
-            CustomVenueName    = req.CustomVenueName?.Trim(),
-            CustomVenueAddress = req.CustomVenueAddress?.Trim(),
-            CustomVenueCity    = req.CustomVenueCity?.Trim(),
+            VenueId             = req.VenueId,
+            CustomVenueName     = req.CustomVenueName?.Trim(),
+            CustomVenueAddress  = req.CustomVenueAddress?.Trim(),
+            CustomVenueCity     = req.CustomVenueCity?.Trim(),
+            CustomVenueLatitude  = req.CustomVenueLatitude,
+            CustomVenueLongitude = req.CustomVenueLongitude,
             EventDate          = req.EventDate,
             DurationMin        = req.DurationMin,
             Language           = req.Language,
@@ -91,9 +93,11 @@ public class LysEventService : ILysEventService
         if (!string.IsNullOrWhiteSpace(req.Description))  ev.Description        = req.Description.Trim();
         if (req.VenueType != null)                         ev.VenueType          = req.VenueType;
         if (req.VenueId.HasValue)                          ev.VenueId            = req.VenueId;
-        if (req.CustomVenueName != null)                   ev.CustomVenueName    = req.CustomVenueName.Trim();
-        if (req.CustomVenueAddress != null)                ev.CustomVenueAddress = req.CustomVenueAddress.Trim();
-        if (req.CustomVenueCity != null)                   ev.CustomVenueCity    = req.CustomVenueCity.Trim();
+        if (req.CustomVenueName != null)                   ev.CustomVenueName     = req.CustomVenueName.Trim();
+        if (req.CustomVenueAddress != null)                ev.CustomVenueAddress  = req.CustomVenueAddress.Trim();
+        if (req.CustomVenueCity != null)                   ev.CustomVenueCity     = req.CustomVenueCity.Trim();
+        if (req.CustomVenueLatitude.HasValue)              ev.CustomVenueLatitude  = req.CustomVenueLatitude;
+        if (req.CustomVenueLongitude.HasValue)             ev.CustomVenueLongitude = req.CustomVenueLongitude;
         if (req.EventDate.HasValue)                        ev.EventDate          = req.EventDate.Value;
         if (req.DurationMin.HasValue)                      ev.DurationMin        = req.DurationMin;
         if (!string.IsNullOrWhiteSpace(req.Language))     ev.Language           = req.Language;
@@ -256,6 +260,7 @@ public class LysEventService : ILysEventService
     private static LysEventResponse MapToResponse(LysEvent ev)
     {
         var tiers = ParseTiers(ev.PriceTiersJson);
+        var ist   = ToIst(ev.EventDate);
         return new LysEventResponse
         {
             Id                 = ev.Id,
@@ -266,12 +271,14 @@ public class LysEventService : ILysEventService
             Description        = ev.Description,
             VenueType          = ev.VenueType,
             VenueId            = ev.VenueId,
-            CustomVenueName    = ev.CustomVenueName,
-            CustomVenueAddress = ev.CustomVenueAddress,
-            CustomVenueCity    = ev.CustomVenueCity,
+            CustomVenueName     = ev.CustomVenueName,
+            CustomVenueAddress  = ev.CustomVenueAddress,
+            CustomVenueCity     = ev.CustomVenueCity,
+            CustomVenueLatitude  = ev.CustomVenueLatitude,
+            CustomVenueLongitude = ev.CustomVenueLongitude,
             EventDate          = ev.EventDate,
-            EventDateLabel     = ev.EventDate.ToString("dd MMM yyyy"),
-            EventTimeLabel     = ev.EventDate.ToString("h:mm tt"),
+            EventDateLabel     = ist.ToString("dd MMM yyyy"),
+            EventTimeLabel     = ist.ToString("h:mm tt"),
             DurationMin        = ev.DurationMin,
             Language           = ev.Language,
             AgeRestriction     = ev.AgeRestriction,
@@ -293,16 +300,21 @@ public class LysEventService : ILysEventService
         };
     }
 
+    private static DateTime ToIst(DateTime utcDt) =>
+        DateTime.SpecifyKind(utcDt, DateTimeKind.Utc).AddMinutes(330);
+
     private static LysEventListItem MapToListItem(LysEvent ev)
     {
         var tiers = ParseTiers(ev.PriceTiersJson);
+        var ist   = ToIst(ev.EventDate);
         return new LysEventListItem
         {
             Id             = ev.Id,
             Title          = ev.Title,
+            Slug           = ev.Slug,
             Type           = ev.Type,
             EventDate      = ev.EventDate,
-            EventDateLabel = ev.EventDate.ToString("dd MMM yyyy"),
+            EventDateLabel = ist.ToString("dd MMM yyyy"),
             Status         = ev.Status,
             StatusLabel    = GetStatusLabel(ev.Status),
             PosterUrl      = ev.PosterUrl,
@@ -339,8 +351,7 @@ public class LysEventService : ILysEventService
     {
         "draft"             => "Draft",
         "submitted"         => "Submitted",
-        "under_review"      => "Under Review",
-        "approved"          => "Approved",
+
         "rejected"          => "Rejected",
         "changes_requested" => "Changes Needed",
         "published"         => "Live",
@@ -352,8 +363,7 @@ public class LysEventService : ILysEventService
     {
         "draft"             => "#999999",
         "submitted"         => "#4F46E5",
-        "under_review"      => "#E67E22",
-        "approved"          => "#27AE60",
+
         "rejected"          => "#E74C3C",
         "changes_requested" => "#F39C12",
         "published"         => "#27AE60",

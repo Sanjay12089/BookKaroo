@@ -4,6 +4,7 @@ public class LysEventListItem
 {
     public Guid    Id             { get; set; }
     public string  Title          { get; set; } = string.Empty;
+    public string  Slug           { get; set; } = string.Empty;
     public string  Type           { get; set; } = string.Empty;
     public DateTime EventDate     { get; set; }
     public string  EventDateLabel { get; set; } = string.Empty;
