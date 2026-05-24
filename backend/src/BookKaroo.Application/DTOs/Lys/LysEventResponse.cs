@@ -12,9 +12,11 @@ public class LysEventResponse
     public Guid?   VenueId             { get; set; }
     public string? VenueName           { get; set; }
     public string? CityName            { get; set; }
-    public string? CustomVenueName     { get; set; }
+    public string? CustomVenueName      { get; set; }
     public string? CustomVenueAddress  { get; set; }
     public string? CustomVenueCity     { get; set; }
+    public double? CustomVenueLatitude  { get; set; }
+    public double? CustomVenueLongitude { get; set; }
     public DateTime EventDate          { get; set; }
     public string  EventDateLabel      { get; set; } = string.Empty;
     public string  EventTimeLabel      { get; set; } = string.Empty;

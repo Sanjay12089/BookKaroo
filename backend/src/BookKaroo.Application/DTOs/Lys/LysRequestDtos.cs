@@ -21,10 +21,12 @@ public class CreateLysEventRequest
     public string  Description        { get; set; } = string.Empty;
     public string  VenueType          { get; set; } = "custom";
     public Guid?   VenueId            { get; set; }
-    public string? CustomVenueName    { get; set; }
-    public string? CustomVenueAddress { get; set; }
-    public string? CustomVenueCity    { get; set; }
-    public DateTime EventDate         { get; set; }
+    public string? CustomVenueName      { get; set; }
+    public string? CustomVenueAddress  { get; set; }
+    public string? CustomVenueCity     { get; set; }
+    public double? CustomVenueLatitude  { get; set; }
+    public double? CustomVenueLongitude { get; set; }
+    public DateTime EventDate          { get; set; }
     public int?    DurationMin        { get; set; }
     public string  Language           { get; set; } = "Hindi";
     public int     AgeRestriction     { get; set; }
@@ -39,10 +41,12 @@ public class UpdateLysEventRequest
     public string?  Description        { get; set; }
     public string?  VenueType          { get; set; }
     public Guid?    VenueId            { get; set; }
-    public string?  CustomVenueName    { get; set; }
-    public string?  CustomVenueAddress { get; set; }
-    public string?  CustomVenueCity    { get; set; }
-    public DateTime? EventDate         { get; set; }
+    public string?  CustomVenueName      { get; set; }
+    public string?  CustomVenueAddress  { get; set; }
+    public string?  CustomVenueCity     { get; set; }
+    public double?  CustomVenueLatitude  { get; set; }
+    public double?  CustomVenueLongitude { get; set; }
+    public DateTime? EventDate          { get; set; }
     public int?     DurationMin        { get; set; }
     public string?  Language           { get; set; }
     public int?     AgeRestriction     { get; set; }

@@ -440,6 +440,16 @@ static async Task ApplyLysMigrationAsync(WebApplication app)
             ADD COLUMN IF NOT EXISTS "CommissionRate"   numeric(5,2)  NOT NULL DEFAULT 0;
         CREATE INDEX IF NOT EXISTS "IX_Bookings_LysEventId"
             ON "Bookings" ("LysEventId") WHERE "LysEventId" IS NOT NULL;
+
+        ALTER TABLE "Events"
+            ADD COLUMN IF NOT EXISTS "VenueName"      text,
+            ADD COLUMN IF NOT EXISTS "CityName"       text,
+            ADD COLUMN IF NOT EXISTS "VenueLatitude"  double precision,
+            ADD COLUMN IF NOT EXISTS "VenueLongitude" double precision;
+
+        ALTER TABLE "LysEvents"
+            ADD COLUMN IF NOT EXISTS "CustomVenueLatitude"  double precision,
+            ADD COLUMN IF NOT EXISTS "CustomVenueLongitude" double precision;
         """;
 
     try

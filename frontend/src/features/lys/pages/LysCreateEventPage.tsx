@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,10 +6,10 @@ import { z } from 'zod';
 import { getPosterUrl } from '@/shared/lib/imageUtils';
 import {
   useMyLysEvent, useCreateLysEvent, useUpdateLysEvent,
-  useSubmitLysEvent, useUploadLysImage, useLysCommissionRate,
+  useSubmitLysEvent, useUploadLysImage, useLysCommissionRate, useLysVenues,
 } from '../api/useLys';
 import { LYS_EVENT_TYPES } from '../types';
-import type { LysPriceTier } from '../types';
+import type { LysPriceTier, LysArtist } from '../types';
 import { LysLayout } from '../components/LysLayout';
 
 // ── Schemas ──────────────────────────────────────────────────────────────────
@@ -23,13 +23,16 @@ const step1Schema = z.object({
 });
 
 const step2Schema = z.object({
-  eventDate:         z.string().min(1, 'Event date is required'),
-  eventTime:         z.string().min(1, 'Event time is required'),
-  durationMin:       z.coerce.number().optional(),
-  venueType:         z.enum(['existing', 'custom']),
-  customVenueName:   z.string().optional(),
-  customVenueAddress: z.string().optional(),
-  customVenueCity:   z.string().optional(),
+  eventDate:            z.string().min(1, 'Event date is required'),
+  eventTime:            z.string().min(1, 'Event time is required'),
+  durationMin:          z.coerce.number().optional(),
+  venueType:            z.enum(['existing', 'custom']),
+  venueId:              z.string().optional(),
+  customVenueName:      z.string().optional(),
+  customVenueAddress:   z.string().optional(),
+  customVenueCity:      z.string().optional(),
+  customVenueLatitude:  z.coerce.number().optional(),
+  customVenueLongitude: z.coerce.number().optional(),
 });
 
 const LANGUAGES = ['Hindi', 'English', 'Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Marathi', 'Bengali', 'Gujarati', 'Punjabi'];
@@ -109,6 +112,84 @@ function TierEditor({ tiers, onChange }: {
   );
 }
 
+const ARTIST_TYPES = ['Singer', 'Comedian', 'Actor', 'Performer', 'DJ', 'Musician', 'Dancer', 'Speaker', 'Other'];
+
+function ArtistEditor({ artists, onChange }: {
+  artists: LysArtist[];
+  onChange: (artists: LysArtist[]) => void;
+}) {
+  function add() {
+    onChange([...artists, { name: '', type: 'Performer', bio: '' }]);
+  }
+  function remove(i: number) {
+    onChange(artists.filter((_, idx) => idx !== i));
+  }
+  function update(i: number, field: keyof LysArtist, value: string) {
+    const next = [...artists];
+    next[i] = { ...next[i], [field]: value };
+    onChange(next);
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="font-semibold text-text-primary text-sm">Artists / Performers <span className="text-text-muted font-normal">(optional)</span></h3>
+        {artists.length < 10 && (
+          <button type="button" onClick={add} className="text-xs text-accent-indigo hover:underline">
+            + Add Artist
+          </button>
+        )}
+      </div>
+      {artists.length === 0 ? (
+        <button
+          type="button"
+          onClick={add}
+          className="w-full border border-dashed border-border-default rounded-lg py-4 text-sm text-text-muted hover:border-accent-indigo hover:text-accent-indigo transition-colors"
+        >
+          + Add artist or performer
+        </button>
+      ) : (
+        <div className="space-y-3">
+          {artists.map((artist, i) => (
+            <div key={i} className="bg-bg-surface2 border border-border-default rounded-lg p-3 space-y-2">
+              <div className="flex gap-2 items-start">
+                <div className="flex-1 grid grid-cols-2 gap-2">
+                  <input
+                    value={artist.name}
+                    onChange={(e) => update(i, 'name', e.target.value)}
+                    placeholder="Artist name"
+                    className="px-3 py-1.5 bg-bg-base border border-border-default rounded text-xs text-text-primary focus:outline-none focus:border-accent-indigo"
+                  />
+                  <select
+                    value={artist.type}
+                    onChange={(e) => update(i, 'type', e.target.value)}
+                    className="px-3 py-1.5 bg-bg-base border border-border-default rounded text-xs text-text-primary focus:outline-none focus:border-accent-indigo"
+                  >
+                    {ARTIST_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => remove(i)}
+                  className="text-text-muted hover:text-semantic-error transition-colors flex-shrink-0 mt-1 text-xs"
+                >
+                  ✕
+                </button>
+              </div>
+              <input
+                value={artist.bio ?? ''}
+                onChange={(e) => update(i, 'bio', e.target.value)}
+                placeholder="Short bio or description (optional)"
+                className="w-full px-3 py-1.5 bg-bg-base border border-border-default rounded text-xs text-text-primary focus:outline-none focus:border-accent-indigo"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function LysCreateEventPage() {
   const { id: editId } = useParams<{ id?: string }>();
   const navigate        = useNavigate();
@@ -122,12 +203,14 @@ export function LysCreateEventPage() {
   const [step, setStep]         = useState(1);
   const [eventId, setEventId]   = useState<string | null>(editId ?? null);
   const [tiers, setTiers]       = useState<LysPriceTier[]>([{ name: 'General', price: 0, capacity: 100, color: '#4F46E5' }]);
+  const [artists, setArtists]   = useState<LysArtist[]>([]);
   const [posterUrl, setPosterUrl]     = useState<string | null>(existing?.posterUrl ?? null);
   const [backdropUrl, setBackdropUrl] = useState<string | null>(existing?.backdropUrl ?? null);
   const [submitted, setSubmitted] = useState(false);
   const posterInputRef   = useRef<HTMLInputElement>(null);
   const backdropInputRef = useRef<HTMLInputElement>(null);
 
+  const { data: venueOptions } = useLysVenues();
   const rate = commData?.rate ?? 5;
 
   const step1Form = useForm({ resolver: zodResolver(step1Schema), defaultValues: {
@@ -141,10 +224,48 @@ export function LysCreateEventPage() {
     eventTime: existing?.eventDate ? new Date(existing.eventDate).toTimeString().slice(0,5) : '',
     durationMin: existing?.durationMin ?? undefined,
     venueType: (existing?.venueType as 'existing' | 'custom') ?? 'custom',
+    venueId: existing?.venueId ?? undefined,
     customVenueName: existing?.customVenueName ?? '',
     customVenueAddress: existing?.customVenueAddress ?? '',
     customVenueCity: existing?.customVenueCity ?? '',
+    customVenueLatitude: existing?.customVenueLatitude ?? undefined,
+    customVenueLongitude: existing?.customVenueLongitude ?? undefined,
   }});
+
+  useEffect(() => {
+    if (!existing) return;
+    step1Form.reset({
+      title: existing.title,
+      type: existing.type,
+      description: existing.description,
+      language: existing.language,
+      ageRestriction: existing.ageRestriction,
+    });
+    const d = existing.eventDate ? new Date(existing.eventDate) : null;
+    const dateStr = d
+      ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+      : '';
+    const timeStr = d
+      ? `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+      : '';
+    step2Form.reset({
+      eventDate: dateStr,
+      eventTime: timeStr,
+      durationMin: existing.durationMin ?? undefined,
+      venueType: existing.venueType ?? 'custom',
+      venueId: existing.venueId ?? undefined,
+      customVenueName: existing.customVenueName ?? '',
+      customVenueAddress: existing.customVenueAddress ?? '',
+      customVenueCity: existing.customVenueCity ?? '',
+      customVenueLatitude: existing.customVenueLatitude ?? undefined,
+      customVenueLongitude: existing.customVenueLongitude ?? undefined,
+    });
+    if (existing.priceTiers?.length) setTiers(existing.priceTiers);
+    if (existing.artists?.length) setArtists(existing.artists);
+    if (existing.posterUrl) setPosterUrl(existing.posterUrl);
+    if (existing.backdropUrl) setBackdropUrl(existing.backdropUrl);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [existing]);
 
   async function handleStep1(data: z.infer<typeof step1Schema>) {
     const payload = {
@@ -170,8 +291,12 @@ export function LysCreateEventPage() {
       data: {
         eventDate, durationMin: data.durationMin,
         venueType: data.venueType,
-        customVenueName: data.customVenueName, customVenueAddress: data.customVenueAddress,
+        venueId: data.venueId || undefined,
+        customVenueName: data.customVenueName,
+        customVenueAddress: data.customVenueAddress,
         customVenueCity: data.customVenueCity,
+        customVenueLatitude: data.customVenueLatitude,
+        customVenueLongitude: data.customVenueLongitude,
       } as never,
     });
     setStep(3);
@@ -181,7 +306,10 @@ export function LysCreateEventPage() {
     if (!eventId) return;
     await updateEvent.mutateAsync({
       id: eventId,
-      data: { priceTiersJson: JSON.stringify(tiers) } as never,
+      data: {
+        priceTiersJson: JSON.stringify(tiers),
+        artistsJson: JSON.stringify(artists.filter(a => a.name.trim())),
+      } as never,
     });
     setStep(4);
   }
@@ -340,6 +468,22 @@ export function LysCreateEventPage() {
             </div>
           </div>
 
+          {step2Form.watch('venueType') === 'existing' && (
+            <div>
+              <label className="block text-sm font-semibold text-text-primary mb-1.5">Select Venue</label>
+              <select {...step2Form.register('venueId')}
+                className="w-full px-4 py-2.5 bg-bg-surface2 border border-border-default rounded-lg text-text-primary text-sm focus:outline-none focus:border-accent-indigo">
+                <option value="">— Choose a venue —</option>
+                {(venueOptions ?? []).map((v) => (
+                  <option key={v.id} value={v.id}>{v.name} — {v.cityName}</option>
+                ))}
+              </select>
+              {venueOptions?.length === 0 && (
+                <p className="text-xs text-text-muted mt-1">No registered venues found.</p>
+              )}
+            </div>
+          )}
+
           {step2Form.watch('venueType') === 'custom' && (
             <div className="space-y-3">
               <input {...step2Form.register('customVenueName')} placeholder="Venue name"
@@ -348,6 +492,21 @@ export function LysCreateEventPage() {
                 className="w-full px-4 py-2.5 bg-bg-surface2 border border-border-default rounded-lg text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
               <input {...step2Form.register('customVenueCity')} placeholder="City"
                 className="w-full px-4 py-2.5 bg-bg-surface2 border border-border-default rounded-lg text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Latitude <span className="text-text-muted">(optional)</span></label>
+                  <input type="number" step="any" {...step2Form.register('customVenueLatitude')}
+                    placeholder="e.g. 19.0760"
+                    className="w-full px-4 py-2.5 bg-bg-surface2 border border-border-default rounded-lg text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
+                </div>
+                <div>
+                  <label className="block text-xs text-text-muted mb-1">Longitude <span className="text-text-muted">(optional)</span></label>
+                  <input type="number" step="any" {...step2Form.register('customVenueLongitude')}
+                    placeholder="e.g. 72.8777"
+                    className="w-full px-4 py-2.5 bg-bg-surface2 border border-border-default rounded-lg text-text-primary text-sm focus:outline-none focus:border-accent-indigo" />
+                </div>
+              </div>
+              <p className="text-xs text-text-muted">Coordinates enable a Google Maps link on your event page.</p>
             </div>
           )}
 
@@ -367,6 +526,10 @@ export function LysCreateEventPage() {
       {/* Step 3 — Artists & Tickets */}
       {step === 3 && (
         <div className="space-y-6">
+          <ArtistEditor artists={artists} onChange={setArtists} />
+
+          <div className="border-t border-border-default" />
+
           <TierEditor tiers={tiers} onChange={setTiers} />
 
           {/* Commission preview */}
