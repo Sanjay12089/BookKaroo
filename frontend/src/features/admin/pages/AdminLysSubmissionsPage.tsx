@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, CheckCircle, XCircle, AlertTriangle, Search, X } from 'lucide-react';
+import { Eye, CheckCircle, XCircle, AlertTriangle, Search, X, ShieldCheck } from 'lucide-react';
 import { AdminLayout } from '@/shared/components/layout/AdminLayout';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { getPosterUrl } from '@/shared/lib/imageUtils';
@@ -97,7 +97,7 @@ function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
   if (!ev) return null;
 
   const cfg = LYS_STATUS_CONFIG[ev.status as LysEventStatus];
-  const canAct = ev.status === 'submitted';
+  const canAct = ev.status !== 'published' && ev.status !== 'completed';
 
   return (
     <>
@@ -205,6 +205,28 @@ function SubmissionDetailModal({ eventId, onClose }: DetailModalProps) {
                 </div>
               </div>
             </div>
+
+            {/* Partner approval */}
+            {ev.requiresPartnerApproval && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-text-muted uppercase tracking-wide">Venue Partner Review</p>
+                <div className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
+                  ev.partnerAction === 'approved'
+                    ? 'bg-green-500/10 border border-green-500/25 text-green-400'
+                    : ev.partnerAction === 'rejected'
+                    ? 'bg-semantic-error/10 border border-semantic-error/25 text-semantic-error'
+                    : 'bg-amber-500/10 border border-amber-500/25 text-amber-400'
+                }`}>
+                  <ShieldCheck size={14} className="flex-shrink-0" />
+                  {ev.partnerAction === 'approved' && <span><strong>{ev.assignedPartnerName}</strong> approved this event</span>}
+                  {ev.partnerAction === 'rejected' && <span><strong>{ev.assignedPartnerName}</strong> rejected this event</span>}
+                  {!ev.partnerAction && <span>Awaiting review from <strong>{ev.assignedPartnerName ?? 'venue partner'}</strong></span>}
+                </div>
+                {ev.partnerReviewNotes && (
+                  <p className="text-text-secondary text-xs bg-bg-surface2 rounded-lg p-2">{ev.partnerReviewNotes}</p>
+                )}
+              </div>
+            )}
 
             {/* Venue */}
             <div className="space-y-2">
@@ -359,12 +381,25 @@ function SubmissionRow({ event, onSelect }: { event: AdminLysEvent; onSelect: ()
       <td className="px-4 py-3 text-sm text-text-secondary">{event.organizerName}</td>
       <td className="px-4 py-3 text-sm text-text-muted">{event.eventDateLabel}</td>
       <td className="px-4 py-3">
-        <div className="flex items-center gap-1.5">
-          <span
-            className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-crimson text-white"
-          >
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="inline-block text-[11px] font-semibold px-2 py-0.5 rounded-full bg-accent-crimson text-white">
             {cfg.label}
           </span>
+          {event.requiresPartnerApproval && (
+            <span
+              title={event.partnerAction === 'approved' ? `Partner approved` : event.partnerAction === 'rejected' ? 'Partner rejected' : 'Awaiting partner review'}
+              className={`inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${
+                event.partnerAction === 'approved'
+                  ? 'bg-green-500/15 text-green-400'
+                  : event.partnerAction === 'rejected'
+                  ? 'bg-semantic-error/15 text-semantic-error'
+                  : 'bg-amber-500/15 text-amber-400'
+              }`}
+            >
+              <ShieldCheck size={9} />
+              {event.partnerAction === 'approved' ? 'Partner ✓' : event.partnerAction === 'rejected' ? 'Partner ✗' : 'Awaiting partner'}
+            </span>
+          )}
           {!event.isOrganizerVerified && (
             <span title="Organizer not verified"><AlertTriangle size={12} className="text-amber-400" /></span>
           )}

@@ -149,9 +149,14 @@ export interface AdminLysEvent {
   artists:             LysArtist[];
   posterUrl:           string | null;
   backdropUrl:         string | null;
-  submittedAt:         string | null;
-  reviewedAt:          string | null;
-  reviewNotes:         string | null;
+  submittedAt:              string | null;
+  reviewedAt:               string | null;
+  reviewNotes:              string | null;
+  requiresPartnerApproval:  boolean;
+  assignedPartnerName:      string | null;
+  partnerAction:            string | null;
+  partnerReviewNotes:       string | null;
+  partnerReviewedAt:        string | null;
 }
 
 export interface AdminLysOrganizer {

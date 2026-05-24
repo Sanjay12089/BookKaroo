@@ -256,8 +256,20 @@ public class LysEventRepository : ILysEventRepository
         var query = _db.LysEvents
             .Where(e => e.AssignedPartnerId == partnerId && venueIds.Contains(e.VenueId!.Value));
 
+        // "pending"  = awaiting partner review (no action yet, still submitted)
+        // "approved" = partner approved (event now published)
+        // "rejected" = partner rejected
+        // "all"      = no filter
         if (!string.IsNullOrWhiteSpace(status) && status != "all")
-            query = query.Where(e => e.Status == status);
+        {
+            query = status switch
+            {
+                "pending"  => query.Where(e => e.PartnerAction == null && e.Status == "submitted"),
+                "approved" => query.Where(e => e.PartnerAction == "approved"),
+                "rejected" => query.Where(e => e.PartnerAction == "rejected"),
+                _          => query,
+            };
+        }
 
         var total = await query.CountAsync(ct);
         var items = await query
