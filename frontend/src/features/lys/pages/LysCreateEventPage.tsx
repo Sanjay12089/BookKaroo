@@ -220,8 +220,8 @@ export function LysCreateEventPage() {
   }});
 
   const step2Form = useForm({ resolver: zodResolver(step2Schema), defaultValues: {
-    eventDate: existing?.eventDate?.split('T')[0] ?? '',
-    eventTime: existing?.eventDate ? new Date(existing.eventDate).toTimeString().slice(0,5) : '',
+    eventDate: existing?.eventDate ? new Date(existing.eventDate).toLocaleDateString('en-CA') : '',
+    eventTime: existing?.eventDate ? `${String(new Date(existing.eventDate).getHours()).padStart(2,'0')}:${String(new Date(existing.eventDate).getMinutes()).padStart(2,'0')}` : '',
     durationMin: existing?.durationMin ?? undefined,
     venueType: (existing?.venueType as 'existing' | 'custom') ?? 'custom',
     venueId: existing?.venueId ?? undefined,
