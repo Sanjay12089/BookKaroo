@@ -82,8 +82,8 @@ public class EventService : IEventService
             ev.Language,
             ev.AgeRestriction ?? 0,
             ev.DurationMin == 0 ? null : ev.DurationMin,
-            venue?.Name ?? "TBA",
-            city?.Name  ?? "TBA",
+            venue?.Name ?? ev.VenueName ?? "TBA",
+            city?.Name  ?? ev.CityName  ?? "TBA",
             priceTiers,
             priceTiers.Count > 0 ? priceTiers.Min(p => p.Price) : 0m,
             artists,
@@ -92,8 +92,8 @@ public class EventService : IEventService
             organizer,
             venue?.Address,
             venueAmenities,
-            venue?.Latitude,
-            venue?.Longitude,
+            venue?.Latitude  ?? ev.VenueLatitude,
+            venue?.Longitude ?? ev.VenueLongitude,
             priceTiers);
     }
 
@@ -144,8 +144,8 @@ public class EventService : IEventService
             ev.Language,
             ev.AgeRestriction ?? 0,
             ev.DurationMin == 0 ? null : ev.DurationMin,
-            venue?.Name ?? "TBA",
-            city?.Name  ?? "TBA",
+            venue?.Name ?? ev.VenueName ?? "TBA",
+            city?.Name  ?? ev.CityName  ?? "TBA",
             priceTiers,
             priceTiers.Count > 0 ? priceTiers.Min(p => p.Price) : 0m,
             artists,

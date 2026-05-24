@@ -232,6 +232,8 @@ try
     builder.Services.AddScoped<ICmsBannerRepository, CmsBannerRepository>();
     builder.Services.AddScoped<IAdminRepository, AdminRepository>();
     builder.Services.AddScoped<IPartnerRepository, PartnerRepository>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Repositories.ILysOrganizerRepository, BookKaroo.Infrastructure.Repositories.LysOrganizerRepository>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Repositories.ILysEventRepository, BookKaroo.Infrastructure.Repositories.LysEventRepository>();
 
     // 14. Services (Scoped)
     builder.Services.AddScoped<IAuthService, AuthService>();
@@ -261,6 +263,12 @@ try
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.ExternalServices.IGroqService, GroqService>();
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.IChatbotQueryService, BookKaroo.Infrastructure.Services.ChatbotQueryService>();
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.IChatbotService, ChatbotService>();
+
+    // LYS — ListYourShow
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysOrganizerService, BookKaroo.Application.Services.LysOrganizerService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysEventService, BookKaroo.Application.Services.LysEventService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysAdminService, BookKaroo.Application.Services.LysAdminService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysImageUploadService, BookKaroo.Infrastructure.Storage.LysImageUploadService>();
 
     // Partner Portal
     builder.Services.AddHttpContextAccessor();
@@ -331,6 +339,9 @@ try
         });
     }
 
+    // 25. Startup DB migration — creates LYS tables if they don't exist yet
+    await ApplyLysMigrationAsync(app);
+
     Log.Information("BookKaroo API starting in {Environment} mode", app.Environment.EnvironmentName);
     app.Run();
 }
@@ -341,4 +352,115 @@ catch (Exception ex) when (ex is not HostAbortedException)
 finally
 {
     Log.CloseAndFlush();
+}
+
+// ── LYS startup migration — runs on every boot, all statements are idempotent ──
+static async Task ApplyLysMigrationAsync(WebApplication app)
+{
+    const string sql = """
+        CREATE TABLE IF NOT EXISTS "LysOrganizers" (
+            "Id"          uuid        NOT NULL DEFAULT gen_random_uuid(),
+            "UserId"      uuid        NOT NULL,
+            "Name"        text        NOT NULL,
+            "Email"       text        NOT NULL,
+            "Phone"       text        NOT NULL,
+            "PanNumber"   text        NOT NULL,
+            "IsVerified"  boolean     NOT NULL DEFAULT false,
+            "IsActive"    boolean     NOT NULL DEFAULT true,
+            "VerifiedAt"  timestamptz,
+            "VerifiedBy"  uuid,
+            "Notes"       text,
+            "CreatedAt"   timestamptz NOT NULL DEFAULT now(),
+            "UpdatedAt"   timestamptz NOT NULL DEFAULT now(),
+            "DeletedAt"   timestamptz,
+            CONSTRAINT "PK_LysOrganizers" PRIMARY KEY ("Id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_LysOrganizers_UserId"
+            ON "LysOrganizers" ("UserId") WHERE "DeletedAt" IS NULL;
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_LysOrganizers_PanNumber"
+            ON "LysOrganizers" ("PanNumber") WHERE "DeletedAt" IS NULL;
+
+        CREATE TABLE IF NOT EXISTS "LysEvents" (
+            "Id"                  uuid         NOT NULL DEFAULT gen_random_uuid(),
+            "OrganizerId"         uuid         NOT NULL,
+            "Title"               text         NOT NULL,
+            "Slug"                text         NOT NULL,
+            "Type"                text         NOT NULL,
+            "Description"         text         NOT NULL,
+            "VenueType"           text         NOT NULL DEFAULT 'custom',
+            "VenueId"             uuid,
+            "CustomVenueName"     text,
+            "CustomVenueAddress"  text,
+            "CustomVenueCity"     text,
+            "EventDate"           timestamptz  NOT NULL,
+            "DurationMin"         integer,
+            "Language"            text         NOT NULL DEFAULT 'Hindi',
+            "AgeRestriction"      integer      NOT NULL DEFAULT 0,
+            "ArtistsJson"         text,
+            "PosterUrl"           text,
+            "BackdropUrl"         text,
+            "PriceTiersJson"      text         NOT NULL DEFAULT '[]',
+            "Status"              text         NOT NULL DEFAULT 'draft',
+            "SubmittedAt"         timestamptz,
+            "ReviewedAt"          timestamptz,
+            "ReviewedBy"          uuid,
+            "ReviewNotes"         text,
+            "CommissionRate"      numeric(5,2) NOT NULL DEFAULT 5.00,
+            "PublishedEventId"    uuid,
+            "CreatedAt"           timestamptz  NOT NULL DEFAULT now(),
+            "UpdatedAt"           timestamptz  NOT NULL DEFAULT now(),
+            "DeletedAt"           timestamptz,
+            CONSTRAINT "PK_LysEvents" PRIMARY KEY ("Id")
+        );
+        CREATE UNIQUE INDEX IF NOT EXISTS "IX_LysEvents_Slug"
+            ON "LysEvents" ("Slug") WHERE "DeletedAt" IS NULL;
+        CREATE INDEX IF NOT EXISTS "IX_LysEvents_OrganizerId"
+            ON "LysEvents" ("OrganizerId");
+        CREATE INDEX IF NOT EXISTS "IX_LysEvents_Status"
+            ON "LysEvents" ("Status");
+
+        CREATE TABLE IF NOT EXISTS "LysUploads" (
+            "Id"           uuid        NOT NULL DEFAULT gen_random_uuid(),
+            "OrganizerId"  uuid        NOT NULL,
+            "LysEventId"   uuid,
+            "FileName"     text        NOT NULL,
+            "StoragePath"  text        NOT NULL,
+            "PublicUrl"    text        NOT NULL,
+            "FileSize"     bigint,
+            "MimeType"     text,
+            "CreatedAt"    timestamptz NOT NULL DEFAULT now(),
+            CONSTRAINT "PK_LysUploads" PRIMARY KEY ("Id")
+        );
+        CREATE INDEX IF NOT EXISTS "IX_LysUploads_OrganizerId"
+            ON "LysUploads" ("OrganizerId");
+
+        ALTER TABLE "Bookings"
+            ADD COLUMN IF NOT EXISTS "LysEventId"      uuid,
+            ADD COLUMN IF NOT EXISTS "CommissionAmount" numeric(10,2) NOT NULL DEFAULT 0,
+            ADD COLUMN IF NOT EXISTS "CommissionRate"   numeric(5,2)  NOT NULL DEFAULT 0;
+        CREATE INDEX IF NOT EXISTS "IX_Bookings_LysEventId"
+            ON "Bookings" ("LysEventId") WHERE "LysEventId" IS NOT NULL;
+
+        ALTER TABLE "Events"
+            ADD COLUMN IF NOT EXISTS "VenueName"      text,
+            ADD COLUMN IF NOT EXISTS "CityName"       text,
+            ADD COLUMN IF NOT EXISTS "VenueLatitude"  double precision,
+            ADD COLUMN IF NOT EXISTS "VenueLongitude" double precision;
+
+        ALTER TABLE "LysEvents"
+            ADD COLUMN IF NOT EXISTS "CustomVenueLatitude"  double precision,
+            ADD COLUMN IF NOT EXISTS "CustomVenueLongitude" double precision;
+        """;
+
+    try
+    {
+        using var scope = app.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<BookKarooDbContext>();
+        await db.Database.ExecuteSqlRawAsync(sql);
+        Log.Information("LYS startup migration applied");
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "LYS startup migration failed");
+    }
 }

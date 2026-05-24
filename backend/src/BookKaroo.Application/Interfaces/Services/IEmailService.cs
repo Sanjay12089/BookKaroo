@@ -25,4 +25,10 @@ public interface IEmailService
     Task SendAccountDeletedAsync(User user, CancellationToken ct = default);
 
     Task SendMovieNowShowingAsync(User user, Movie movie, CancellationToken ct = default);
+
+    Task SendLysOrganizerWelcomeAsync(string toEmail, string name, CancellationToken ct = default);
+    Task SendLysSubmissionToAdminAsync(string adminEmail, string organizerName, string eventTitle, string eventType, DateTime eventDate, CancellationToken ct = default);
+    Task SendLysApprovedAsync(string toEmail, string organizerName, string eventTitle, string eventSlug, string frontendUrl, CancellationToken ct = default);
+    Task SendLysRejectedAsync(string toEmail, string organizerName, string eventTitle, string reason, CancellationToken ct = default);
+    Task SendLysChangesRequestedAsync(string toEmail, string organizerName, string eventTitle, Guid eventId, string notes, string frontendUrl, CancellationToken ct = default);
 }
