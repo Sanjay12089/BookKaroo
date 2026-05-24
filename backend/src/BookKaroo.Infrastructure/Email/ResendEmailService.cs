@@ -805,5 +805,55 @@ public class ResendEmailService : IEmailService
         await SendAsync(toEmail, $"Changes needed for your event '{eventTitle}'", html, ct: ct);
     }
 
+    public async Task SendLysPartnerApprovalRequestAsync(
+        string toEmail, string partnerName, string eventTitle,
+        Guid eventId, string organizerName, string frontendUrl, CancellationToken ct = default)
+    {
+        var reviewUrl = $"{frontendUrl}/partner/lys";
+        var html = $"""
+            <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
+            <h2 style="color:#6366F1">New event submission at your venue</h2>
+            <p>Hi {partnerName},</p>
+            <p>Organizer <strong>{organizerName}</strong> has submitted an event <strong>{eventTitle}</strong> at your venue for approval.</p>
+            <p>Please review and approve or reject this event before it goes to the BookKaroo admin team.</p>
+            <a href="{reviewUrl}" style="background:#6366F1;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">Review Submissions</a>
+            <hr/><p style="color:#999;font-size:12px">BookKaroo — Book the moment. Karo it now.</p>
+            </body></html>
+            """;
+        await SendAsync(toEmail, $"New event submission: '{eventTitle}' — action required", html, ct: ct);
+    }
+
+    public async Task SendLysPartnerApprovedAsync(
+        string toEmail, string organizerName, string eventTitle, CancellationToken ct = default)
+    {
+        var html = $"""
+            <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
+            <h2 style="color:#27AE60">Venue partner approved your event</h2>
+            <p>Hi {organizerName},</p>
+            <p>The venue partner has approved <strong>{eventTitle}</strong>. Your event is now in review with the BookKaroo admin team.</p>
+            <p>You will receive another notification once admin completes the review.</p>
+            <hr/><p style="color:#999;font-size:12px">BookKaroo — Book the moment. Karo it now.</p>
+            </body></html>
+            """;
+        await SendAsync(toEmail, $"Your event '{eventTitle}' was approved by venue partner", html, ct: ct);
+    }
+
+    public async Task SendLysPartnerRejectedAsync(
+        string toEmail, string organizerName, string eventTitle, string reason, CancellationToken ct = default)
+    {
+        var html = $"""
+            <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
+            <h2 style="color:#E74C3C">Your event was declined by the venue</h2>
+            <p>Hi {organizerName},</p>
+            <p>The venue partner has declined <strong>{eventTitle}</strong>.</p>
+            <p><strong>Reason:</strong></p>
+            <blockquote style="border-left:4px solid #E74C3C;padding-left:16px;color:#555">{reason}</blockquote>
+            <p>You may choose a different venue or contact the venue directly for more information.</p>
+            <hr/><p style="color:#999;font-size:12px">BookKaroo — Book the moment. Karo it now.</p>
+            </body></html>
+            """;
+        await SendAsync(toEmail, $"Your event '{eventTitle}' was declined by the venue", html, ct: ct);
+    }
+
     private record EmailAttachment(string Filename, string ContentBase64);
 }
