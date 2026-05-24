@@ -109,7 +109,7 @@ export default function PartnerReviewsPage() {
 
   return (
     <PartnerLayout>
-      <div className="max-w-[1280px] mx-auto px-6 py-8 space-y-5">
+      <div className="max-w-[1280px] mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
         <header>
           <h1 className="text-2xl font-display font-bold text-text-primary">
             Reviews

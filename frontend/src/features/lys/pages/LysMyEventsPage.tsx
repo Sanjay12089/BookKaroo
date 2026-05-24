@@ -164,9 +164,9 @@ export function LysMyEventsPage() {
 
   return (
     <LysLayout>
-    <div className="px-6 py-8 max-w-4xl mx-auto">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <h1 className="font-display font-bold text-2xl text-text-primary">My Events</h1>
         <button
           onClick={() => navigate('/list-your-show/create')}

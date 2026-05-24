@@ -50,7 +50,7 @@ export default function PartnerLysSubmissionsPage() {
 
   return (
     <PartnerLayout>
-      <div className="max-w-[1100px] mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-[1100px] mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
         <header>
           <h1 className="text-2xl font-display font-bold text-text-primary">Event Submissions</h1>
           <p className="text-sm text-text-secondary mt-1">
@@ -59,7 +59,7 @@ export default function PartnerLysSubmissionsPage() {
         </header>
 
         {/* Tabs */}
-        <div className="flex gap-1 border-b border-border-default">
+        <div className="flex gap-1 overflow-x-auto pb-px border-b border-border-default scrollbar-none">
           {STATUS_TABS.map(t => (
             <button
               key={t.value}
@@ -247,7 +247,7 @@ function EventCard({ ev, isExpanded, onToggle, onApprove, onReject, approving }:
           )}
 
           {/* Two-column details */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2 text-sm">
             <Detail label="Organizer" value={`${ev.organizerName} (${ev.organizerEmail})`} />
             <Detail label="Language" value={ev.language} />
             <Detail label="Age Restriction" value={ev.ageRestriction === 0 ? 'All ages' : `${ev.ageRestriction}+`} />

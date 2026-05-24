@@ -349,7 +349,7 @@ export function LysCreateEventPage() {
 
   return (
     <LysLayout>
-    <div className="px-6 py-8 max-w-2xl mx-auto">
+    <div className="px-4 sm:px-6 py-6 sm:py-8 max-w-2xl mx-auto">
       <h1 className="font-display font-bold text-2xl text-text-primary mb-6">
         {editId ? 'Edit Event' : 'Create New Event'}
       </h1>
@@ -398,7 +398,7 @@ export function LysCreateEventPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-text-primary mb-1.5">Language</label>
               <select {...step1Form.register('language')}
@@ -428,7 +428,7 @@ export function LysCreateEventPage() {
       {/* Step 2 — Date & Venue */}
       {step === 2 && (
         <form onSubmit={step2Form.handleSubmit(handleStep2)} className="space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-text-primary mb-1.5">Event Date</label>
               <input type="date" {...step2Form.register('eventDate')}
@@ -624,7 +624,7 @@ export function LysCreateEventPage() {
             ))}
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <button type="button" onClick={() => setStep(3)}
               className="flex-1 py-3 bg-bg-surface2 border border-border-default text-text-secondary font-semibold rounded-full text-sm hover:text-text-primary">
               ← Back
