@@ -232,6 +232,8 @@ try
     builder.Services.AddScoped<ICmsBannerRepository, CmsBannerRepository>();
     builder.Services.AddScoped<IAdminRepository, AdminRepository>();
     builder.Services.AddScoped<IPartnerRepository, PartnerRepository>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Repositories.ILysOrganizerRepository, BookKaroo.Infrastructure.Repositories.LysOrganizerRepository>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Repositories.ILysEventRepository, BookKaroo.Infrastructure.Repositories.LysEventRepository>();
 
     // 14. Services (Scoped)
     builder.Services.AddScoped<IAuthService, AuthService>();
@@ -261,6 +263,12 @@ try
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.ExternalServices.IGroqService, GroqService>();
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.IChatbotQueryService, BookKaroo.Infrastructure.Services.ChatbotQueryService>();
     builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.IChatbotService, ChatbotService>();
+
+    // LYS — ListYourShow
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysOrganizerService, BookKaroo.Application.Services.LysOrganizerService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysEventService, BookKaroo.Application.Services.LysEventService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysAdminService, BookKaroo.Application.Services.LysAdminService>();
+    builder.Services.AddScoped<BookKaroo.Application.Interfaces.Services.ILysImageUploadService, BookKaroo.Infrastructure.Storage.LysImageUploadService>();
 
     // Partner Portal
     builder.Services.AddHttpContextAccessor();

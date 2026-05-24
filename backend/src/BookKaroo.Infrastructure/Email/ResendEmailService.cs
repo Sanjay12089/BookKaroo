@@ -715,5 +715,95 @@ public class ResendEmailService : IEmailService
         await SendAsync(user.Email, "Your BookKaroo account has been deactivated", html, text, ct: ct);
     }
 
+    // ── LYS emails ───────────────────────────────────────────────────────────
+
+    public async Task SendLysOrganizerWelcomeAsync(string toEmail, string name, CancellationToken ct = default)
+    {
+        var html = $"""
+            <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
+            <h2 style="color:#4F46E5">Welcome to BookKaroo ListYourShow!</h2>
+            <p>Hi {name},</p>
+            <p>Your organizer account has been created. You can now submit events for review.</p>
+            <p>Once your event is approved, it will go live on BookKaroo and customers can start booking tickets.</p>
+            <hr/><p style="color:#999;font-size:12px">BookKaroo — Book the moment. Karo it now.</p>
+            </body></html>
+            """;
+        await SendAsync(toEmail, "Welcome to BookKaroo ListYourShow!", html, ct: ct);
+    }
+
+    public async Task SendLysSubmissionToAdminAsync(
+        string adminEmail, string organizerName, string eventTitle,
+        string eventType, DateTime eventDate, CancellationToken ct = default)
+    {
+        var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+        var html = $"""
+            <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
+            <h2 style="color:#E50914">[LYS] New Event Submission</h2>
+            <p><strong>Event:</strong> {eventTitle}</p>
+            <p><strong>Organizer:</strong> {organizerName}</p>
+            <p><strong>Type:</strong> {eventType}</p>
+            <p><strong>Date:</strong> {eventDate:dd MMM yyyy, h:mm tt}</p>
+            <a href="{frontendUrl}/admin/lys/submissions" style="background:#4F46E5;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">Review Submission</a>
+            </body></html>
+            """;
+        await SendAsync(adminEmail, $"[LYS] New Submission: {eventTitle}", html, ct: ct);
+    }
+
+    public async Task SendLysApprovedAsync(
+        string toEmail, string organizerName, string eventTitle,
+        string eventSlug, string frontendUrl, CancellationToken ct = default)
+    {
+        var eventUrl = $"{frontendUrl}/events/{eventSlug}";
+        var html = $"""
+            <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
+            <h2 style="color:#27AE60">🎉 Your event is now live!</h2>
+            <p>Hi {organizerName},</p>
+            <p>Congratulations! Your event <strong>{eventTitle}</strong> has been approved and is now live on BookKaroo.</p>
+            <p>Customers can start booking tickets right away.</p>
+            <a href="{eventUrl}" style="background:#27AE60;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">View Your Event</a>
+            <hr/><p style="color:#999;font-size:12px">BookKaroo — Book the moment. Karo it now.</p>
+            </body></html>
+            """;
+        await SendAsync(toEmail, $"🎉 Your event '{eventTitle}' is now live on BookKaroo!", html, ct: ct);
+    }
+
+    public async Task SendLysRejectedAsync(
+        string toEmail, string organizerName, string eventTitle,
+        string reason, CancellationToken ct = default)
+    {
+        var html = $"""
+            <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
+            <h2 style="color:#E74C3C">Update on your event submission</h2>
+            <p>Hi {organizerName},</p>
+            <p>Thank you for submitting <strong>{eventTitle}</strong> to BookKaroo.</p>
+            <p>After review, we are unable to approve this submission.</p>
+            <p><strong>Reason:</strong> {reason}</p>
+            <p>You are welcome to make changes and resubmit. If you have questions, contact <a href="mailto:support@bookkaroo.com">support@bookkaroo.com</a>.</p>
+            <hr/><p style="color:#999;font-size:12px">BookKaroo — Book the moment. Karo it now.</p>
+            </body></html>
+            """;
+        await SendAsync(toEmail, $"Update on your event '{eventTitle}' submission", html, ct: ct);
+    }
+
+    public async Task SendLysChangesRequestedAsync(
+        string toEmail, string organizerName, string eventTitle,
+        Guid eventId, string notes, string frontendUrl, CancellationToken ct = default)
+    {
+        var editUrl = $"{frontendUrl}/list-your-show/events/{eventId}/edit";
+        var html = $"""
+            <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
+            <h2 style="color:#F39C12">Changes needed for your event</h2>
+            <p>Hi {organizerName},</p>
+            <p>We reviewed <strong>{eventTitle}</strong> and need some changes before approval.</p>
+            <p><strong>Required changes:</strong></p>
+            <blockquote style="border-left:4px solid #F39C12;padding-left:16px;color:#555">{notes}</blockquote>
+            <p>Please log in, make the requested changes, and resubmit.</p>
+            <a href="{editUrl}" style="background:#F39C12;color:#fff;padding:10px 20px;border-radius:6px;text-decoration:none">Edit &amp; Resubmit</a>
+            <hr/><p style="color:#999;font-size:12px">BookKaroo — Book the moment. Karo it now.</p>
+            </body></html>
+            """;
+        await SendAsync(toEmail, $"Changes needed for your event '{eventTitle}'", html, ct: ct);
+    }
+
     private record EmailAttachment(string Filename, string ContentBase64);
 }

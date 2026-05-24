@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router
 import { useAuthStore } from '@/features/auth/store/authStore';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
 import { PartnerRoute } from '@/features/partner/PartnerRoute';
+import { LysRoute } from '@/features/lys/LysRoute';
 
 // ── Page-shape skeleton fallback ──────────────────────────────────────────────
 function PageSkeleton() {
@@ -77,6 +78,15 @@ const PartnerBookingsPage    = lazy(() => import('@/features/partner/pages/Partn
 const PartnerReportsPage     = lazy(() => import('@/features/partner/pages/PartnerReportsPage'));
 const PartnerReviewsPage     = lazy(() => import('@/features/partner/pages/PartnerReviewsPage'));
 const StaticPage         = lazy(() => import('@/features/static/pages/StaticPage'));
+// LYS — ListYourShow
+const LysLandingPage        = lazy(() => import('@/features/lys/pages/LysLandingPage').then((m) => ({ default: m.LysLandingPage })));
+const LysRegisterPage       = lazy(() => import('@/features/lys/pages/LysRegisterPage').then((m) => ({ default: m.LysRegisterPage })));
+const LysMyEventsPage       = lazy(() => import('@/features/lys/pages/LysMyEventsPage').then((m) => ({ default: m.LysMyEventsPage })));
+const LysCreateEventPage    = lazy(() => import('@/features/lys/pages/LysCreateEventPage').then((m) => ({ default: m.LysCreateEventPage })));
+const LysProfilePage        = lazy(() => import('@/features/lys/pages/LysProfilePage').then((m) => ({ default: m.LysProfilePage })));
+// Admin LYS
+const AdminLysSubmissionsPage = lazy(() => import('@/features/admin/pages/AdminLysSubmissionsPage').then((m) => ({ default: m.AdminLysSubmissionsPage })));
+const AdminLysOrganizersPage  = lazy(() => import('@/features/admin/pages/AdminLysOrganizersPage').then((m) => ({ default: m.AdminLysOrganizersPage })));
 
 // ── Guards ────────────────────────────────────────────────────────────────────
 function ProtectedRoute() {
@@ -147,7 +157,9 @@ export const router = createBrowserRouter([
       { path: '/admin/reports',   element: S(AdminReportsPage) },
       { path: '/admin/cms',       element: S(AdminCmsPage) },
       { path: '/admin/settings',  element: S(AdminSettingsPage) },
-      { path: '/admin/partners',  element: S(AdminPartnersPage) },
+      { path: '/admin/partners',          element: S(AdminPartnersPage) },
+      { path: '/admin/lys/submissions',   element: S(AdminLysSubmissionsPage) },
+      { path: '/admin/lys/organizers',    element: S(AdminLysOrganizersPage) },
     ],
   },
 
@@ -165,10 +177,24 @@ export const router = createBrowserRouter([
     ],
   },
 
+  // LYS — public landing + registration
+  { path: '/list-your-show',          element: S(LysLandingPage) },
+  { path: '/list-your-show/register', element: S(LysRegisterPage) },
+
+  // LYS — organizer portal (auth required)
+  {
+    element: <LysRoute />,
+    children: [
+      { path: '/list-your-show/my-events',              element: S(LysMyEventsPage) },
+      { path: '/list-your-show/create',                 element: S(LysCreateEventPage) },
+      { path: '/list-your-show/events/:id/edit',        element: S(LysCreateEventPage) },
+      { path: '/list-your-show/profile',                element: S(LysProfilePage) },
+    ],
+  },
+
   // Static pages (About, T&C, Privacy, etc.)
   { path: '/about',          element: S(StaticPage) },
   { path: '/careers',        element: S(StaticPage) },
-  { path: '/list-your-show', element: S(StaticPage) },
   { path: '/blog',           element: S(StaticPage) },
   { path: '/terms',          element: S(StaticPage) },
   { path: '/privacy',        element: S(StaticPage) },

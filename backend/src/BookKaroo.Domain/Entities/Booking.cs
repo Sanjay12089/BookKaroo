@@ -26,5 +26,8 @@ public class Booking : BaseEntity
     public string? InvoiceUrl { get; set; }
     public string? QrUrl { get; set; }
     public string? PaymentMethodLabel { get; set; }
-    public DateTime? CancelledAt { get; set; }
+    public DateTime? CancelledAt    { get; set; }
+    public Guid?    LysEventId       { get; set; }
+    public decimal  CommissionAmount { get; set; }
+    public decimal  CommissionRate   { get; set; }
 }
