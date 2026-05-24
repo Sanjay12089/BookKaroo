@@ -2,18 +2,20 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Building2, Clock, Ticket, BarChart2, Star,
-  LogOut, Menu, X, Home,
+  LogOut, Menu, X, Home, CalendarCheck,
 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 import { useAuthStore } from '@/features/auth/store/authStore';
+import { usePartnerLysPendingCount } from '../api/usePartnerLys';
 
 const NAV = [
-  { label: 'Dashboard', icon: LayoutDashboard, href: '/partner' },
-  { label: 'My Venues', icon: Building2,       href: '/partner/venues' },
-  { label: 'Shows',     icon: Clock,           href: '/partner/shows' },
-  { label: 'Bookings',  icon: Ticket,          href: '/partner/bookings' },
-  { label: 'Reports',   icon: BarChart2,       href: '/partner/reports' },
-  { label: 'Reviews',   icon: Star,            href: '/partner/reviews' },
+  { label: 'Dashboard',         icon: LayoutDashboard, href: '/partner' },
+  { label: 'My Venues',         icon: Building2,       href: '/partner/venues' },
+  { label: 'Shows',             icon: Clock,           href: '/partner/shows' },
+  { label: 'Bookings',          icon: Ticket,          href: '/partner/bookings' },
+  { label: 'Reports',           icon: BarChart2,       href: '/partner/reports' },
+  { label: 'Reviews',           icon: Star,            href: '/partner/reviews' },
+  { label: 'Event Submissions', icon: CalendarCheck,   href: '/partner/lys' },
 ] as const;
 
 export function PartnerLayout({ children }: { children: React.ReactNode }) {
@@ -21,6 +23,7 @@ export function PartnerLayout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { user, clearAuth } = useAuthStore();
   const [collapsed, setCollapsed] = useState(false);
+  const { data: pendingCount } = usePartnerLysPendingCount();
 
   function handleLogout() {
     clearAuth();
@@ -56,6 +59,8 @@ export function PartnerLayout({ children }: { children: React.ReactNode }) {
         <nav className="py-3 px-2 space-y-0.5">
           {NAV.map(({ label, icon: Icon, href }) => {
             const active = href === '/partner' ? pathname === href : pathname.startsWith(href);
+            const isLys  = href === '/partner/lys';
+            const badge  = isLys && (pendingCount ?? 0) > 0 ? pendingCount : null;
             return (
               <Link
                 key={href}
@@ -70,7 +75,12 @@ export function PartnerLayout({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <Icon size={16} className="flex-shrink-0" />
-                {!collapsed && label}
+                {!collapsed && <span className="flex-1">{label}</span>}
+                {badge != null && (
+                  <span className="ml-auto min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-accent-crimson text-white text-[10px] font-bold px-1">
+                    {badge > 99 ? '99+' : badge}
+                  </span>
+                )}
               </Link>
             );
           })}
