@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Check, X, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Check, X, ChevronDown, ChevronUp, ExternalLink, AlertTriangle } from 'lucide-react';
 import { PartnerLayout } from '../components/PartnerLayout';
 import {
   usePartnerLysSubmissions,
   useApprovePartnerLys,
   useRejectPartnerLys,
+  useRequestChangesPartnerLys,
 } from '../api/usePartnerLys';
 import type { LysPartnerEvent } from '../types';
 import { Skeleton } from '@/shared/components/ui/Skeleton';
@@ -26,10 +27,13 @@ export default function PartnerLysSubmissionsPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [rejectId, setRejectId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [changesId, setChangesId] = useState<string | null>(null);
+  const [changesNotes, setChangesNotes] = useState('');
 
   const { data, isLoading, isError, refetch } = usePartnerLysSubmissions({ status, page, pageSize: 15 });
-  const approve = useApprovePartnerLys();
-  const reject  = useRejectPartnerLys();
+  const approve        = useApprovePartnerLys();
+  const reject         = useRejectPartnerLys();
+  const requestChanges = useRequestChangesPartnerLys();
 
   function handleStatusChange(s: string) {
     setStatus(s);
@@ -46,6 +50,13 @@ export default function PartnerLysSubmissionsPage() {
     await reject.mutateAsync({ eventId: rejectId, reason: rejectReason.trim() });
     setRejectId(null);
     setRejectReason('');
+  }
+
+  async function handleRequestChanges() {
+    if (!changesId || !changesNotes.trim()) return;
+    await requestChanges.mutateAsync({ eventId: changesId, notes: changesNotes.trim() });
+    setChangesId(null);
+    setChangesNotes('');
   }
 
   return (
@@ -104,6 +115,7 @@ export default function PartnerLysSubmissionsPage() {
                 onToggle={() => setExpanded(expanded === ev.id ? null : ev.id)}
                 onApprove={() => handleApprove(ev.id)}
                 onReject={() => { setRejectId(ev.id); setRejectReason(''); }}
+                onRequestChanges={() => { setChangesId(ev.id); setChangesNotes(''); }}
                 approving={approve.isPending}
               />
             ))}
@@ -169,6 +181,40 @@ export default function PartnerLysSubmissionsPage() {
           </div>
         </div>
       )}
+
+      {/* Request Changes modal */}
+      {changesId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4">
+          <div className="bg-bg-base border border-border-default rounded-xl p-6 w-full max-w-md space-y-4">
+            <h2 className="text-lg font-display font-bold text-text-primary">Request Changes</h2>
+            <p className="text-sm text-text-secondary">
+              Describe what needs to be updated. The organizer will be notified and must resubmit before you can approve.
+            </p>
+            <textarea
+              value={changesNotes}
+              onChange={e => setChangesNotes(e.target.value)}
+              placeholder="e.g. Please update the event description and confirm the exact venue address…"
+              rows={4}
+              className="w-full rounded-md border border-border-default bg-bg-surface px-3 py-2 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent-indigo/50 resize-none"
+            />
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setChangesId(null)}
+                className="px-4 py-2 text-sm rounded-md border border-border-default text-text-secondary hover:text-text-primary"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRequestChanges}
+                disabled={!changesNotes.trim() || requestChanges.isPending}
+                className="px-4 py-2 text-sm rounded-md bg-amber-500 text-white font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {requestChanges.isPending ? 'Sending…' : 'Send Request'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </PartnerLayout>
   );
 }
@@ -179,10 +225,11 @@ interface EventCardProps {
   onToggle: () => void;
   onApprove: () => void;
   onReject: () => void;
+  onRequestChanges: () => void;
   approving: boolean;
 }
 
-function EventCard({ ev, isExpanded, onToggle, onApprove, onReject, approving }: EventCardProps) {
+function EventCard({ ev, isExpanded, onToggle, onApprove, onReject, onRequestChanges, approving }: EventCardProps) {
   const isPending  = ev.partnerAction === null && ev.status === 'submitted';
   const isApproved = ev.partnerAction === 'approved';
   const isRejected = ev.partnerAction === 'rejected';
@@ -216,6 +263,14 @@ function EventCard({ ev, isExpanded, onToggle, onApprove, onReject, approving }:
               >
                 <Check size={13} />
                 Approve
+              </button>
+              <button
+                onClick={onRequestChanges}
+                aria-label="Request changes"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-md bg-amber-500/20 border border-amber-500/40 text-amber-400 font-medium hover:bg-amber-500/30 transition-colors"
+              >
+                <AlertTriangle size={13} />
+                Changes
               </button>
               <button
                 onClick={onReject}

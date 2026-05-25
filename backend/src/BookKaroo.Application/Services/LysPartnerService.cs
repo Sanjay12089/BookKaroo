@@ -161,6 +161,43 @@ public class LysPartnerService : ILysPartnerService
         return MapToDto(ev, organizer?.Name ?? "", organizer?.Email ?? "");
     }
 
+    public async Task<LysPartnerEventDto> RequestChangesAsync(
+        Guid partnerId, List<Guid> venueIds, Guid eventId, string notes, CancellationToken ct = default)
+    {
+        var ev = await _events.GetByIdAsync(eventId, ct)
+            ?? throw new NotFoundException("Submission not found.");
+
+        EnsurePartnerAccess(ev, partnerId, venueIds);
+
+        if (ev.PartnerAction != null)
+            throw new AppException("You have already reviewed this submission.");
+
+        ev.PartnerAction      = "changes_requested";
+        ev.PartnerReviewNotes = notes;
+        ev.PartnerReviewedAt  = DateTime.UtcNow;
+        ev.PartnerReviewedBy  = partnerId;
+        ev.Status             = LysEventStatus.ChangesRequested;
+        await _events.UpdateAsync(ev, ct);
+
+        var organizer   = await _organizers.GetByIdAsync(ev.OrganizerId, ct);
+        var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                if (organizer != null)
+                    await _email.SendLysChangesRequestedAsync(
+                        organizer.Email, organizer.Name, ev.Title, ev.Id, notes, frontendUrl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "LYS partner request-changes email failed for event {Id}", ev.Id);
+            }
+        }, ct);
+
+        return MapToDto(ev, organizer?.Name ?? "", organizer?.Email ?? "");
+    }
+
     public async Task<int> GetPendingCountAsync(
         Guid partnerId, List<Guid> venueIds, CancellationToken ct = default) =>
         await _events.GetPendingCountForPartnerAsync(partnerId, venueIds, ct);

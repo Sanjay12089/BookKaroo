@@ -55,6 +55,16 @@ public class PartnerLysController : ControllerBase
         return Ok(await _lys.RejectAsync(_ctx.PartnerId, venueIds, eventId, req.Reason, ct));
     }
 
+    [HttpPost("{eventId:guid}/request-changes")]
+    public async Task<IActionResult> RequestChanges(
+        Guid eventId,
+        [FromBody] RequestChangesPartnerLysRequest req,
+        CancellationToken ct = default)
+    {
+        var venueIds = _ctx.VenueIds.ToList();
+        return Ok(await _lys.RequestChangesAsync(_ctx.PartnerId, venueIds, eventId, req.Notes, ct));
+    }
+
     [HttpGet("pending-count")]
     public async Task<IActionResult> GetPendingCount(CancellationToken ct = default)
     {
@@ -65,3 +75,4 @@ public class PartnerLysController : ControllerBase
 }
 
 public record RejectPartnerLysRequest(string Reason);
+public record RequestChangesPartnerLysRequest(string Notes);
