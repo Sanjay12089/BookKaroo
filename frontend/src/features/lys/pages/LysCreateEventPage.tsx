@@ -268,16 +268,17 @@ export function LysCreateEventPage() {
   }, [existing]);
 
   async function handleStep1(data: z.infer<typeof step1Schema>) {
-    const payload = {
+    const basePayload = {
       title: data.title, type: data.type, description: data.description,
       language: data.language, ageRestriction: data.ageRestriction,
-      eventDate: new Date().toISOString(), priceTiersJson: '[]',
+      priceTiersJson: '[]',
     };
 
     if (eventId) {
-      await updateEvent.mutateAsync({ id: eventId, data: payload });
+      // Do NOT include eventDate here — editing step 1 must never overwrite the date set in step 2
+      await updateEvent.mutateAsync({ id: eventId, data: basePayload as never });
     } else {
-      const created = await createEvent.mutateAsync(payload as never);
+      const created = await createEvent.mutateAsync({ ...basePayload, eventDate: new Date().toISOString() } as never);
       setEventId((created as { id: string }).id);
     }
     setStep(2);
