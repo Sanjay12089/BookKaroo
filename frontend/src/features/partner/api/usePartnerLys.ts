@@ -63,3 +63,16 @@ export function useRejectPartnerLys() {
     },
   });
 }
+
+export function useRequestChangesPartnerLys() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ eventId, notes }: { eventId: string; notes: string }) => {
+      const { data } = await api.post<LysPartnerEvent>(`/api/partner/lys/${eventId}/request-changes`, { notes });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['partner', 'lys'] });
+    },
+  });
+}
