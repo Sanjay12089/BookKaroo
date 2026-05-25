@@ -125,6 +125,12 @@ public class LysEventService : ILysEventService
         ev.Status      = LysEventStatus.Submitted;
         ev.SubmittedAt = DateTime.UtcNow;
 
+        // Clear partner review so the partner sees the resubmission as a fresh pending item
+        ev.PartnerAction      = null;
+        ev.PartnerReviewNotes = null;
+        ev.PartnerReviewedAt  = null;
+        ev.PartnerReviewedBy  = null;
+
         // Detect active partner for an existing-venue event
         if (ev.VenueType == "existing" && ev.VenueId.HasValue)
         {
