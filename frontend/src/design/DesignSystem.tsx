@@ -240,9 +240,9 @@ const badgeColors: Record<BadgeColor, React.CSSProperties> = {
     border: `1px solid ${T.colors.border.default}`,
   },
   crimson: {
-    background: 'rgba(229, 9, 20, 0.12)',
+    background: 'rgba(225, 29, 116, 0.12)',
     color: '#FF6770',
-    border: '1px solid rgba(229, 9, 20, 0.25)',
+    border: '1px solid rgba(225, 29, 116, 0.25)',
   },
   indigo: {
     background: 'rgba(99, 102, 241, 0.14)',

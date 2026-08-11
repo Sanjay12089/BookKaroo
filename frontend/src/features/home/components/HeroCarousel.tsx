@@ -109,18 +109,18 @@ export function HeroCarousel({ movies, isLoading }: HeroCarouselProps) {
                   height: '40px',
                   padding: '0 20px',
                   borderRadius: '9999px',
-                  background: '#E51937',
+                  background: '#E11D74',
                   color: '#FFFFFF',
                   fontSize: '14px',
                   fontWeight: 700,
                   border: 'none',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 14px rgba(229,25,55,0.45)',
+                  boxShadow: '0 4px 14px rgba(225, 29, 116,0.45)',
                   transition: 'background 150ms ease',
                   letterSpacing: '0.01em',
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#B5111F')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#E51937')}
+                onMouseEnter={e => (e.currentTarget.style.background = '#B0165D')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#E11D74')}
               >
                 🎟 Book Tickets
               </button>

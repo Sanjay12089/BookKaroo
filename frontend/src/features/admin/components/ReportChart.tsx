@@ -19,7 +19,7 @@ interface ReportChartProps {
 
 export function ReportChart({
   data,
-  primaryColor   = '#E50914',
+  primaryColor   = '#E11D74',
   secondaryColor = '#4F46E5',
   primaryLabel   = 'Revenue',
   secondaryLabel = 'Bookings',

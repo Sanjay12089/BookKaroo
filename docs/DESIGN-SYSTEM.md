@@ -25,22 +25,22 @@
 --text-muted:       #71717A;
 --text-inverse:     #0A0E1A;
 
---accent-primary:   #E50914;   /* crimson */
---accent-primary-hover: #F40612;
+--accent-primary:   #E11D74;   /* rose */
+--accent-primary-hover: #FF4D96;
 --accent-secondary: #6366F1;   /* indigo */
 --accent-tertiary:  #A855F7;   /* purple */
 
---gradient-hero:    linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #E50914 100%);
+--gradient-hero:    linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #E11D74 100%);
 --gradient-card:    linear-gradient(180deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.04) 100%);
 
 --success:          #10B981;
 --warning:          #F59E0B;
---error:            #EF4444;
+--error:            #DC2626;
 --info:             #3B82F6;
 
 /* Seat states */
 --seat-available:   #FFFFFF;
---seat-selected:    #E50914;
+--seat-selected:    #E11D74;
 --seat-booked:      #3F3F46;
 --seat-locked:      #F59E0B;
 --seat-recliner:    #FFD700;
@@ -116,7 +116,7 @@
 --shadow-sm:  0 2px 6px rgba(0,0,0,0.25);
 --shadow-md:  0 6px 20px rgba(0,0,0,0.35);
 --shadow-lg:  0 16px 40px rgba(0,0,0,0.45);
---shadow-glow-primary:   0 0 24px rgba(229,9,20,0.35);
+--shadow-glow-primary:   0 0 24px rgba(225, 29, 116,0.35);
 --shadow-glow-accent:    0 0 32px rgba(99,102,241,0.4);
 ```
 
@@ -160,7 +160,7 @@ Mobile-first: write base styles for sm, then layer up.
 ## 10. Core Components
 
 ### Button
-- Variants: `primary` (crimson), `secondary` (outline), `ghost`, `gradient` (hero CTAs)
+- Variants: `primary` (rose), `secondary` (outline), `ghost`, `gradient` (hero CTAs)
 - Sizes: sm (32h), md (40h), lg (48h), xl (56h)
 - Always show focus ring; loading state replaces label with spinner
 
@@ -239,7 +239,7 @@ theme: {
   extend: {
     colors: {
       bg: { base: '#0A0E1A', surface: '#131826', /* ... */ },
-      accent: { primary: '#E50914', secondary: '#6366F1', tertiary: '#A855F7' },
+      accent: { primary: '#E11D74', secondary: '#6366F1', tertiary: '#A855F7' },
     },
     fontFamily: {
       display: ['Playfair Display', 'serif'],

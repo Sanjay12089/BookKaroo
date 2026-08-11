@@ -131,7 +131,7 @@ export default function ShowtimesPage() {
         {selectedShowId && (
           <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-bg-surface/95 backdrop-blur-md border-t border-border-default lg:hidden">
             <Link to={ROUTES.SEAT_SELECTION(selectedShowId)}>
-              <button className="w-full py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-base font-sans shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)]">
+              <button className="w-full py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-base font-sans shadow-[0_10px_40px_-10px_rgba(225, 29, 116,0.55)]">
                 Choose Seats →
               </button>
             </Link>
@@ -174,7 +174,7 @@ export default function ShowtimesPage() {
                   <div className="lg:hidden mt-4 p-4 rounded-xl border-2 border-accent-crimson/25 bg-accent-crimson/5">
                     <p className="text-sm font-semibold text-text-primary font-sans mb-3">🎟 Show selected — ready to pick seats?</p>
                     <Link to={ROUTES.SEAT_SELECTION(selectedShowId)}>
-                      <button className="w-full py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-base font-sans shadow-[0_10px_40px_-10px_rgba(229,9,20,0.45)]">
+                      <button className="w-full py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-base font-sans shadow-[0_10px_40px_-10px_rgba(225, 29, 116,0.45)]">
                         Choose Seats →
                       </button>
                     </Link>
@@ -194,7 +194,7 @@ export default function ShowtimesPage() {
                 <div className="space-y-3">
                   <p className="text-sm text-text-secondary font-sans">Show selected ✓</p>
                   <Link to={ROUTES.SEAT_SELECTION(selectedShowId)}>
-                    <button className="w-full py-3 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-sm font-sans shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)]">
+                    <button className="w-full py-3 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold text-sm font-sans shadow-[0_10px_40px_-10px_rgba(225, 29, 116,0.55)]">
                       Choose Seats →
                     </button>
                   </Link>

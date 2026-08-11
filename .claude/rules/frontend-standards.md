@@ -46,6 +46,6 @@
 ```
 bg-[#0A0E1A]   page base       text-[#F4F4F5]  primary text
 bg-[#131826]   card surface    text-[#A1A1AA]  secondary text
-bg-[#E50914]   crimson CTA     text-[#6366F1]  indigo accent
+bg-[#E11D74]   rose CTA        text-[#6366F1]  indigo accent
 ```
 Full design system: docs/DESIGN-SYSTEM.md

@@ -102,7 +102,7 @@ function Seat({ id, number, category, state, onToggle }: SeatProps) {
         flexShrink: 0,
         transition: `transform ${T.motion.duration.fast}, background ${T.motion.duration.fast}, border-color ${T.motion.duration.fast}`,
         transform: hovered && canInteract ? 'translateY(-2px) scale(1.12)' : state === 'selected' ? 'translateY(-1px)' : 'none',
-        boxShadow: state === 'selected' ? `0 0 0 2px rgba(229,9,20,0.3), ${T.shadows.glowCrimson}` : 'none',
+        boxShadow: state === 'selected' ? `0 0 0 2px rgba(225, 29, 116,0.3), ${T.shadows.glowCrimson}` : 'none',
       }}
     >
       {state === 'selected' ? '✓' : number}
@@ -220,8 +220,8 @@ function BottomBar({ selected, onRemove, total }: BottomBarProps) {
               <span key={id} style={{
                 display: 'inline-flex', alignItems: 'center', gap: 4,
                 padding: '3px 10px', borderRadius: T.radius.full,
-                background: 'rgba(229,9,20,0.12)', color: T.colors.tint.errorText,
-                border: '1px solid rgba(229,9,20,0.25)',
+                background: 'rgba(225, 29, 116,0.12)', color: T.colors.tint.errorText,
+                border: '1px solid rgba(225, 29, 116,0.25)',
                 fontSize: 12, fontWeight: 600, fontFamily: T.fonts.body,
               }}>
                 {id}

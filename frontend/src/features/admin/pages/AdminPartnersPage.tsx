@@ -341,7 +341,7 @@ function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
 
   const tabCls = (t: typeof tab) =>
     `flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
-      tab === t ? 'text-[#E51937]' : 'text-text-muted hover:text-text-secondary'
+      tab === t ? 'text-[#E11D74]' : 'text-text-muted hover:text-text-secondary'
     }`;
 
   return (
@@ -368,21 +368,21 @@ function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
         <div className="flex items-center gap-1 px-4 py-3 border-b border-border-default flex-shrink-0" style={{ background: '#F1F2F4' }}>
           <button
             className={tabCls('profile')}
-            style={tab === 'profile' ? { background: '#FFF0F2', boxShadow: '0 1px 3px rgba(229,25,55,0.15)' } : {}}
+            style={tab === 'profile' ? { background: '#FFF0F2', boxShadow: '0 1px 3px rgba(225, 29, 116,0.15)' } : {}}
             onClick={() => setTab('profile')}
           >
             <User size={13} />Profile
           </button>
           <button
             className={tabCls('venues')}
-            style={tab === 'venues' ? { background: '#FFF0F2', boxShadow: '0 1px 3px rgba(229,25,55,0.15)' } : {}}
+            style={tab === 'venues' ? { background: '#FFF0F2', boxShadow: '0 1px 3px rgba(225, 29, 116,0.15)' } : {}}
             onClick={() => setTab('venues')}
           >
             <Building2 size={13} />
             Venue Access
             <span
               className="text-[10px] rounded-full px-1.5 py-0.5 font-bold"
-              style={{ background: 'rgba(229,25,55,0.12)', color: '#E51937' }}
+              style={{ background: 'rgba(225, 29, 116,0.12)', color: '#E11D74' }}
             >
               {partner.venueAccess.length}
             </span>
@@ -481,7 +481,7 @@ function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
                               onClick={() => handleRevoke(v.venueId)}
                               disabled={revoke.isPending}
                               className="px-2.5 py-1 text-xs rounded-md font-semibold"
-                              style={{ background: '#E51937', color: '#fff' }}
+                              style={{ background: '#E11D74', color: '#fff' }}
                             >
                               Yes
                             </button>
@@ -561,7 +561,7 @@ function PartnerDetailDrawer({ partner, onClose }: DrawerProps) {
                   onClick={handleGrant}
                   disabled={!selectedVenueId || grant.isPending}
                   className="bk-btn-primary w-full"
-                  style={{ background: !selectedVenueId ? undefined : '#E51937' }}
+                  style={{ background: !selectedVenueId ? undefined : '#E11D74' }}
                 >
                   {grant.isPending ? 'Granting…' : 'Grant Access'}
                 </button>

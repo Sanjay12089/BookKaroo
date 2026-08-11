@@ -1,7 +1,7 @@
 import { LayoutGrid } from 'lucide-react';
 
 const LEGACY_COLORS: Record<string, string> = {
-  recliner: '#6366F1', executive: '#E50914', normal: '#71717A',
+  recliner: '#6366F1', executive: '#E11D74', normal: '#71717A',
 };
 
 interface Props { layout: string | null; totalSeats: number }

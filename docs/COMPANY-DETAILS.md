@@ -70,7 +70,7 @@ Until the SVG is finalized (from Claude design tool), use the **wordmark fallbac
 
 ```html
 <span style="font-family: 'Playfair Display', Georgia, serif; font-size: 32px; font-weight: 700; color: #0A0E1A;">
-  Book<span style="color:#E50914;">Karoo</span>
+  Book<span style="color:#E11D74;">Karoo</span>
 </span>
 ```
 

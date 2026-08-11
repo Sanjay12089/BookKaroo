@@ -63,12 +63,12 @@ public class ResendEmailService : IEmailService
                 <tr><td align="center" style="padding:24px 16px">
                   <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden">
                     <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
-                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E11D74">Karoo</span></span>
                     </td></tr>
                     <tr><td style="padding:32px">
                       <h2 style="color:#18181B;margin:0 0 12px">Welcome to BookKaroo, {user.Name}! 🎬</h2>
                       <p style="color:#52525B;line-height:1.6">Book the moment. Karo it now. Discover movies, events, and shows in your city.</p>
-                      <a href="{frontendUrl}/movies" style="display:inline-block;background:linear-gradient(135deg,#E50914,#A855F7);color:#FFF;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
+                      <a href="{frontendUrl}/movies" style="display:inline-block;background:linear-gradient(135deg,#E11D74,#A855F7);color:#FFF;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
                         Explore Movies
                       </a>
                     </td></tr>
@@ -98,12 +98,12 @@ public class ResendEmailService : IEmailService
                 <tr><td align="center" style="padding:24px 16px">
                   <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden">
                     <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
-                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E11D74">Karoo</span></span>
                     </td></tr>
                     <tr><td style="padding:32px">
                       <h2 style="color:#18181B;margin:0 0 12px">Reset your BookKaroo password</h2>
                       <p style="color:#52525B">We received a password reset request for <strong>{user.Email}</strong>. This link expires in 1 hour.</p>
-                      <a href="{resetUrl}" style="display:inline-block;background:#E50914;color:#FFF;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
+                      <a href="{resetUrl}" style="display:inline-block;background:#E11D74;color:#FFF;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:600;margin-top:16px">
                         Reset Password
                       </a>
                       <p style="color:#71717A;font-size:12px;margin-top:24px">If you didn't request this, you can safely ignore this email.</p>
@@ -153,7 +153,7 @@ public class ResendEmailService : IEmailService
                 <tr><td align="center" style="padding:24px 16px">
                   <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden;max-width:600px">
                     <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
-                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E11D74">Karoo</span></span>
                       <p style="color:#A1A1AA;margin:6px 0 0;font-size:14px">Booking Cancellation Confirmation</p>
                     </td></tr>
                     <tr><td style="padding:32px">
@@ -227,7 +227,7 @@ public class ResendEmailService : IEmailService
                 <tr><td align="center" style="padding:24px 16px">
                   <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background:#FFFFFF;border-radius:16px;overflow:hidden">
                     <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
-                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E50914">Karoo</span></span>
+                      <span style="font-family:Georgia,serif;font-size:28px;font-weight:700;color:#FFF">Book<span style="color:#E11D74">Karoo</span></span>
                       <div style="color:#A1A1AA;font-size:13px;margin-top:6px">Support Request</div>
                     </td></tr>
                     <tr><td style="padding:32px">
@@ -237,7 +237,7 @@ public class ResendEmailService : IEmailService
                         <tr><td style="padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:13px;color:#71717A">Subject</td><td style="padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:14px;color:#18181B">{subject}</td></tr>
                         {(string.IsNullOrWhiteSpace(bookingRef) ? "" : $"<tr><td style=\"padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:13px;color:#71717A\">Booking Ref</td><td style=\"padding:12px 16px;border-bottom:1px solid #F4F4F5;font-size:14px;font-family:monospace;color:#18181B\">{bookingRef}</td></tr>")}
                       </table>
-                      <div style="background:#F9FAFB;border-radius:8px;padding:16px;border-left:3px solid #E50914">
+                      <div style="background:#F9FAFB;border-radius:8px;padding:16px;border-left:3px solid #E11D74">
                         <div style="font-size:12px;font-weight:700;color:#71717A;letter-spacing:1px;margin-bottom:8px">MESSAGE</div>
                         <p style="color:#18181B;font-size:14px;line-height:1.7;margin:0;white-space:pre-wrap">{message}</p>
                       </div>
@@ -284,7 +284,7 @@ public class ResendEmailService : IEmailService
 
                     <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
                       <span style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:700;color:#FFF">
-                        Book<span style="color:#E50914">Karoo</span>
+                        Book<span style="color:#E11D74">Karoo</span>
                       </span>
                     </td></tr>
 
@@ -337,7 +337,7 @@ public class ResendEmailService : IEmailService
 
                       <div style="text-align:center">
                         <a href="{movieUrl}"
-                          style="display:inline-block;background:linear-gradient(135deg,#E50914,#A855F7);color:#FFF;
+                          style="display:inline-block;background:linear-gradient(135deg,#E11D74,#A855F7);color:#FFF;
                                  padding:16px 40px;border-radius:10px;text-decoration:none;font-weight:700;font-size:16px">
                           🎟 Book Tickets Now
                         </a>
@@ -496,7 +496,7 @@ public class ResendEmailService : IEmailService
                 }
                 body,table,td { font-family:'Inter','Segoe UI',Helvetica,Arial,sans-serif; }
                 img { border:0;outline:none;text-decoration:none; }
-                a { color:#E50914;text-decoration:none; }
+                a { color:#E11D74;text-decoration:none; }
               </style>
             </head>
             <body style="margin:0;padding:0;background:#F4F4F5">
@@ -509,7 +509,7 @@ public class ResendEmailService : IEmailService
 
                     <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
                       <span style="font-family:'Playfair Display',Georgia,serif;font-size:32px;font-weight:700;color:#FFF;letter-spacing:-0.5px">
-                        Book<span style="color:#E50914">Karoo</span>
+                        Book<span style="color:#E11D74">Karoo</span>
                       </span>
                     </td></tr>
 
@@ -533,7 +533,7 @@ public class ResendEmailService : IEmailService
                     </td></tr>
 
                     <tr><td align="center" class="px" style="padding:8px 32px 24px">
-                      <a href="{{openTicketUrl}}" style="display:inline-block;background:linear-gradient(135deg,#E50914,#A855F7);color:#FFF;font-size:15px;font-weight:600;padding:14px 36px;border-radius:8px;text-decoration:none">
+                      <a href="{{openTicketUrl}}" style="display:inline-block;background:linear-gradient(135deg,#E11D74,#A855F7);color:#FFF;font-size:15px;font-weight:600;padding:14px 36px;border-radius:8px;text-decoration:none">
                         Open Ticket
                       </a>
                     </td></tr>
@@ -551,7 +551,7 @@ public class ResendEmailService : IEmailService
                         <tr><td style="padding:0 16px 16px;font-size:13px;color:#71717A">GST 18%</td><td align="right" style="padding:0 16px 16px;font-size:13px;color:#71717A">Rs.{{convFeeGstStr}}</td></tr>
                         {{couponBlock}}
                         <tr><td colspan="2" style="border-top:2px solid #E4E4E7;height:2px;line-height:2px;font-size:1px">&nbsp;</td></tr>
-                        <tr><td style="padding:20px 16px;font-size:16px;font-weight:700;color:#18181B">AMOUNT PAID</td><td align="right" style="padding:20px 16px;font-size:18px;font-weight:700;color:#E50914">Rs.{{amountPaidStr}}</td></tr>
+                        <tr><td style="padding:20px 16px;font-size:16px;font-weight:700;color:#18181B">AMOUNT PAID</td><td align="right" style="padding:20px 16px;font-size:18px;font-weight:700;color:#E11D74">Rs.{{amountPaidStr}}</td></tr>
                       </table>
                     </td></tr>
 
@@ -588,13 +588,13 @@ public class ResendEmailService : IEmailService
 
                     <tr><td align="center" style="background:#FAFAFA;padding:24px 32px">
                       <div style="font-size:12px;color:#71717A;line-height:1.6">
-                        Need help? Visit our <a href="https://bookkaroo.com/help" style="color:#E50914">Help Centre</a><br/>
+                        Need help? Visit our <a href="https://bookkaroo.com/help" style="color:#E11D74">Help Centre</a><br/>
                         GST collected is paid to the department.<br/>
                         999799 — Other Services n.e.c. PAN Based GSTN: {{companyGstin}}
                       </div>
                       <div style="margin-top:16px">
                         <span style="font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:700;color:#0A0E1A">
-                          Book<span style="color:#E50914">Karoo</span>
+                          Book<span style="color:#E11D74">Karoo</span>
                         </span>
                       </div>
                       <div style="font-size:11px;color:#A1A1AA;margin-top:8px">© 2026 BookKaroo Pvt Ltd. All rights reserved.</div>
@@ -659,7 +659,7 @@ public class ResendEmailService : IEmailService
 
                     <tr><td align="center" style="background:linear-gradient(135deg,#0A0E1A,#1A2138);padding:28px 24px">
                       <span style="font-family:'Playfair Display',Georgia,serif;font-size:28px;font-weight:700;color:#FFF">
-                        Book<span style="color:#E50914">Karoo</span>
+                        Book<span style="color:#E11D74">Karoo</span>
                       </span>
                     </td></tr>
 
@@ -680,7 +680,7 @@ public class ResendEmailService : IEmailService
                         please contact our support team within 7 days.
                       </p>
                       <a href="{frontendUrl}/help"
-                         style="display:inline-block;background:#E50914;color:#FFF;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
+                         style="display:inline-block;background:#E11D74;color:#FFF;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
                         Contact Support
                       </a>
                     </td></tr>
@@ -738,7 +738,7 @@ public class ResendEmailService : IEmailService
         var frontendUrl = _config["FRONTEND_URL"] ?? "http://localhost:5173";
         var html = $"""
             <!DOCTYPE html><html lang="en"><body style="font-family:sans-serif;color:#333;max-width:600px;margin:auto;padding:24px">
-            <h2 style="color:#E50914">[LYS] New Event Submission</h2>
+            <h2 style="color:#E11D74">[LYS] New Event Submission</h2>
             <p><strong>Event:</strong> {eventTitle}</p>
             <p><strong>Organizer:</strong> {organizerName}</p>
             <p><strong>Type:</strong> {eventType}</p>

@@ -89,7 +89,7 @@ const BOOKINGS: Booking[] = [
 const STATUS_STYLES: Record<BookingStatus, { bg: string; color: string; border: string }> = {
   CONFIRMED: { bg: 'rgba(16,185,129,0.12)', color: T.colors.tint.successText, border: 'rgba(16,185,129,0.28)' },
   COMPLETED: { bg: T.colors.bg.surface3, color: T.colors.text.muted, border: T.colors.border.default },
-  CANCELLED: { bg: 'rgba(229,9,20,0.12)', color: T.colors.tint.errorText, border: 'rgba(229,9,20,0.25)' },
+  CANCELLED: { bg: 'rgba(225, 29, 116,0.12)', color: T.colors.tint.errorText, border: 'rgba(225, 29, 116,0.25)' },
 };
 
 // ─── Stat Card ────────────────────────────────────────────────────────────────

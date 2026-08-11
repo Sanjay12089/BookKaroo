@@ -315,9 +315,9 @@ export function ShowFormModal({ onClose, onSuccess, prefilledVenueId }: Props) {
             type="submit"
             disabled={!canSubmit() || createShow.isPending}
             className="flex-1 px-5 py-2.5 rounded-md text-white text-sm font-semibold disabled:opacity-50 transition-colors"
-            style={{ background: '#E51937' }}
-            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
+            style={{ background: '#E11D74' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B0165D'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E11D74'; }}
           >
             {createShow.isPending ? 'Creating…' : 'Create Show'}
           </button>

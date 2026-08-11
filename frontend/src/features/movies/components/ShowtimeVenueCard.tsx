@@ -100,7 +100,7 @@ export function ShowtimeVenueCard({ venue, selectedShowId, onSelectShow, selecte
               className={cn(
                 'flex flex-col gap-0.5 text-left px-3.5 py-2 rounded-lg border-2 transition-all duration-150',
                 isSelected
-                  ? 'border-accent-crimson bg-accent-crimson/10 text-accent-crimson shadow-[0_0_0_2px_rgba(229,9,20,0.25)] scale-105'
+                  ? 'border-accent-crimson bg-accent-crimson/10 text-accent-crimson shadow-[0_0_0_2px_rgba(225, 29, 116,0.25)] scale-105'
                   : isPast
                     ? 'bg-bg-surface3 border-border-default text-text-muted cursor-not-allowed opacity-40'
                     : [AVAIL_CLASSES[show.availability], !isSold && 'hover:scale-105'],

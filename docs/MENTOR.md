@@ -147,7 +147,7 @@ Home
 | Surface | `#131826` | Cards, panels |
 | Primary text | `#F4F4F5` | Body copy |
 | Secondary text | `#A1A1AA` | Subtitles, captions |
-| Crimson accent | `#E50914` | Primary CTA, selected state |
+| Rose accent | `#E11D74` | Primary CTA, selected state |
 | Indigo accent | `#6366F1` | Secondary CTA, links |
 | Success | `#10B981` | Available seats, success state |
 | Warning | `#F59E0B` | Locked seats (by others), warnings |

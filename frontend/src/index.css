@@ -53,21 +53,21 @@
   --color-text-secondary: var(--bk-text-secondary, #6C7480);
   --color-text-muted:     var(--bk-text-muted,     #9097A6);
 
-  /* ── Brand / Accent — BookMyShow red ─────────────────────────────────────── */
-  --color-accent-crimson:       #E51937;
-  --color-accent-crimson-light: #FF3F56;
-  --color-accent-crimson-dark:  #B5111F;
+  /* ── Brand / Accent — rose ────────────────────────────────────────────────── */
+  --color-accent-crimson:       #E11D74;
+  --color-accent-crimson-light: #FF4D96;
+  --color-accent-crimson-dark:  #B0165D;
   --color-accent-indigo:        #4F46E5;
   --color-accent-purple:        #7C3AED;
 
   /* ── Semantic ────────────────────────────────────────────────────────────── */
   --color-semantic-success: #18BC60;
   --color-semantic-warning: #F59E0B;
-  --color-semantic-error:   #E51937;
+  --color-semantic-error:   #DC2626;
 
   /* ── Seat states ─────────────────────────────────────────────────────────── */
   --color-seat-available:  var(--bk-seat-available-bg, #F0F0F0);
-  --color-seat-selected:   #E51937;
+  --color-seat-selected:   #E11D74;
   --color-seat-booked:     #CCCCCC;
   --color-seat-locked:     #F59E0B;
   --color-seat-recliner:   #FFD700;
@@ -104,8 +104,8 @@
     to   { opacity: 1; transform: translateY(0); }
   }
   @keyframes pulseGlow {
-    0%,100% { box-shadow: 0 0 0 0 rgba(229, 25, 55, 0.5); }
-    70%     { box-shadow: 0 0 0 10px rgba(229, 25, 55, 0); }
+    0%,100% { box-shadow: 0 0 0 0 rgba(225, 29, 116, 0.5); }
+    70%     { box-shadow: 0 0 0 10px rgba(225, 29, 116, 0); }
   }
   @keyframes stamp {
     from { opacity: 0; transform: scale(1.6) rotate(-18deg); }
@@ -173,7 +173,7 @@ select:focus-visible {
 
 /* ── BMS-style dialog button helpers ────────────────────────────────────── */
 .bk-btn-primary {
-  background: #E51937;
+  background: #E11D74;
   color: #FFFFFF;
   border: none;
   border-radius: 6px;
@@ -183,7 +183,7 @@ select:focus-visible {
   cursor: pointer;
   transition: background 150ms;
 }
-.bk-btn-primary:hover:not(:disabled) { background: #B5111F; }
+.bk-btn-primary:hover:not(:disabled) { background: #B0165D; }
 .bk-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .bk-btn-cancel {

@@ -76,7 +76,7 @@ const RECENT_BOOKINGS: AdminBooking[] = [
 const STATUS_CHIP: Record<BStatus, { bg: string; color: string; label: string }> = {
   confirmed: { bg: 'rgba(16,185,129,0.14)', color: T.colors.tint.successText, label: 'Confirmed' },
   pending: { bg: 'rgba(245,158,11,0.14)', color: T.colors.tint.warningText, label: 'Pending' },
-  cancelled: { bg: 'rgba(229,9,20,0.14)', color: T.colors.tint.errorText, label: 'Cancelled' },
+  cancelled: { bg: 'rgba(225, 29, 116,0.14)', color: T.colors.tint.errorText, label: 'Cancelled' },
 };
 
 // ─── Activity log ─────────────────────────────────────────────────────────────
@@ -116,8 +116,8 @@ function Sidebar({ activeKey, onNav, collapsed }: { activeKey: string; onNav: (k
             display: 'flex', alignItems: 'center', gap: 10,
             padding: collapsed ? '10px' : '8px 12px', borderRadius: T.radius.md,
             width: '100%', fontSize: 13, cursor: 'pointer',
-            background: activeKey === item.key ? 'rgba(229,9,20,0.12)' : 'transparent',
-            border: `1px solid ${activeKey === item.key ? 'rgba(229,9,20,0.25)' : 'transparent'}`,
+            background: activeKey === item.key ? 'rgba(225, 29, 116,0.12)' : 'transparent',
+            border: `1px solid ${activeKey === item.key ? 'rgba(225, 29, 116,0.25)' : 'transparent'}`,
             color: activeKey === item.key ? T.colors.accent.crimson : T.colors.text.secondary,
             fontFamily: T.fonts.body, marginBottom: 2,
             justifyContent: collapsed ? 'center' : 'flex-start',
@@ -146,8 +146,8 @@ function Sidebar({ activeKey, onNav, collapsed }: { activeKey: string; onNav: (k
             display: 'flex', alignItems: 'center', gap: 10,
             padding: collapsed ? '10px' : '8px 12px', borderRadius: T.radius.md,
             width: '100%', fontSize: 13, cursor: 'pointer',
-            background: activeKey === item.key ? 'rgba(229,9,20,0.12)' : 'transparent',
-            border: `1px solid ${activeKey === item.key ? 'rgba(229,9,20,0.25)' : 'transparent'}`,
+            background: activeKey === item.key ? 'rgba(225, 29, 116,0.12)' : 'transparent',
+            border: `1px solid ${activeKey === item.key ? 'rgba(225, 29, 116,0.25)' : 'transparent'}`,
             color: activeKey === item.key ? T.colors.accent.crimson : T.colors.text.secondary,
             fontFamily: T.fonts.body, marginBottom: 2,
             justifyContent: collapsed ? 'center' : 'flex-start',
