@@ -112,9 +112,9 @@ export function ScreenFormModal({ mode, venueId, venueName, screen, onClose, onS
             type="submit"
             disabled={isLoading || !isValid}
             className="bk-btn-primary flex-1"
-            style={{ background: '#E51937' }}
-            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
+            style={{ background: '#E11D74' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B0165D'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E11D74'; }}
           >
             {isLoading ? 'Saving…' : mode === 'create' ? 'Create Screen' : 'Save Changes'}
           </button>

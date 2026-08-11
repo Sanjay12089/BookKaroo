@@ -26,7 +26,7 @@ function MovieCardComponent({ movie, coming = false }: MovieCardProps) {
         className={cn(
           'relative aspect-[2/3] rounded-lg overflow-hidden bg-bg-surface2 border transition-all duration-[220ms] isolate',
           hovered
-            ? 'border-border-strong -translate-y-1 shadow-[0_8px_24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(229,9,20,0.3)]'
+            ? 'border-border-strong -translate-y-1 shadow-[0_8px_24px_rgba(0,0,0,0.4),0_0_0_1px_rgba(225, 29, 116,0.3)]'
             : 'border-border-default'
         )}
       >

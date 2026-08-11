@@ -80,7 +80,7 @@ function IconMark({ size = 40, theme = 'dark', glow = false }: { size?: number; 
       fill="none"
       role="img"
       aria-label="BookKaroo"
-      style={glow ? { filter: `drop-shadow(0 0 ${size * 0.15}px rgba(229,9,20,0.4))` } : undefined}
+      style={glow ? { filter: `drop-shadow(0 0 ${size * 0.15}px rgba(225, 29, 116,0.4))` } : undefined}
     >
       <defs>
         <linearGradient id={bgGradId} x1="0" y1="0" x2="1" y2="1">

@@ -140,7 +140,7 @@ function HeroCarousel() {
       border: `1px solid ${T.colors.border.default}`,
       minHeight: 520,
       background: `radial-gradient(70% 80% at 60% 30%, rgba(168,85,247,0.45), transparent 60%),
-                   radial-gradient(50% 50% at 20% 80%, rgba(229,9,20,0.35), transparent 60%),
+                   radial-gradient(50% 50% at 20% 80%, rgba(225, 29, 116,0.35), transparent 60%),
                    ${T.gradients.heroDark}`,
     }}>
       {/* Backdrop image */}

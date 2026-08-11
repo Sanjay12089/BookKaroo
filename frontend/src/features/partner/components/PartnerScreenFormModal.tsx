@@ -15,7 +15,7 @@ interface CategoryConfig {
 
 const CATEGORY_META: Record<string, { color: string; defaultPrice: number }> = {
   Normal:    { color: '#71717A', defaultPrice: 150 },
-  Executive: { color: '#E50914', defaultPrice: 250 },
+  Executive: { color: '#E11D74', defaultPrice: 250 },
   Recliner:  { color: '#6366F1', defaultPrice: 400 },
 };
 
@@ -225,7 +225,7 @@ export function PartnerScreenFormModal({ venueId, screen, onClose }: Props) {
                       type="checkbox"
                       checked={cat.enabled}
                       onChange={(e) => updateCat(cat.name, 'enabled', e.target.checked)}
-                      className="w-4 h-4 accent-[#E51937] cursor-pointer"
+                      className="w-4 h-4 accent-[#E11D74] cursor-pointer"
                     />
                   </div>
                 </div>
@@ -262,7 +262,7 @@ export function PartnerScreenFormModal({ venueId, screen, onClose }: Props) {
             type="submit"
             disabled={isPending}
             className="flex-1 py-2.5 rounded-lg text-white text-sm font-semibold disabled:opacity-50 transition-opacity"
-            style={{ background: '#E51937' }}
+            style={{ background: '#E11D74' }}
           >
             {isPending ? (isEdit ? 'Saving…' : 'Creating…') : (isEdit ? 'Save Changes' : 'Create Screen')}
           </button>

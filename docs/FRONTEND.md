@@ -291,12 +291,12 @@ api.interceptors.response.use(
 <p className="text-[#71717A]">           {/* muted */}
 
 // Accents
-<button className="bg-[#E50914]">        {/* primary CTA — crimson */}
+<button className="bg-[#E11D74]">        {/* primary CTA — rose */}
 <button className="bg-[#6366F1]">        {/* secondary — indigo */}
 
 // Seat states (SeatGrid only)
 available: "bg-white"
-selected:  "bg-[#E50914]"
+selected:  "bg-[#E11D74]"
 locked:    "bg-[#F59E0B]"  (locked by someone else)
 booked:    "bg-[#3F3F46]"
 ```

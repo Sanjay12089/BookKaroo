@@ -125,14 +125,14 @@ export default function MovieDetailPage() {
                     style={{
                       display: 'inline-flex', alignItems: 'center', gap: 8,
                       height: 48, padding: '0 28px', borderRadius: 9999,
-                      background: '#E51937', color: '#fff',
+                      background: '#E11D74', color: '#fff',
                       fontSize: 15, fontWeight: 700, border: 'none',
                       cursor: 'pointer', letterSpacing: '0.01em',
-                      boxShadow: '0 4px 16px rgba(229,25,55,0.4)',
+                      boxShadow: '0 4px 16px rgba(225, 29, 116,0.4)',
                       transition: 'background 150ms',
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#B5111F')}
-                    onMouseLeave={e => (e.currentTarget.style.background = '#E51937')}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#B0165D')}
+                    onMouseLeave={e => (e.currentTarget.style.background = '#E11D74')}
                   >
                     🎟 Book Tickets
                   </button>
@@ -144,18 +144,18 @@ export default function MovieDetailPage() {
                   style={{
                     display: 'inline-flex', alignItems: 'center', gap: 8,
                     height: 48, padding: '0 28px', borderRadius: 9999,
-                    background: 'transparent', color: '#E51937',
+                    background: 'transparent', color: '#E11D74',
                     fontSize: 15, fontWeight: 600,
-                    border: '2px solid #E51937', cursor: 'pointer',
+                    border: '2px solid #E11D74', cursor: 'pointer',
                     transition: 'all 150ms',
                   }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.background = '#E51937';
+                    e.currentTarget.style.background = '#E11D74';
                     e.currentTarget.style.color = '#fff';
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#E51937';
+                    e.currentTarget.style.color = '#E11D74';
                   }}
                 >
                   ▶ Watch Trailer

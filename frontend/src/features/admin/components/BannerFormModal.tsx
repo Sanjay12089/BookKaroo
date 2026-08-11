@@ -166,9 +166,9 @@ export function BannerFormModal({ mode, banner, onClose, onSuccess }: Props) {
             onClick={handleSubmit(onSubmit)}
             disabled={isPending}
             className="bk-btn-primary"
-            style={{ background: '#E51937' }}
-            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
+            style={{ background: '#E11D74' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B0165D'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E11D74'; }}
           >
             {isPending ? 'Saving…' : mode === 'create' ? 'Create Banner' : 'Save Changes'}
           </button>

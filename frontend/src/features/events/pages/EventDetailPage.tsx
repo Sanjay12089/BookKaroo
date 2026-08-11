@@ -243,7 +243,7 @@ export default function EventDetailPage() {
                     type="button"
                     disabled={createEventOrder.isPending}
                     onClick={() => void handleProceedToCheckout()}
-                    className="w-full mt-5 py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold font-sans text-base hover:-translate-y-0.5 transition-all disabled:opacity-50 shadow-[0_10px_40px_-10px_rgba(229,9,20,0.5)]"
+                    className="w-full mt-5 py-3.5 rounded-full bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white font-semibold font-sans text-base hover:-translate-y-0.5 transition-all disabled:opacity-50 shadow-[0_10px_40px_-10px_rgba(225, 29, 116,0.5)]"
                   >
                     {createEventOrder.isPending ? 'Processing…' : `Proceed to Checkout — ₹${(unitPrice * selectedQty).toLocaleString('en-IN')} →`}
                   </button>

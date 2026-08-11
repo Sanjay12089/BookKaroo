@@ -46,7 +46,7 @@ function DeleteScreenModal({ screen, venueId, onClose }: DeleteScreenModalProps)
             onClick={() => del.mutate(screen.id, { onSuccess: onClose })}
             disabled={del.isPending}
             className="w-full px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
-            style={{ background: '#E51937' }}
+            style={{ background: '#E11D74' }}
           >
             {del.isPending ? 'Deleting…' : 'Delete Screen'}
           </button>

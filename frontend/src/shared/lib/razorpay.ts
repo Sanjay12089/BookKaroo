@@ -29,7 +29,7 @@ export function openRazorpayCheckout(params: RazorpayCheckoutParams): void {
       contact: params.customerMobile,
     },
     notes:   { booking_ref: params.bookingRef },
-    theme:   { color: '#E50914' },
+    theme:   { color: '#E11D74' },
     handler: params.onSuccess,
     modal:   { ondismiss: params.onDismiss, confirm_close: true, escape: false },
   });

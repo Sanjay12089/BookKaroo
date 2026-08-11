@@ -12,8 +12,8 @@ import { formatCurrency } from '@/shared/lib/utils';
 // ── Confetti ──────────────────────────────────────────────────────────────────
 
 const CONFETTI_COLORS = [
-  '#E50914', '#6366F1', '#A855F7', '#F59E0B', '#10B981',
-  '#EC4899', '#3B82F6', '#14B8A6', '#E50914', '#6366F1',
+  '#E11D74', '#6366F1', '#A855F7', '#F59E0B', '#10B981',
+  '#EC4899', '#3B82F6', '#14B8A6', '#E11D74', '#6366F1',
   '#A855F7', '#F59E0B',
 ];
 
@@ -291,10 +291,10 @@ export default function ConfirmationPage() {
                 <div
                   className="absolute top-4 right-4 text-center select-none"
                   style={{
-                    border: '2px solid #E50914',
+                    border: '2px solid #E11D74',
                     borderRadius: 6,
                     padding: '3px 8px',
-                    color: '#E50914',
+                    color: '#E11D74',
                     transform: 'rotate(-15deg)',
                     animation: stampDone ? 'none' : 'stampIn 0.5s 0.8s cubic-bezier(0.34,1.56,0.64,1) both',
                   }}
@@ -447,9 +447,9 @@ export default function ConfirmationPage() {
             <Link to={ROUTES.MY_BOOKINGS} className="w-full">
               <button
                 className="w-full py-3.5 rounded-xl text-white text-sm font-semibold font-sans hover:-translate-y-0.5 transition-all"
-                style={{ background: '#E51937', boxShadow: '0 8px 24px -8px rgba(229,25,55,0.45)' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#B5111F')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#E51937')}
+                style={{ background: '#E11D74', boxShadow: '0 8px 24px -8px rgba(225, 29, 116,0.45)' }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#B0165D')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#E11D74')}
               >
                 View My Bookings →
               </button>

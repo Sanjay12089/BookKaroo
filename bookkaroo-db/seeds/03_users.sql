@@ -22,7 +22,7 @@ INSERT INTO users (
   'aaaaaaaa-0001-0001-0001-000000000001',
   'admin@bookkaroo.com',
   '+919900000001',
-  '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj2NnS7SyRPS',  -- Admin@1234
+  '$2b$12$nqvZIPUDGDgeLwYlygutMOXpTEygcVv2AqwVaStIilXF3Ik22rYOG',  -- Admin@1234
   'BookKaroo Admin',
   '1990-01-01',
   'prefer_not',

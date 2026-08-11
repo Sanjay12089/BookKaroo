@@ -70,7 +70,7 @@ function CancelShowModal({ show, isLoading, onClose, onConfirm }: CancelModalPro
             onClick={onConfirm}
             disabled={isLoading}
             className="w-full px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
-            style={{ background: '#E51937' }}
+            style={{ background: '#E11D74' }}
           >
             {isLoading ? 'Cancelling…' : 'Cancel Show'}
           </button>

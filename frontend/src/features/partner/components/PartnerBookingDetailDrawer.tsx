@@ -47,7 +47,7 @@ function CancelConfirmModal({ bookingRef, onClose, onDone }: CancelConfirmProps)
             onClick={() => cancel.mutate(bookingRef, { onSuccess: () => { onDone(); onClose(); } })}
             disabled={cancel.isPending}
             className="w-full px-4 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
-            style={{ background: '#E51937' }}
+            style={{ background: '#E11D74' }}
           >
             {cancel.isPending ? 'Cancelling…' : 'Cancel Booking'}
           </button>

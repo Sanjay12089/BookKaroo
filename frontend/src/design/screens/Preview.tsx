@@ -221,7 +221,7 @@ function FloatingNav({ sections, activeId }: { sections: Section[]; activeId: st
           style={{
             display: 'block', padding: '6px 10px', borderRadius: T.radius.md,
             fontSize: 12, fontWeight: s.id === activeId ? 600 : 400,
-            background: s.id === activeId ? 'rgba(229,9,20,0.12)' : 'transparent',
+            background: s.id === activeId ? 'rgba(225, 29, 116,0.12)' : 'transparent',
             color: s.id === activeId ? T.colors.accent.crimson : T.colors.text.muted,
             textDecoration: 'none', whiteSpace: 'nowrap',
             transition: `all ${T.motion.duration.fast}`,
@@ -273,7 +273,7 @@ export default function Preview() {
         <Logo size={32} theme={logoTheme} glow={theme === 'dark'} />
         <span style={{
           padding: '3px 12px', borderRadius: T.radius.full,
-          background: 'rgba(229,9,20,0.12)', border: '1px solid rgba(229,9,20,0.25)',
+          background: 'rgba(225, 29, 116,0.12)', border: '1px solid rgba(225, 29, 116,0.25)',
           fontSize: 11, fontWeight: 600, color: T.colors.accent.crimson, fontFamily: T.fonts.body,
         }}>
           Design Preview

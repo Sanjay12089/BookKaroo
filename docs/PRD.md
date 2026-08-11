@@ -728,7 +728,7 @@ window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 **Visual Style:**
 - Dark-first theme (primary), light mode available
 - Deep dark backgrounds (#0A0E1A navy base)
-- Rich crimson accent (#E50914)
+- Rich rose accent (#E11D74)
 - Purple/indigo gradients (#6366F1 → #A855F7)
 - Elegant white/light typography
 - Soft neon highlights

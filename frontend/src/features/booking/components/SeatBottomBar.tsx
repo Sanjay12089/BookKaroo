@@ -59,7 +59,7 @@ export function SeatBottomBar({ selectedSeats, getCategory, onPay, onDeselect, c
           className={cn(
             'px-6 py-3 rounded-xl font-semibold text-sm font-sans transition-all',
             'bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white',
-            'shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)] hover:-translate-y-0.5'
+            'shadow-[0_10px_40px_-10px_rgba(225, 29, 116,0.55)] hover:-translate-y-0.5'
           )}
         >
           Pay Now →

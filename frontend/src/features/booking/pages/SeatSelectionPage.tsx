@@ -366,7 +366,7 @@ export default function SeatSelectionPage() {
                 className={cn(
                   'w-full py-3.5 rounded-full font-semibold text-base transition-all',
                   selectedSeats.length > 0
-                    ? 'bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)] hover:-translate-y-0.5'
+                    ? 'bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white shadow-[0_10px_40px_-10px_rgba(225, 29, 116,0.55)] hover:-translate-y-0.5'
                     : 'bg-bg-surface3 text-text-muted cursor-not-allowed'
                 )}
               >

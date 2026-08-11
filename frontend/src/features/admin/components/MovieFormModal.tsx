@@ -306,9 +306,9 @@ export function MovieFormModal({ mode, movie, onClose, onSuccess }: Props) {
             type="submit"
             disabled={isSubmitting}
             className="bk-btn-primary"
-            style={{ background: '#E51937' }}
-            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B5111F'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#E51937'; }}
+            style={{ background: '#E11D74' }}
+            onMouseEnter={e => { if (!e.currentTarget.disabled) e.currentTarget.style.background = '#B0165D'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#E11D74'; }}
           >
             {isSubmitting ? 'Saving…' : mode === 'create' ? 'Create Movie' : 'Save Changes'}
           </button>

@@ -107,7 +107,7 @@ T.colors.text.primary    // #F4F4F5
 T.colors.text.secondary  // #A1A1AA
 T.colors.text.muted      // #71717A
 
-T.colors.accent.crimson  // #E50914  — primary brand
+T.colors.accent.crimson  // #E11D74  — primary brand
 T.colors.accent.indigo   // #6366F1  — secondary brand
 T.colors.accent.purple   // #A855F7
 
@@ -159,7 +159,7 @@ T.radius.full  // 9999px
 T.shadows.sm          // subtle lift
 T.shadows.md          // card shadow
 T.shadows.lg          // modal / floating shadow
-T.shadows.glowCrimson // 0 10px 40px -10px rgba(229,9,20,0.55)
+T.shadows.glowCrimson // 0 10px 40px -10px rgba(225, 29, 116,0.55)
 T.shadows.glowIndigo  // 0 10px 40px -10px rgba(99,102,241,0.55)
 ```
 

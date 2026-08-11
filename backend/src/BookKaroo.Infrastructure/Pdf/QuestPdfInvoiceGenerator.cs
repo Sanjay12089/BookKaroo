@@ -59,7 +59,7 @@ public class QuestPdfInvoiceGenerator : IInvoicePdfGenerator
             row.RelativeItem().AlignRight().Text(t =>
             {
                 t.Span("Book").Bold().FontSize(14);
-                t.Span("Karoo").Bold().FontSize(14).FontColor("#E50914");
+                t.Span("Karoo").Bold().FontSize(14).FontColor("#E11D74");
             });
         });
     }

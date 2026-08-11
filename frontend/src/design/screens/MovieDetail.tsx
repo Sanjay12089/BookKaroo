@@ -97,7 +97,7 @@ function AboutTab({ movie }: { movie: typeof MOVIES[0] }) {
           backdropFilter: 'blur(10px)', color: T.colors.tint.white, fontSize: 24, cursor: 'pointer',
           transition: `background ${T.motion.duration.base}`,
         }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(229,9,20,0.6)')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(225, 29, 116,0.6)')}
           onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(0,0,0,0.5)')}
           aria-label="Play trailer"
         >
@@ -265,7 +265,7 @@ export default function MovieDetail() {
         <div style={{
           position: 'absolute', inset: 0,
           background: `radial-gradient(70% 80% at 60% 30%, rgba(168,85,247,0.4), transparent 60%),
-                       radial-gradient(50% 50% at 20% 80%, rgba(229,9,20,0.3), transparent 60%)`,
+                       radial-gradient(50% 50% at 20% 80%, rgba(225, 29, 116,0.3), transparent 60%)`,
         }} />
         <div style={{ position: 'absolute', inset: 0, background: `linear-gradient(180deg, transparent 30%, ${T.colors.bg.base} 100%)` }} />
       </div>

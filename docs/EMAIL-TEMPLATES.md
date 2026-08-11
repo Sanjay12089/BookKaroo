@@ -117,7 +117,7 @@ GST Invoice attached.
     /* Defensive resets */
     body, table, td { font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif; }
     img { border: 0; outline: none; text-decoration: none; -ms-interpolation-mode: bicubic; }
-    a { color: #E50914; text-decoration: none; }
+    a { color: #E11D74; text-decoration: none; }
   </style>
 </head>
 <body style="margin:0; padding:0; background:#F4F4F5;">
@@ -140,7 +140,7 @@ GST Invoice attached.
                 <tr>
                   <td align="center">
                     <span style="font-family: 'Playfair Display', Georgia, serif; font-size: 32px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.5px;">
-                      Book<span style="color:#E50914;">Karoo</span>
+                      Book<span style="color:#E11D74;">Karoo</span>
                     </span>
                   </td>
                 </tr>
@@ -211,7 +211,7 @@ GST Invoice attached.
               <div style="font-size: 14px; color: #52525B; padding-bottom: 16px;">
                 Check your booking details, discounts, deals<br/>and much more with your ticket
               </div>
-              <a href="{{open_ticket_url}}" style="display:inline-block; background: linear-gradient(135deg, #E50914 0%, #A855F7 100%); color: #FFFFFF; font-size: 15px; font-weight: 600; padding: 14px 36px; border-radius: 8px; text-decoration: none;">
+              <a href="{{open_ticket_url}}" style="display:inline-block; background: linear-gradient(135deg, #E11D74 0%, #A855F7 100%); color: #FFFFFF; font-size: 15px; font-weight: 600; padding: 14px 36px; border-radius: 8px; text-decoration: none;">
                 Open Ticket
               </a>
             </td>
@@ -286,7 +286,7 @@ GST Invoice attached.
                 <!-- Amount Paid -->
                 <tr class="summary-row">
                   <td style="padding: 20px 16px; font-size: 16px; font-weight: 700; color: #18181B;">AMOUNT PAID</td>
-                  <td align="right" style="padding: 20px 16px; font-size: 18px; font-weight: 700; color: #E50914;">Rs.{{amount_paid}}</td>
+                  <td align="right" style="padding: 20px 16px; font-size: 18px; font-weight: 700; color: #E11D74;">Rs.{{amount_paid}}</td>
                 </tr>
               </table>
             </td>
@@ -331,13 +331,13 @@ GST Invoice attached.
           <tr>
             <td align="center" style="background:#FAFAFA; padding: 24px 32px;">
               <div style="font-size: 12px; color: #71717A; line-height: 1.6;">
-                Need help? Visit our <a href="https://bookkaroo.com/help" style="color:#E50914; text-decoration:none;">Help Centre</a><br/>
+                Need help? Visit our <a href="https://bookkaroo.com/help" style="color:#E11D74; text-decoration:none;">Help Centre</a><br/>
                 GST collected is paid to the department.<br/>
                 999799 — Other Services n.e.c. PAN Based GSTN: {{company_gstin}}
               </div>
               <div style="margin-top: 16px;">
                 <span style="font-family: 'Playfair Display', Georgia, serif; font-size: 18px; font-weight: 700; color: #0A0E1A;">
-                  Book<span style="color:#E50914;">Karoo</span>
+                  Book<span style="color:#E11D74;">Karoo</span>
                 </span>
               </div>
               <div style="font-size: 11px; color: #A1A1AA; margin-top: 8px;">

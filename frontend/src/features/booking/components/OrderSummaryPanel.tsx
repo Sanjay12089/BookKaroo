@@ -182,7 +182,7 @@ export function OrderSummaryPanel({
           className={cn(
             'w-full mt-4 py-4 rounded-xl font-semibold text-base font-sans transition-all',
             'bg-gradient-to-r from-accent-crimson-light to-accent-crimson text-white',
-            'shadow-[0_10px_40px_-10px_rgba(229,9,20,0.55)]',
+            'shadow-[0_10px_40px_-10px_rgba(225, 29, 116,0.55)]',
             agreedToTerms && !payLoading ? 'hover:-translate-y-0.5' : 'opacity-50 cursor-not-allowed'
           )}
         >

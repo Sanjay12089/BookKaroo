@@ -178,7 +178,7 @@ function TicketCard({ stampVisible }: { stampVisible: boolean }) {
               fontFamily: T.fonts.mono, fontSize: 12, fontWeight: 700, letterSpacing: '0.18em',
               transform: 'rotate(-15deg)',
               textTransform: 'uppercase',
-              boxShadow: `inset 0 0 0 2px rgba(229,9,20,0.15)`,
+              boxShadow: `inset 0 0 0 2px rgba(225, 29, 116,0.15)`,
               animation: 'bk-stamp 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.8s both',
             }}>
               CONFIRMED
