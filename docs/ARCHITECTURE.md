@@ -1,32 +1,28 @@
-# BookKaroo — Architecture (v2)
-
-> **v2 changes:** Fixed namespace references (TicketVerse → BookKaroo), expanded section stubs.
-> Compare with ARCHITECTURE.md — user to decide which to keep.
-
----
+# BookKaroo — Architecture
 
 ## 1. System Overview
 
 ```mermaid
 flowchart LR
     U[User Browser] -->|HTTPS| FE[React SPA - Vercel]
-    A[Admin Browser] -->|HTTPS| FE
-    FE -->|REST + JWT| API[.NET 8 Web API - Render/Railway]
+    A[Admin / Partner Browser] -->|HTTPS| FE
+    FE -->|REST + JWT| API[.NET 8 Web API - Render]
     FE -.->|WebSocket| RT[Supabase Realtime]
     API --> DB[(Supabase Postgres)]
     API --> ST[Supabase Storage - QR + Invoices]
     RT --> DB
     API -->|REST| TMDB[TMDB API]
-    API -->|Phase 1.5| GW[Razorpay / PayPal]
+    API -->|Sandbox| GW[Razorpay]
     API -->|REST| RES[Resend Email]
-    CRON[Lock Sweep Cron - 60s] --> DB
+    API -->|REST| GROQ[Groq LLM - AI Chatbot]
+    CRON[Seat Lock Sweep - in-process, 60s] --> DB
 ```
 
 ---
 
 ## 2. Layered Architecture
 
-### Backend (.NET 8) — Correct Namespaces
+### Backend (.NET 8)
 
 ```
 BookKaroo.Api            ← HTTP layer (controllers, middleware, background services)
@@ -35,24 +31,39 @@ BookKaroo.Application    ← Business logic (services, DTOs, validators, interfa
    │
 BookKaroo.Domain         ← Pure entities, enums (zero dependencies)
    │
-BookKaroo.Infrastructure ← EF Core, repositories, external APIs (Resend, TMDB, payment providers)
+BookKaroo.Infrastructure ← EF Core, repositories, external APIs (Resend, TMDB, Razorpay, Groq)
 ```
+
+Major controller groups: Auth, Users, Movies, Events, Shows, SeatLocks, Bookings, Payments, Cities, Search, Help, Home, Chatbot, and the **Admin**, **Partner**, and **Lys** (List-Your-Show organizer self-serve) areas, each with their own controller set for their respective portal. Full endpoint reference: [docs/API.md](API.md).
 
 ### Frontend (React 18)
 
 ```
 src/
 ├── app/        ← Router, providers, error boundary
-├── features/   ← Feature-first modules (auth, movies, booking, events, admin, ...)
+├── features/   ← Feature-first modules: auth, movies, booking, events, admin, partner, lys, chatbot, ...
 ├── shared/     ← Reusable components, hooks, lib, stores, types, constants
-└── design/     ← Design system tokens and showcase
+└── design/     ← Legacy design-system prototype (tokens/screens) — not wired into the live app; only ThemeContext is used
 ```
 
 Full structure: [docs/FRONTEND.md](FRONTEND.md)
 
 ---
 
-## 3. Payment Provider Abstraction
+## 3. Three Portals, One API
+
+BookKaroo isn't just an end-user booking site — it's three route-guarded SPAs sharing one codebase and one backend:
+
+| Portal | Route guard | Who | What |
+|---|---|---|---|
+| Public site | `ProtectedRoute` (booking only) | End users | Discover, book, pay, manage bookings |
+| Admin panel | `AdminRoute` | BookKaroo staff | CRUD on all content, bookings, users, reports, reviewing LYS submissions |
+| Partner portal | `PartnerRoute` | Venue partners | Manage their own venues/shows/bookings, submit LYS events |
+| LYS (List Your Show) | `LysRoute` | Independent organizers | Self-serve event submission with admin review + request-changes workflow |
+
+---
+
+## 4. Payment Provider Abstraction
 
 ```csharp
 // BookKaroo.Application/Interfaces/IPaymentProvider.cs
@@ -62,25 +73,15 @@ public interface IPaymentProvider
     Task<PaymentOrder> CreateOrderAsync(CreateOrderRequest req, CancellationToken ct);
     Task<PaymentCapture> CaptureAsync(string providerOrderId, CancellationToken ct);
     Task<RefundResult> RefundAsync(string providerPaymentId, decimal amount, CancellationToken ct);
-    Task<bool> VerifyWebhookSignatureAsync(string payload, string signature, CancellationToken ct);
 }
 ```
 
-| Class | Location | Phase |
+| Class | Location | Status |
 |-------|----------|-------|
-| `MockPaymentProvider` | `BookKaroo.Infrastructure/Payment/` | Phase 1 MVP |
-| `RazorpayPaymentProvider` | `BookKaroo.Infrastructure/Payment/` | Phase 1.5 |
-| `PayPalPaymentProvider` | `BookKaroo.Infrastructure/Payment/` | Phase 1.5 alt |
+| `MockPaymentProvider` | `BookKaroo.Infrastructure/Payment/` | Implemented — default for local dev |
+| `RazorpayPaymentProvider` | `BookKaroo.Infrastructure/Payment/` | Implemented — sandbox |
 
-**DI Registration (Program.cs):**
-```csharp
-builder.Services.AddScoped<IPaymentProvider>(sp =>
-    builder.Configuration["PAYMENT_PROVIDER"] switch {
-        "razorpay" => sp.GetRequiredService<RazorpayPaymentProvider>(),
-        "paypal"   => sp.GetRequiredService<PayPalPaymentProvider>(),
-        _          => sp.GetRequiredService<MockPaymentProvider>()
-    });
-```
+Selected via `PAYMENT_PROVIDER` env var (`mock` | `razorpay`). Swapping providers requires no controller/service code changes.
 
 **Production Safety:**
 ```csharp
@@ -94,7 +95,7 @@ public MockPaymentProvider(IHostEnvironment env)
 
 ---
 
-## 4. Request Flow Examples
+## 5. Request Flow Examples
 
 ### A. Seat Selection (Real-Time)
 
@@ -102,7 +103,7 @@ public MockPaymentProvider(IHostEnvironment env)
 User opens seat selection page
   → GET /api/shows/{showId}/seats  (initial locked/booked state)
   → Subscribe to Supabase channel "show:{showId}"
-  
+
 User clicks a seat
   → POST /api/seat-locks { showId, seatId }
   → Service: pg_try_advisory_lock(hash(showId, seatId))
@@ -116,7 +117,7 @@ Countdown reaches 0 / user abandons
   → Supabase Realtime broadcasts DELETE event
 ```
 
-### B. Payment Flow (Phase 1 — Mock)
+### B. Payment Flow (Mock)
 
 ```
 User clicks "Proceed to Pay"
@@ -142,22 +143,20 @@ User clicks "Proceed to Pay"
     → Return { booking, invoiceUrl, qrUrl }
 ```
 
-### C. Phase 1.5 — Razorpay / PayPal (Same Flow, Real Provider)
+### C. Razorpay (Same Flow, Real Provider)
 
-Same controller/service code. `IPaymentProvider` resolves to Razorpay or PayPal.
-Real checkout modal loads in browser (Razorpay SDK or PayPal button).
-Webhook from provider hits `POST /api/payments/webhook` for async verification.
+Same controller/service code — `IPaymentProvider` resolves to `RazorpayPaymentProvider` when `PAYMENT_PROVIDER=razorpay`. Real checkout modal loads in browser via the Razorpay SDK. Server-side webhook verification (`POST /api/payments/verify`) exists; a dedicated inbound `/api/payments/webhook` receiver is not yet implemented.
 
 ---
 
-## 5. Authentication Flow
+## 6. Authentication Flow
 
 ```
 Signup / Login
   → POST /auth/signup or /auth/login
   → BCrypt.Verify (cost 12) + generate JWT pair
-  → Access token (15min, in response body)
-  → Refresh token (30d, httpOnly cookie)
+  → Access token (in response body)
+  → Refresh token (httpOnly cookie)
 
 Protected request
   → Bearer {accessToken} in Authorization header
@@ -165,15 +164,15 @@ Protected request
   → On 401: client calls POST /auth/refresh (uses httpOnly cookie)
   → New access token issued
 
-Admin request
-  → Same JWT, but "role": "admin" claim
-  → AdminAuthMiddleware validates role claim
+Admin / Partner request
+  → Same JWT, but "role": "admin" | "partner" claim
+  → Role-based route guards + backend authorization checks validate the claim
   → Rate limit on /auth/* : 10 req/min/IP
 ```
 
 ---
 
-## 6. Seat Lock State Machine
+## 7. Seat Lock State Machine
 
 ```
 Seat State:
@@ -189,7 +188,7 @@ PostgreSQL handles mutual exclusion at DB level.
 
 ---
 
-## 7. GST Flow
+## 8. GST Flow
 
 ```
 Checkout
@@ -198,7 +197,7 @@ Checkout
   → if customerStateCode == "24": CGST 9% + SGST 9% on (convenienceFee + offerFee)
   → else:                          IGST 18% on (convenienceFee + offerFee)
   → Ticket price itself NOT taxed (venue revenue, not BookKaroo revenue)
-  
+
 Invoice
   → QuestPDF generates GST-compliant PDF
   → Includes: company_gstin, customer_state, SAC codes, tax breakdown
@@ -208,72 +207,72 @@ Invoice
 
 ---
 
-## 8. Caching Strategy
+## 9. Caching Strategy
 
 - **TanStack Query** (frontend): `staleTime` 5min for movies/events, 0 for seats/locks
-- **No server-side cache** — Supabase Postgres is fast enough for Phase 1 scale
+- **No server-side cache** — Supabase Postgres is fast enough at current scale
 - **Idempotency cache**: `idempotency_cache` table, 24h TTL, on payment endpoints
 
 ---
 
-## 9. Logging & Observability
+## 10. Logging & Observability
 
-- **Serilog** structured JSON logs on backend
-- Correlation ID middleware: `X-Correlation-ID` header threaded through all logs
+- **Serilog** structured logs on backend (console + rolling file)
 - Log levels: `Information` for normal ops, `Warning` for retries, `Error` for unhandled exceptions
-- Frontend: `console.error` in ErrorBoundary + future Sentry integration (Phase 2)
+- Frontend: `console.error` in ErrorBoundary; no external error-tracking service wired up yet
 
 ---
 
-## 10. Deployment Topology
+## 11. Deployment Topology
 
 ```
-Frontend (Vercel)         ← static + edge CDN
+Frontend (Vercel)   ← static + edge CDN
    ↓ HTTPS
-Backend (Render/Railway)  ← single .NET service
+Backend (Render)    ← single .NET 8 Web API service, Docker
    ↓
-Database (Supabase)       ← managed Postgres + Realtime + Storage
+Database (Supabase) ← managed Postgres + Realtime + Storage
    ↓
-Cron (built-in background service, runs inside .NET process)
+Cron (built-in background service, runs inside the .NET process)
 ```
 
 Deployment guide: [docs/DEPLOYMENT.md](DEPLOYMENT.md)
 
 ---
 
-## 11. Environment Configuration
+## 12. Environment Configuration
 
-See full env var list in [docs/DEPLOYMENT.md](DEPLOYMENT.md#environment-variables-backend).
+Full variable reference and setup instructions: [docs/DEPLOYMENT.md](DEPLOYMENT.md) and `backend/.env.example` / `backend/src/BookKaroo.Api/Properties/launchSettings.json.example`.
 
-Key switches:
-- `PAYMENT_PROVIDER` — `mock` | `razorpay` | `paypal`
-- `ASPNETCORE_ENVIRONMENT` — `Development` | `Staging` | `Production`
-- `CORS_ALLOWED_ORIGINS` — comma-separated list
+Key variable groups:
+- Database — `DATABASE_URL` (Supabase Postgres connection string)
+- Supabase — `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, storage bucket names
+- Auth — `JWT_SECRET`, `JWT_ISSUER`, `JWT_AUDIENCE`, access/refresh TTLs
+- Payments — `PAYMENT_PROVIDER` (`mock` | `razorpay`), `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`
+- Email — `RESEND_API_KEY`, `RESEND_FROM`
+- Metadata — `TMDB_API_KEY`, `TMDB_BEARER`
+- AI chatbot — `GROQ_API_KEY`, `GROQ_MODEL`, `CHATBOT_ENABLED`
+- CORS — `CORS_ALLOWED_ORIGINS`
+
+**Never commit real values for any of the above** — only `.example` templates belong in git.
 
 ---
 
-## 12. Risk Register
+## 13. Risk Register
 
 | Risk | Mitigation |
 |------|-----------|
 | MockPaymentProvider in production | Constructor guard throws if `env.IsProduction()` |
 | Seat double-booking | pg_try_advisory_lock + DB transaction on capture |
-| GST calculation errors | Unit tests for all intra/inter-state combinations |
-| Orphan rows (no FKs) | Service-layer cleanup + nightly sweep job (Phase 2) |
-| Context loss between Claude sessions | HANDOFF.md generated at 80% context usage |
-| Razorpay requires live URL for verification | Defer to Phase 1.5 after Vercel deploy |
+| GST calculation errors | Unit tests for intra/inter-state combinations |
+| Orphan rows (no FKs) | Service-layer cleanup on soft delete |
+| Context loss between Claude sessions | `docs/HANDOFF.md` generated on demand via `/handoff` |
 
 ---
 
-## 13. Scalability Path (Phase 2+)
+## 14. Scalability Path (Future)
 
 - Add read replicas for reporting queries
-- CDN for TMDB poster caching (Cloudflare)
+- CDN for TMDB poster caching
 - Horizontal scaling of .NET service (stateless JWT, no session)
 - Background job queue for invoice/email (currently fire-and-forget tasks)
-- Separate admin API service if admin panel grows significantly
-
----
-
-*This is v2 — fixed BookKaroo namespaces and expanded section stubs from ARCHITECTURE.md.*
-*User: review both files and keep the one you prefer, or merge the two.*
+- Separate admin API service if admin/partner panels grow significantly

@@ -1,32 +1,30 @@
 # BookKaroo — Testing Guide
 
 > Coverage target: ≥70% on services. ≥90% on critical paths (booking, seat locking, GST).
-
----
+>
+> **Current state (be honest about this before you plan around it):**
+> - **Backend:** 4 real test files exist in `backend/tests/BookKaroo.Tests/` — `AmountInWordsConverterTests.cs`, `AuthServiceTests.cs`, `CityServiceTests.cs`, `PricingServiceTests.cs`. No booking, seat-lock, or repository/integration tests exist yet.
+> - **Frontend:** no test tooling is installed at all — no Vitest, no React Testing Library, no MSW, no `test` script in `frontend/package.json`. Only `npm run typecheck` runs today.
+>
+> Everything below is the **target pattern** to follow once you add tests in these areas — not a description of what's already there.
 
 ## Backend Testing (xUnit + Moq + FluentAssertions)
 
-### Test Project Structure
+### Target Test Project Structure
 
 ```
 backend/tests/BookKaroo.Tests/
-├── Services/
+├── AmountInWordsConverterTests.cs   ✅ exists
+├── AuthServiceTests.cs              ✅ exists
+├── CityServiceTests.cs              ✅ exists
+├── PricingServiceTests.cs           ✅ exists
+├── Services/                        ← not yet created
 │   ├── BookingServiceTests.cs
-│   ├── MovieServiceTests.cs
-│   ├── PricingServiceTests.cs
-│   ├── SeatLockServiceTests.cs
-│   └── AuthServiceTests.cs
-├── Validators/
-│   ├── CreateBookingRequestValidatorTests.cs
-│   └── LoginRequestValidatorTests.cs
-├── Repositories/         # Integration tests (hit real test DB)
-│   ├── MovieRepositoryTests.cs
-│   └── BookingRepositoryTests.cs
-└── Helpers/
-    ├── TestDbContextFactory.cs   # Creates in-memory or test Postgres DB
-    └── Builders/                  # Test data builders (fluent)
-        ├── MovieBuilder.cs
-        └── BookingBuilder.cs
+│   └── SeatLockServiceTests.cs
+├── Validators/                      ← not yet created
+│   └── CreateBookingRequestValidatorTests.cs
+└── Repositories/                    ← not yet created — integration tests (hit real test DB)
+    └── BookingRepositoryTests.cs
 ```
 
 ### Unit Test Pattern (AAA)
@@ -159,7 +157,9 @@ reportgenerator -reports:coverage.xml -targetdir:coverage-html -reporttypes:Html
 
 ---
 
-## Frontend Testing (Vitest + React Testing Library + MSW)
+## Frontend Testing (Target: Vitest + React Testing Library + MSW)
+
+> Not installed yet. To start: `npm install -D vitest @testing-library/react @testing-library/user-event msw jsdom` in `frontend/`, add a `test` script, and configure Vitest in `vite.config.ts`. Everything below is the intended pattern once that's done.
 
 ### Test Co-location (required)
 
@@ -264,7 +264,7 @@ it('returns error state when API fails', async () => {
 | Navigation after actions | Snapshot tests (fragile) |
 | Conditional rendering | Third-party component internals |
 
-### Running Frontend Tests
+### Running Frontend Tests (once set up)
 
 ```bash
 cd frontend
@@ -272,6 +272,13 @@ npm test                  # watch mode
 npm run test:run          # CI one-shot
 npm run test:coverage     # with V8 coverage
 npm run test:ui           # Vitest UI browser
+```
+
+### Running Frontend Checks (today)
+
+```bash
+cd frontend
+npm run typecheck   # tsc --noEmit — the only automated check that exists right now
 ```
 
 ---

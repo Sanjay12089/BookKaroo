@@ -133,7 +133,7 @@ QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 ## C# Implementation Sketch
 
 ```csharp
-// TicketVerse.Infrastructure/Pdf/InvoicePdfGenerator.cs
+// BookKaroo.Infrastructure/Pdf/InvoicePdfGenerator.cs
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -343,7 +343,7 @@ public static class AmountInWordsConverter
 
     static string ToIndianWords(long n) {
         // Implements: One, Eleven, Twenty, Hundred, Thousand, Lakh, Crore
-        // (full implementation in /backend/src/TicketVerse.Application/Common/AmountInWordsConverter.cs)
+        // (full implementation in /backend/src/BookKaroo.Application/Common/AmountInWordsConverter.cs)
     }
 }
 ```

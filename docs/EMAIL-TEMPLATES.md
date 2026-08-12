@@ -95,7 +95,7 @@ GST Invoice attached.
 
 ### HTML Template (Email-Safe, Inline CSS)
 
-> Save as `backend/src/TicketVerse.Infrastructure/Email/Templates/booking-confirmation.html`
+> Save as `backend/src/BookKaroo.Infrastructure/Email/Templates/booking-confirmation.html`
 > Variables use `{{var}}` (Scriban or simple replace).
 > Width: 600px max, fluid below 600px.
 
@@ -374,6 +374,18 @@ GST Invoice attached.
 
 ---
 
+## 2a. Additional Emails (implemented, not yet fully spec'd here)
+
+`ResendEmailService.cs` implements several more email types beyond what's detailed above — full specs TBD, listed here so this doc isn't silently missing them:
+
+- `SendContactSupportAsync` — forwards a contact-form submission to support
+- `SendMovieNowShowingAsync` — notifies users who set a "Remind Me" alert once a coming-soon movie opens
+- `SendAccountDeletedAsync` — confirms account soft-deletion
+- **Partner portal:** partner approval request (to admin), partner approved, partner rejected
+- **LYS (List Your Show):** organizer welcome, event submission received (to admin), event approved, event rejected, event changes-requested
+
+---
+
 ## 3. Implementation Notes
 
 ### Templating
@@ -382,7 +394,7 @@ GST Invoice attached.
 
 ### Email Service Layer
 ```csharp
-// TicketVerse.Application/Interfaces/IEmailService.cs
+// BookKaroo.Application/Interfaces/IEmailService.cs
 public interface IEmailService {
     Task SendBookingConfirmationAsync(Booking b, byte[] invoicePdf, CancellationToken ct);
     Task SendWelcomeAsync(User u, CancellationToken ct);
@@ -390,7 +402,7 @@ public interface IEmailService {
     Task SendBookingCancelledAsync(Booking b, decimal refundAmount, CancellationToken ct);
 }
 
-// TicketVerse.Infrastructure/Email/ResendEmailService.cs
+// BookKaroo.Infrastructure/Email/ResendEmailService.cs
 public class ResendEmailService : IEmailService {
     // uses Resend SDK or plain HttpClient
 }

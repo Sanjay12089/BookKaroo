@@ -1,6 +1,6 @@
 # BookKaroo — Deployment Guide
 
-> Phase 1 deployment: Vercel (frontend) + Render/Railway (backend) + Supabase (database).
+> Deployment: Vercel (frontend) + Render (backend, Docker) + Supabase (database).
 
 ---
 
@@ -9,11 +9,11 @@
 | Service | Platform | Trigger |
 |---------|----------|---------|
 | Frontend (React/Vite) | Vercel | Auto-deploy on `main` push |
-| Backend (.NET 8 API) | Render or Railway | Auto-deploy on `main` push |
+| Backend (.NET 8 API) | Render (Docker) | Auto-deploy on `main` push |
 | Database | Supabase | Managed PostgreSQL |
 | Realtime | Supabase | Built-in with Postgres |
 | Storage | Supabase | Buckets: `qr-codes`, `invoices`, `posters` |
-| Seat lock cron | Railway Cron / Render Cron | Every 60 seconds |
+| Seat lock cron | In-process `SeatLockSweepService` (hosted service inside the API) | Every 60 seconds — no external cron platform needed |
 
 ---
 
@@ -28,7 +28,7 @@
 
 ### Environment Variables (Vercel Dashboard)
 ```bash
-VITE_API_URL=https://bookkaroo-api.railway.app
+VITE_API_URL=https://bookkaroo-api.onrender.com
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=sb_publishable_xxxx
 VITE_PAYMENT_PROVIDER=mock
@@ -42,21 +42,16 @@ VITE_PAYMENT_PROVIDER=mock
 
 ---
 
-## Backend — Render (Recommended) or Railway
+## Backend — Render
 
-### Render Setup
+Deployed as a Docker container (`backend/Dockerfile`), not Render's native .NET buildpack.
+
 1. New Web Service → connect GitHub repo
 2. Root directory: `backend`
-3. Build command: `dotnet publish src/BookKaroo.Api -c Release -o out`
-4. Start command: `dotnet out/BookKaroo.Api.dll`
+3. Environment: Docker (uses `backend/Dockerfile`)
+4. Render injects `PORT` at runtime (default `10000`) — the app reads it
 5. Health check path: `/health`
 6. Plan: Starter (can upgrade for zero cold starts)
-
-### Railway Setup (Alternative)
-1. New project → deploy from GitHub
-2. Set root to `backend/`
-3. Railway auto-detects .NET and builds
-4. Set PORT env var (Railway injects it, app must read it)
 
 ### Environment Variables (Backend)
 ```bash
@@ -151,9 +146,7 @@ CREATE POLICY "public_movies_read" ON movies
 
 ## Cron Job — Seat Lock Sweep
 
-The `SeatLockSweepService` background service runs every 60s within the .NET app.
-On Render: set minimum instances to 1 (prevents sleep).
-On Railway: service stays alive by default.
+The `SeatLockSweepService` background service runs every 60s within the .NET app — there is no separate cron job to configure. On Render, set minimum instances to 1 so the service doesn't sleep between requests (which would pause the sweep).
 
 The background service calls:
 ```sql
@@ -163,15 +156,17 @@ And releases corresponding PostgreSQL advisory locks.
 
 ---
 
-## CI/CD with GitHub Actions (Optional)
+## CI/CD with GitHub Actions (Not Yet Set Up)
+
+No `.github/workflows/` directory exists in this repo yet — deploys currently happen via Vercel's and Render's own git-push auto-deploy, with no test gate in front of them. A starting point, once frontend testing is wired up (see `docs/TESTING.md`):
 
 ```yaml
 # .github/workflows/deploy.yml
-name: Deploy to Production
+name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   test-backend:
@@ -180,17 +175,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '8.x' }
-      - run: dotnet test backend/tests/BookKaroo.Tests
+      - run: dotnet test backend/BookKaroo.sln
 
-  test-frontend:
+  typecheck-frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - run: cd frontend && npm ci && npm run test:run
+      - run: cd frontend && npm ci && npm run typecheck
 
-  # Vercel and Railway/Render deploy automatically on main push
+  # Vercel and Render deploy automatically on main push — this workflow only gates on tests
 ```
 
 ---

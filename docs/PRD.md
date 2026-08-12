@@ -787,11 +787,11 @@ window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
 
 ### Backend Structure
 ```
-TicketVerse.Api           ← Controllers, middleware, Program.cs
-TicketVerse.Application   ← Services, DTOs, validators, interfaces
-TicketVerse.Domain        ← Entities, enums, value objects
-TicketVerse.Infrastructure ← EF Core, repositories, Resend, TMDB, QuestPDF, Supabase Storage, IPaymentProvider implementations
-TicketVerse.Tests         ← xUnit + Moq + FluentAssertions
+BookKaroo.Api           ← Controllers, middleware, Program.cs
+BookKaroo.Application   ← Services, DTOs, validators, interfaces
+BookKaroo.Domain        ← Entities, enums, value objects
+BookKaroo.Infrastructure ← EF Core, repositories, Resend, TMDB, QuestPDF, Supabase Storage, IPaymentProvider implementations
+BookKaroo.Tests         ← xUnit + Moq + FluentAssertions
 ```
 
 ### Frontend Structure
@@ -884,9 +884,9 @@ const SeatSelectionPage = lazy(() => import('@/features/booking/pages/SeatSelect
 
 ### Deployment
 - Frontend: Vercel (auto-deploy on `main` push)
-- Backend: Railway (single .NET service)
+- Backend: Render (single .NET service, Docker)
 - Database: Supabase (managed Postgres + Realtime + Storage)
-- Cron: Railway cron for seat lock sweep
+- Cron: in-process background service (`SeatLockSweepService`) — no external cron needed
 
 ---
 

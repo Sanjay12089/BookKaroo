@@ -13,10 +13,11 @@ backend/
 ├── src/
 │   ├── BookKaroo.Api/                  # HTTP layer — configure once, thin controllers
 │   │   ├── Controllers/                # One per domain
-│   │   │   ├── MoviesController.cs
-│   │   │   ├── BookingsController.cs
-│   │   │   ├── PaymentsController.cs
-│   │   │   └── ...
+│   │   │   ├── MoviesController.cs, BookingsController.cs, PaymentsController.cs, ...
+│   │   │   ├── AdminController.cs / AdminPartnerController.cs / AdminLysController.cs   # Admin panel API
+│   │   │   ├── PartnerController.cs / PartnerLysController.cs                            # Partner portal API
+│   │   │   ├── LysController.cs                                                          # Organizer self-serve (List Your Show)
+│   │   │   └── ChatbotController.cs                                                      # Groq-backed AI assistant
 │   │   ├── Middleware/
 │   │   │   ├── GlobalExceptionMiddleware.cs   # Maps custom exceptions → ProblemDetails
 │   │   │   └── AdminAuthMiddleware.cs         # Checks role=admin claim
@@ -49,11 +50,8 @@ backend/
 │   │
 │   ├── BookKaroo.Domain/               # Pure model — no dependencies
 │   │   ├── Entities/
-│   │   │   ├── Movie.cs
-│   │   │   ├── Show.cs
-│   │   │   ├── Booking.cs
-│   │   │   ├── SeatLock.cs
-│   │   │   └── ...
+│   │   │   ├── Movie.cs, Show.cs, Booking.cs, SeatLock.cs, EventTicketLock.cs, ...
+│   │   │   └── PartnerProfile.cs, PartnerVenueAccess.cs, LysOrganizer.cs, LysEvent.cs, LysUpload.cs
 │   │   └── Enums/
 │   │       ├── BookingStatus.cs
 │   │       ├── SeatCategory.cs
@@ -67,8 +65,7 @@ backend/
 │       ├── Repositories/               # IXxxRepository implementations
 │       ├── Payment/
 │       │   ├── MockPaymentProvider.cs
-│       │   ├── RazorpayPaymentProvider.cs (Phase 1.5)
-│       │   └── PayPalPaymentProvider.cs  (Phase 1.5)
+│       │   └── RazorpayPaymentProvider.cs
 │       ├── Email/                      # Resend client wrapper
 │       ├── Pdf/                        # QuestPDF invoice generator
 │       ├── Storage/                    # Supabase Storage client (QR, invoices)
@@ -275,7 +272,6 @@ public interface IPaymentProvider
     Task<PaymentOrder> CreateOrderAsync(CreateOrderRequest req, CancellationToken ct);
     Task<PaymentCapture> CaptureAsync(string providerOrderId, CancellationToken ct);
     Task<RefundResult> RefundAsync(string providerPaymentId, decimal amount, CancellationToken ct);
-    Task<bool> VerifyWebhookSignatureAsync(string payload, string signature, CancellationToken ct);
 }
 
 // MockPaymentProvider — throws in Production
@@ -292,7 +288,6 @@ public class MockPaymentProvider : IPaymentProvider
 // DI registration in Program.cs
 var provider = builder.Configuration["PAYMENT_PROVIDER"] switch {
     "razorpay" => (IPaymentProvider)new RazorpayPaymentProvider(config),
-    "paypal"   => new PayPalPaymentProvider(config),
     _          => new MockPaymentProvider(env)
 };
 builder.Services.AddSingleton(provider);
@@ -393,6 +388,18 @@ _logger.LogError(ex, "Payment capture failed for order {OrderId}", orderId);
 // ❌ Wrong — string concat loses structure
 _logger.LogInformation("Booking created " + bookingId + " for user " + userId);
 ```
+
+---
+
+## DbContext Thread Safety
+
+`BookKarooDbContext` is **not** thread-safe. Never use `Task.WhenAll` across multiple service calls sharing one DbContext instance within a request — await them sequentially instead. (`HomeController` is the canonical example of doing this correctly.)
+
+---
+
+## Schema Source of Truth
+
+The EF Core migrations under `BookKaroo.Infrastructure/Data/Migrations/` are what the running app actually uses (`PascalCase` tables like `"Users"`, `"Bookings"`). A few newer tables (`LysOrganizers`, `LysEvents`, `LysUploads`) are created via raw `CREATE TABLE IF NOT EXISTS` SQL directly in `Program.cs` at startup rather than a proper EF migration — a known shortcut worth cleaning up. The `bookkaroo-db/` and `backend/database/migrations/` SQL folders are separate, older schema attempts that have drifted out of sync with the real EF model — see the warning at the top of [docs/DATABASE.md](DATABASE.md).
 
 ---
 

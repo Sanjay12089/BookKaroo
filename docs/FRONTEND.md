@@ -49,12 +49,17 @@ frontend/src/
 │   │   ├── api/                # bookingApi.ts, seatLockApi.ts, paymentApi.ts
 │   │   └── types.ts
 │   │
-│   ├── events/                 # Same pattern as movies/
-│   ├── admin/                  # Admin panel (separate layout, AdminRoute guard)
+│   ├── events/                 # Same pattern as movies/ (events, plays, sports, activities, IPL)
+│   ├── admin/                  # Admin panel — 13 routes (movies/events/venues/shows/bookings/users/reports/cms/settings/partners/lys), AdminRoute guard
+│   ├── partner/                 # Partner portal — venue partners manage their own venues/shows/bookings, PartnerRoute guard
+│   ├── lys/                    # List Your Show — organizer self-serve event submission + admin review workflow, LysRoute guard
+│   ├── chatbot/                # Groq-backed AI assistant widget
 │   ├── home/                   # HomePage, hero carousel, content rails
 │   ├── search/                 # SearchPage, SearchBar, SearchResults
 │   ├── profile/                # ProfilePage, BookingsPage, EditProfileForm
-│   └── [other features]/
+│   ├── cities/                 # City selection modal + store wiring
+│   ├── help/                   # FAQ, contact form
+│   └── static/                 # Static/legal pages
 │
 ├── shared/
 │   ├── components/
@@ -71,9 +76,9 @@ frontend/src/
 │   ├── types/                  # Global shared types (ApiError, PaginatedResponse)
 │   └── constants/              # CITIES, GENRES, SEAT_CATEGORIES, ROUTES
 │
-└── design/
-    ├── tokens.ts               # All CSS variables as JS constants
-    └── DesignSystem.tsx        # Component showcase (dev only)
+└── design/                     # Legacy design-system prototype — NOT wired into the live app.
+                                 # Only ThemeContext.tsx is actually imported (by app/providers.tsx);
+                                 # tokens.ts, DesignSystem.tsx, Logo.tsx, and all screens/* are unused dead code.
 ```
 
 ---
@@ -193,27 +198,39 @@ export function LoginForm() {
 ```typescript
 // app/router.tsx
 const HomePage = lazy(() => import('@/features/home/pages/HomePage'));
-const MovieListPage = lazy(() => import('@/features/movies/pages/MovieListPage'));
+const MoviesPage = lazy(() => import('@/features/movies/pages/MoviesPage'));
 const SeatSelectionPage = lazy(() => import('@/features/booking/pages/SeatSelectionPage'));
-const AdminDashboard = lazy(() => import('@/features/admin/pages/AdminDashboard'));
+const AdminDashboardPage = lazy(() => import('@/features/admin/pages/AdminDashboardPage'));
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <PageLayout />,
+    element: <PublicLayout />,
     children: [
       { index: true, element: <Suspense fallback={<PageSkeleton />}><HomePage /></Suspense> },
-      { path: 'movies', element: <Suspense ...><MovieListPage /></Suspense> },
+      { path: 'movies', element: <Suspense ...><MoviesPage /></Suspense> },
       { path: 'booking/:showId/seats', element: <Suspense ...><SeatSelectionPage /></Suspense> },
     ],
   },
   {
     path: '/admin',
-    element: <AdminRoute><AdminLayout /></AdminRoute>,  // AdminRoute checks role claim
-    children: [...],
+    element: <AdminRoute><AdminLayout /></AdminRoute>,     // checks role: 'admin' claim
+    children: [/* movies, events, venues, shows, bookings, users, reports, cms, settings, partners, lys/* */],
+  },
+  {
+    path: '/partner',
+    element: <PartnerRoute><PartnerLayout /></PartnerRoute>, // checks role: 'partner' claim
+    children: [/* dashboard, venues, shows, bookings, reports, reviews, lys-submissions */],
+  },
+  {
+    path: '/lys',
+    element: <LysRoute><LysLayout /></LysRoute>,            // organizer self-serve, own auth guard
+    children: [/* landing, register, create-event, my-events, profile */],
   },
 ]);
 ```
+
+Real guards: `ProtectedRoute` (booking flow — requires any authenticated user), `AdminRoute`, `PartnerRoute`, `LysRoute`. There is no single `PageLayout` wrapping every route — the public site uses `PublicLayout`, and each portal has its own layout component.
 
 ---
 
