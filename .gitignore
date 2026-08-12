@@ -29,6 +29,12 @@ publish/
 .env.production.local
 !.env.example
 
+# Backend secrets — real values must never be committed; use the .example templates
+backend/src/BookKaroo.Api/Properties/launchSettings.json
+!backend/src/BookKaroo.Api/Properties/launchSettings.json.example
+backend/src/BookKaroo.Api/appsettings.Production.json
+!backend/src/BookKaroo.Api/appsettings.Production.json.example
+
 # IDE / Editor
 .vscode/*
 !.vscode/settings.json
