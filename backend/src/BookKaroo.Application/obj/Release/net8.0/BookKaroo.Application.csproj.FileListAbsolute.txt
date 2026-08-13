@@ -1,0 +1,16 @@
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\bin\Release\net8.0\BookKaroo.Application.deps.json
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\bin\Release\net8.0\BookKaroo.Application.dll
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\bin\Release\net8.0\BookKaroo.Application.pdb
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\bin\Release\net8.0\BookKaroo.Domain.dll
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\bin\Release\net8.0\BookKaroo.Domain.pdb
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaroo.Application.csproj.AssemblyReference.cache
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaroo.Application.GeneratedMSBuildEditorConfig.editorconfig
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaroo.Application.AssemblyInfoInputs.cache
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaroo.Application.AssemblyInfo.cs
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaroo.Application.csproj.CoreCompileInputs.cache
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaroo.Application.sourcelink.json
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaro.2DC824EA.Up2Date
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaroo.Application.dll
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\refint\BookKaroo.Application.dll
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\BookKaroo.Application.pdb
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Application\obj\Release\net8.0\ref\BookKaroo.Application.dll

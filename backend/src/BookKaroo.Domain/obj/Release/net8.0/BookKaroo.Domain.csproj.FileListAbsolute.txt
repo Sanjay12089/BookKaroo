@@ -1,0 +1,12 @@
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\bin\Release\net8.0\BookKaroo.Domain.deps.json
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\bin\Release\net8.0\BookKaroo.Domain.dll
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\bin\Release\net8.0\BookKaroo.Domain.pdb
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\BookKaroo.Domain.GeneratedMSBuildEditorConfig.editorconfig
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\BookKaroo.Domain.AssemblyInfoInputs.cache
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\BookKaroo.Domain.AssemblyInfo.cs
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\BookKaroo.Domain.csproj.CoreCompileInputs.cache
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\BookKaroo.Domain.sourcelink.json
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\BookKaroo.Domain.dll
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\refint\BookKaroo.Domain.dll
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\BookKaroo.Domain.pdb
+E:\ClaudeTraining\BookKaroo\BookKaroo\backend\src\BookKaroo.Domain\obj\Release\net8.0\ref\BookKaroo.Domain.dll

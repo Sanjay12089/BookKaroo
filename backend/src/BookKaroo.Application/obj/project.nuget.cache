@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "dgSpecHash": "KTBeFKzTbgE=",
+  "success": true,
+  "projectFilePath": "E:\\ClaudeTraining\\BookKaroo\\BookKaroo\\backend\\src\\BookKaroo.Application\\BookKaroo.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\fluentvalidation\\11.5.1\\fluentvalidation.11.5.1.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\fluentvalidation.aspnetcore\\11.3.0\\fluentvalidation.aspnetcore.11.3.0.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.5.1\\fluentvalidation.dependencyinjectionextensions.11.5.1.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.bcl.memory\\9.0.0\\microsoft.bcl.memory.9.0.0.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\10.0.8\\microsoft.extensions.caching.abstractions.10.0.8.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.0\\microsoft.extensions.dependencyinjection.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.0\\microsoft.extensions.logging.abstractions.8.0.0.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.8\\microsoft.extensions.primitives.10.0.8.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.identitymodel.abstractions\\8.4.0\\microsoft.identitymodel.abstractions.8.4.0.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.identitymodel.jsonwebtokens\\8.4.0\\microsoft.identitymodel.jsonwebtokens.8.4.0.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.identitymodel.logging\\8.4.0\\microsoft.identitymodel.logging.8.4.0.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\microsoft.identitymodel.tokens\\8.4.0\\microsoft.identitymodel.tokens.8.4.0.nupkg.sha512",
+    "C:\\Users\\sanjay.makwana.PRAKASH\\.nuget\\packages\\system.identitymodel.tokens.jwt\\8.4.0\\system.identitymodel.tokens.jwt.8.4.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "BookKaroo.Application depends on Microsoft.IdentityModel.Tokens (>= 8.3.2) but Microsoft.IdentityModel.Tokens 8.3.2 was not found. Microsoft.IdentityModel.Tokens 8.4.0 was resolved instead.",
+      "projectPath": "E:\\ClaudeTraining\\BookKaroo\\BookKaroo\\backend\\src\\BookKaroo.Application\\BookKaroo.Application.csproj",
+      "warningLevel": 1,
+      "filePath": "E:\\ClaudeTraining\\BookKaroo\\BookKaroo\\backend\\src\\BookKaroo.Application\\BookKaroo.Application.csproj",
+      "libraryId": "Microsoft.IdentityModel.Tokens",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1603",
+      "level": "Warning",
+      "message": "BookKaroo.Application depends on System.IdentityModel.Tokens.Jwt (>= 8.3.2) but System.IdentityModel.Tokens.Jwt 8.3.2 was not found. System.IdentityModel.Tokens.Jwt 8.4.0 was resolved instead.",
+      "projectPath": "E:\\ClaudeTraining\\BookKaroo\\BookKaroo\\backend\\src\\BookKaroo.Application\\BookKaroo.Application.csproj",
+      "warningLevel": 1,
+      "filePath": "E:\\ClaudeTraining\\BookKaroo\\BookKaroo\\backend\\src\\BookKaroo.Application\\BookKaroo.Application.csproj",
+      "libraryId": "System.IdentityModel.Tokens.Jwt",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
+}

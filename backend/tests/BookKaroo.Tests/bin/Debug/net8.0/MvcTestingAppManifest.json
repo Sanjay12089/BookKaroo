@@ -1,0 +1,5 @@
+{
+  "BookKaroo.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "E:\\ClaudeTraining\\BookKaroo\\BookKaroo\\backend\\src\\BookKaroo.Application",
+  "BookKaroo.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "E:\\ClaudeTraining\\BookKaroo\\BookKaroo\\backend\\src\\BookKaroo.Domain",
+  "BookKaroo.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "E:\\ClaudeTraining\\BookKaroo\\BookKaroo\\backend\\src\\BookKaroo.Infrastructure"
+}
