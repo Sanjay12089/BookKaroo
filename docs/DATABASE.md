@@ -1,13 +1,21 @@
-# BookKaroo — Database Schema (Patch v2)
+# BookKaroo — Database Schema
 
-> **Patch v2 changes:**
-> - `cities`: added `state_code` (for GST routing)
-> - `users`: added `state_code` (auto-filled from city, used in invoice)
-> - `bookings`: added GST line fields (`taxable_amount`, `cgst`, `sgst`, `igst`, `invoice_number`, `invoice_url`, `customer_state_code`, `payment_method_label`, `mock_transaction_id`)
-> - `payments`: simplified for Mock provider (`provider`, `provider_order_id`, `provider_payment_id` instead of `razorpay_*` columns)
-> - `settings`: documented all keys for company details + GST + fees (see `/docs/COMPANY-DETAILS.md`)
+> ⚠️ **Source-of-truth warning:** this repo has **two schema scripts that don't match reality, and one that's mostly right**:
+> 1. `bookkaroo-db/migrations/001_init.sql` — hand-written, `snake_case` tables (`users`, `bookings`, ...). **Does not match the live schema at all** — do not use this to set up a database. What this doc describes below (kept only as a readable reference for the column-level GST/pricing additions).
+> 2. `backend/database/migrations/001_initial_schema.sql` … `014_AddLysFeature.sql` (14 files) — hand-written but **correctly PascalCase** (`"Users"`, `"Bookings"`, ...), matching the live schema for 26 of its 27 tables. Running all 14 in order against a fresh Postgres database (e.g. via Supabase SQL Editor) reproduces almost the full live schema, including Partner Portal (`013_PartnerPortal.sql`) and LYS (`014_AddLysFeature.sql`) — closer to reality than the EF Core migrations themselves.
+> 3. **EF Core migrations** (`backend/src/BookKaroo.Infrastructure/Data/Migrations/`) — what `dotnet ef database update` applies. Only 21 of the 27 tables the app's `DbContext` expects; missing `LysOrganizers`/`LysEvents`/`LysUploads` (created separately by raw idempotent SQL in `Program.cs` on every boot), `PartnerProfiles`, and `PartnerVenueAccesses`.
+> 4. **`EventTicketLocks`** exists on the live database but has **no creation script anywhere in this repo** — not in any of the above. Anyone provisioning a fresh database needs to add this table manually or write a migration for it before Partner/LYS ticket-locking features will work.
 >
-> All other tables unchanged. Below shows ONLY the changed/new columns and tables.
+> **Until this is fixed**, the most complete path to a working fresh database is: run `backend/database/migrations/001_initial_schema.sql` through `014_AddLysFeature.sql` in order, then manually create `EventTicketLocks` (see `EventTicketLock.cs` in `BookKaroo.Domain/Entities` for the shape). `dotnet ef database update` alone is not sufficient on its own.
+
+## Column Diffs (documented against `bookkaroo-db/migrations/001_init.sql`)
+- `cities`: added `state_code` (for GST routing)
+- `users`: added `state_code` (auto-filled from city, used in invoice)
+- `bookings`: added GST line fields (`taxable_amount`, `cgst`, `sgst`, `igst`, `invoice_number`, `invoice_url`, `customer_state_code`, `payment_method_label`, `mock_transaction_id`)
+- `payments`: simplified for Mock provider (`provider`, `provider_order_id`, `provider_payment_id` instead of `razorpay_*` columns)
+- `settings`: documented all keys for company details + GST + fees (see `/docs/COMPANY-DETAILS.md`)
+
+All other tables unchanged from the base file. Below shows ONLY the changed/new columns and tables.
 
 ## Changed Tables
 
@@ -95,7 +103,7 @@ Backend uploads via `service_role` key. Frontend reads via signed URLs (for invo
 ## Updated GST Calculation in Service Layer
 
 ```csharp
-// TicketVerse.Application/Services/PricingService.cs
+// BookKaroo.Application/Services/PricingService.cs
 public PricingBreakdown Calculate(int qty, decimal seatPrice, string customerStateCode, Coupon? coupon, AppSettings s)
 {
     bool intraState = customerStateCode == s.CompanyStateCode;
@@ -143,6 +151,11 @@ public PricingBreakdown Calculate(int qty, decimal seatPrice, string customerSta
     );
 }
 ```
+
+---
+
+## Open Item: Reconcile Schema Sources
+Not documented here at all: `PartnerProfile`, `PartnerVenueAccess`, `LysOrganizer`, `LysEvent`, `LysUpload`, `EventTicketLock` — all real, live entities (see `backend/src/BookKaroo.Domain/Entities/`) added after this doc was last updated. Whoever picks this up next should: (1) write the missing `EventTicketLocks` migration — it exists live but has no script anywhere, (2) pick **one** schema source going forward — `backend/database/migrations/` is the more complete and correct one today, so either generate a proper EF migration from the current model to replace it, or commit to hand-written SQL as the source of truth and delete the EF migrations folder to stop the two from diverging further, (3) delete or clearly mark `bookkaroo-db/` as defunct since it doesn't match the live schema at all, and (4) regenerate this doc from the real `BookKarooDbContext` model.
 
 ## Maintenance Jobs (unchanged)
 *(see v1 § 6)*

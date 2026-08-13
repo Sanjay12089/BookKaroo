@@ -75,7 +75,7 @@ Until the SVG is finalized (from Claude design tool), use the **wordmark fallbac
 ```
 
 For the PDF invoice, embed an SVG/PNG logo:
-- Path: `backend/src/TicketVerse.Infrastructure/Assets/logo.svg`
+- Path: `backend/src/BookKaroo.Infrastructure/Assets/logo.svg`
 - Fallback: render the wordmark text via QuestPDF text rendering with custom fonts
 
 ## Replacing Placeholders Before Launch
@@ -87,5 +87,5 @@ When you're ready for production:
 3. Update `company_address_line1/2`, `company_city`, `company_pincode`
 4. Verify domain in Resend → switch `RESEND_FROM` from `onboarding@resend.dev` to `tickets@bookkaroo.com`
 5. Update `cancellation_window_hours` and policy text to legal-team-approved version
-6. Insert real signature image at `backend/src/TicketVerse.Infrastructure/Assets/signature.png`
+6. Insert real signature image at `backend/src/BookKaroo.Infrastructure/Assets/signature.png`
 7. Run a test booking → verify invoice PDF + email both reflect real values

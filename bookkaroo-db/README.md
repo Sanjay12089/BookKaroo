@@ -70,21 +70,20 @@ Create these buckets manually in Supabase Dashboard → Storage:
 | Mark past shows completed | `UPDATE shows SET status='completed' WHERE show_datetime < now() AND status='scheduled'` | Every 15 minutes |
 | Sweep expired idempotency keys | `DELETE FROM idempotency_keys WHERE created_at < now() - interval '24 hours'` | Every hour |
 
-These run as Railway cron jobs or Supabase Edge Functions (to be configured in backend scaffold).
+The seat lock sweep is implemented as an in-process background service (`SeatLockSweepService`, `AddHostedService` in `Program.cs`) — no external cron job needed. The others can be added the same way, or as Supabase Edge Functions.
 
-## Test Credentials
+## Test Accounts
 
-| Email | Password | Role |
+Seed 03_users.sql creates one admin and five regular users across different states, for exercising both intra-state (CGST+SGST) and inter-state (IGST) invoice paths. **Do not publish real credentials here or anywhere else in the repo** — set your own local passwords when adapting the seed script for your own Supabase project.
+
+| Email pattern | Role | State |
 |---|---|---|
-| admin@bookkaroo.com | Admin@1234 | admin |
-| sanjay@bookkaroo.com | Test@1234 | user (Ahmedabad, Gujarat) |
-| priya@bookkaroo.com | Test@1234 | user (Mumbai, Maharashtra) |
-| rahul@bookkaroo.com | Test@1234 | user (Delhi-NCR, Delhi) |
-| ayesha@bookkaroo.com | Test@1234 | user (Bangalore, Karnataka) |
-| vikram@bookkaroo.com | Test@1234 | user (Kochi, Kerala) |
-
-> **sanjay** is intra-state (Gujarat = company state) → CGST + SGST on invoices
-> **priya, rahul, ayesha, vikram** are inter-state → IGST on invoices
+| `admin@bookkaroo.com` | admin | Ahmedabad, Gujarat (intra-state) |
+| `sanjay@bookkaroo.com` | user | Ahmedabad, Gujarat (intra-state) |
+| `priya@bookkaroo.com` | user | Mumbai, Maharashtra (inter-state) |
+| `rahul@bookkaroo.com` | user | Delhi-NCR, Delhi (inter-state) |
+| `ayesha@bookkaroo.com` | user | Bangalore, Karnataka (inter-state) |
+| `vikram@bookkaroo.com` | user | Kochi, Kerala (inter-state) |
 
 ## Verify After Running
 
