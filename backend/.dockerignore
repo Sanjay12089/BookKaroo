@@ -11,5 +11,4 @@
 **/*.md
 **/tests
 **/database
-backend.env.example
 HashTool

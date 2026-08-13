@@ -399,7 +399,7 @@ _logger.LogInformation("Booking created " + bookingId + " for user " + userId);
 
 ## Schema Source of Truth
 
-The EF Core migrations under `BookKaroo.Infrastructure/Data/Migrations/` are what the running app actually uses (`PascalCase` tables like `"Users"`, `"Bookings"`). A few newer tables (`LysOrganizers`, `LysEvents`, `LysUploads`) are created via raw `CREATE TABLE IF NOT EXISTS` SQL directly in `Program.cs` at startup rather than a proper EF migration — a known shortcut worth cleaning up. The `bookkaroo-db/` and `backend/database/migrations/` SQL folders are separate, older schema attempts that have drifted out of sync with the real EF model — see the warning at the top of [docs/DATABASE.md](DATABASE.md).
+The live database uses `PascalCase` tables (`"Users"`, `"Bookings"`, ...), but no single script fully reproduces it: the EF Core migrations under `BookKaroo.Infrastructure/Data/Migrations/` only cover 21 of 27 tables; `backend/database/migrations/*.sql` (hand-written, also PascalCase) is actually the more complete source, covering 26 of 27; `LysOrganizers`/`LysEvents`/`LysUploads` are additionally self-created via raw `CREATE TABLE IF NOT EXISTS` SQL in `Program.cs` on every boot; and `EventTicketLocks` has no creation script anywhere despite existing live. `bookkaroo-db/` is a separate, unrelated `snake_case` schema attempt that doesn't match the live database at all — don't use it. Full detail: [docs/DATABASE.md](DATABASE.md).
 
 ---
 
